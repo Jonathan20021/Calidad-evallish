@@ -10,10 +10,10 @@ class Database
     private static $instance = null;
     private $conn;
 
-    private $host = 'localhost';
-    private $user = 'root';
-    private $pass = '';
-    private $dbname = 'Calidad-evallish'; // Check if this matches schema or directory name
+    private $host = '192.185.46.27';
+    private $user = 'hhempeos_calidad';
+    private $pass = 'Evallish.2026';
+    private $dbname = 'hhempeos_calidad';
 
     private function __construct()
     {
