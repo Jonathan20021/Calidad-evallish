@@ -1,13 +1,13 @@
 <?php return array(
     'root' => array(
         'name' => 'evallish/quality-system',
-        'pretty_version' => '1.0.0+no-version-set',
-        'version' => '1.0.0.0',
-        'reference' => null,
+        'pretty_version' => 'dev-main',
+        'version' => 'dev-main',
+        'reference' => '8318d49f146cc3b430eed025296914aaa1255922',
         'type' => 'project',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
-        'dev' => true,
+        'dev' => false,
     ),
     'versions' => array(
         'dompdf/dompdf' => array(
@@ -38,9 +38,9 @@
             'dev_requirement' => false,
         ),
         'evallish/quality-system' => array(
-            'pretty_version' => '1.0.0+no-version-set',
-            'version' => '1.0.0.0',
-            'reference' => null,
+            'pretty_version' => 'dev-main',
+            'version' => 'dev-main',
+            'reference' => '8318d49f146cc3b430eed025296914aaa1255922',
             'type' => 'project',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
