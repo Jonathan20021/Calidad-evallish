@@ -2,6 +2,8 @@
 
 namespace App\Router;
 
+use App\Config\Config;
+
 class Router
 {
     private $routes = [];
@@ -21,13 +23,20 @@ class Router
         $method = $_SERVER['REQUEST_METHOD'];
         $path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 
-        // Calculate base path relative to public/index.php
+        // Calculate base path relative to public/index.php and configured base URL.
         $scriptName = $_SERVER['SCRIPT_NAME']; // e.g., /Calidad-evallish/public/index.php
-        $basePath = str_replace('/public/index.php', '', $scriptName);
+        $scriptBase = str_replace('/public/index.php', '', $scriptName);
+        $configBase = rtrim(Config::BASE_URL, '/');
 
-        // Strip base path from request URI
-        if ($basePath && strpos($path, $basePath) === 0) {
-            $path = substr($path, strlen($basePath));
+        $basePaths = array_filter([$scriptBase, $configBase], function ($candidate) {
+            return $candidate !== '' && $candidate !== '/';
+        });
+
+        foreach ($basePaths as $basePath) {
+            if (strpos($path, $basePath) === 0) {
+                $path = substr($path, strlen($basePath));
+                break;
+            }
         }
 
         if ($path === '')
