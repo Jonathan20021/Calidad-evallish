@@ -1,0 +1,14 @@
+{
+    "name": "evallish/quality-system",
+    "description": "Call Quality Control System for Evallish BPO",
+    "type": "project",
+    "autoload": {
+        "psr-4": {
+            "App\\": "src/"
+        }
+    },
+    "require": {
+        "php": ">=8.0",
+        "dompdf/dompdf": "^3.1"
+    }
+}
