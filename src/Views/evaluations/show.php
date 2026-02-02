@@ -344,6 +344,92 @@
                 </form>
             </div>
 
+            <div class="bg-white shadow-lg rounded-2xl overflow-hidden mt-8">
+                <div class="px-8 py-5 border-b border-gray-100 bg-gray-50">
+                    <h3 class="text-lg font-bold text-gray-800">Historial de feedback</h3>
+                    <p class="text-sm text-gray-500">Se guarda cada actualización realizada por QA.</p>
+                </div>
+                <div class="divide-y divide-gray-100">
+                    <?php if (!empty($feedbackHistory)): ?>
+                        <?php foreach ($feedbackHistory as $item): ?>
+                            <div class="px-8 py-6">
+                                <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
+                                    <div class="text-sm text-gray-600">
+                                        <span class="font-semibold text-gray-800"><?php echo htmlspecialchars($item['qa_name'] ?? 'QA'); ?></span>
+                                        <span class="mx-2">•</span>
+                                        <span><?php echo date('d/m/Y H:i', strtotime($item['created_at'])); ?></span>
+                                    </div>
+                                    <div>
+                                        <?php if (!empty($item['feedback_confirmed'])): ?>
+                                            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800">Feedback confirmado</span>
+                                        <?php else: ?>
+                                            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-800">Pendiente</span>
+                                        <?php endif; ?>
+                                    </div>
+                                </div>
+
+                                <?php if (!empty($item['general_comments'])): ?>
+                                    <div class="mt-4">
+                                        <span class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Comentarios</span>
+                                        <p class="text-sm text-gray-700 whitespace-pre-wrap mt-1"><?php echo htmlspecialchars($item['general_comments']); ?></p>
+                                    </div>
+                                <?php endif; ?>
+
+                                <?php if (!empty($item['action_type']) || !empty($item['improvement_areas']) || !empty($item['improvement_plan']) || !empty($item['tasks_commitments'])): ?>
+                                    <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                                        <div>
+                                            <span class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Tipo de acción</span>
+                                            <p class="text-gray-700 mt-1">
+                                                <?php
+                                                if (!empty($item['action_type'])) {
+                                                    echo $item['action_type'] === 'feedback' ? 'Feedback' : 'Evaluación de llamada';
+                                                } else {
+                                                    echo 'No registrado';
+                                                }
+                                                ?>
+                                            </p>
+                                        </div>
+                                        <div>
+                                            <span class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Áreas de mejora</span>
+                                            <p class="text-gray-700 mt-1 whitespace-pre-wrap"><?php echo htmlspecialchars($item['improvement_areas'] ?? 'No registrado'); ?></p>
+                                        </div>
+                                        <div>
+                                            <span class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Plan de mejora</span>
+                                            <p class="text-gray-700 mt-1 whitespace-pre-wrap"><?php echo htmlspecialchars($item['improvement_plan'] ?? 'No registrado'); ?></p>
+                                        </div>
+                                        <div>
+                                            <span class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Tareas / compromisos</span>
+                                            <p class="text-gray-700 mt-1 whitespace-pre-wrap"><?php echo htmlspecialchars($item['tasks_commitments'] ?? 'No registrado'); ?></p>
+                                        </div>
+                                    </div>
+                                <?php endif; ?>
+
+                                <?php if (!empty($item['feedback_evidence_path']) || !empty($item['feedback_evidence_note'])): ?>
+                                    <div class="mt-4 text-sm">
+                                        <span class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Evidencia</span>
+                                        <div class="mt-1">
+                                            <?php if (!empty($item['feedback_evidence_path'])): ?>
+                                                <?php $feedbackUrl = \App\Config\Config::BASE_URL . ltrim($item['feedback_evidence_path'], '/'); ?>
+                                                <a class="text-indigo-600 hover:text-indigo-800 font-medium" href="<?php echo htmlspecialchars($feedbackUrl); ?>" target="_blank" rel="noopener">
+                                                    <?php echo htmlspecialchars($item['feedback_evidence_name'] ?? 'Ver archivo'); ?>
+                                                </a>
+                                            <?php else: ?>
+                                                <span class="text-gray-500">No adjunta</span>
+                                            <?php endif; ?>
+                                        </div>
+                                        <?php if (!empty($item['feedback_evidence_note'])): ?>
+                                            <p class="text-gray-700 whitespace-pre-wrap mt-2"><?php echo htmlspecialchars($item['feedback_evidence_note']); ?></p>
+                                        <?php endif; ?>
+                                    </div>
+                                <?php endif; ?>
+                            </div>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <div class="px-8 py-6 text-sm text-gray-500">Aún no hay registros de feedback.</div>
+                    <?php endif; ?>
+                </div>
+            </div>
+
             <!-- General Feedback -->
             <?php if (!empty($evaluation['general_comments'])): ?>
                 <div class="bg-white shadow-lg rounded-2xl overflow-hidden mt-8">

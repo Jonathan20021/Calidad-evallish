@@ -164,6 +164,26 @@ CREATE TABLE IF NOT EXISTS evaluation_answers (
     FOREIGN KEY (field_id) REFERENCES form_fields(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Evaluation feedback history (auditable feedback updates)
+CREATE TABLE IF NOT EXISTS evaluation_feedback_history (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    evaluation_id INT NOT NULL,
+    qa_id INT NOT NULL,
+    general_comments TEXT,
+    action_type ENUM('feedback', 'call_evaluation') NULL,
+    improvement_areas TEXT NULL,
+    improvement_plan TEXT NULL,
+    tasks_commitments TEXT NULL,
+    feedback_confirmed TINYINT(1) DEFAULT 0,
+    feedback_confirmed_at DATETIME NULL,
+    feedback_evidence_path VARCHAR(255) NULL,
+    feedback_evidence_name VARCHAR(255) NULL,
+    feedback_evidence_note TEXT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (evaluation_id) REFERENCES evaluations(id) ON DELETE CASCADE,
+    FOREIGN KEY (qa_id) REFERENCES users(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- Call AI analytics (AI quality insights per call)
 CREATE TABLE IF NOT EXISTS call_ai_analytics (
     id INT AUTO_INCREMENT PRIMARY KEY,

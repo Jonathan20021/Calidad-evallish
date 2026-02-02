@@ -10,6 +10,7 @@ use App\Models\FormTemplate;
 use App\Models\FormField;
 use App\Models\User;
 use App\Models\Call;
+use App\Models\EvaluationFeedback;
 
 use Dompdf\Dompdf;
 use Dompdf\Options;
@@ -39,6 +40,7 @@ class EvaluationController
 
         $evaluationModel = new Evaluation();
         $answerModel = new EvaluationAnswer();
+        $feedbackModel = new EvaluationFeedback();
 
         $evaluation = $evaluationModel->findById($id);
         if ($evaluation) {
@@ -50,6 +52,7 @@ class EvaluationController
 
         // Fetch answers with field details
         $answers = $answerModel->getByEvaluationId($id);
+        $feedbackHistory = $feedbackModel->getByEvaluationId($id);
 
         require __DIR__ . '/../Views/evaluations/show.php';
     }
@@ -710,6 +713,7 @@ class EvaluationController
         }
 
         $evaluationModel = new Evaluation();
+        $feedbackHistoryModel = new EvaluationFeedback();
         $evaluation = $evaluationModel->findById($evaluationId);
         if (!$evaluation) {
             header('Location: ' . \App\Config\Config::BASE_URL . 'evaluations');
@@ -756,6 +760,21 @@ class EvaluationController
         }
 
         $evaluationModel->updateFeedback($evaluationId, [
+            'general_comments' => $generalComments,
+            'action_type' => $actionType,
+            'improvement_areas' => $improvementAreas,
+            'improvement_plan' => $improvementPlan,
+            'tasks_commitments' => $tasksCommitments,
+            'feedback_confirmed' => $feedbackConfirmed,
+            'feedback_confirmed_at' => $feedbackConfirmed ? date('Y-m-d H:i:s') : null,
+            'feedback_evidence_path' => $feedbackEvidencePath,
+            'feedback_evidence_name' => $feedbackEvidenceName,
+            'feedback_evidence_note' => $feedbackEvidenceNote
+        ]);
+
+        $feedbackHistoryModel->create([
+            'evaluation_id' => $evaluationId,
+            'qa_id' => Auth::user()['id'],
             'general_comments' => $generalComments,
             'action_type' => $actionType,
             'improvement_areas' => $improvementAreas,
