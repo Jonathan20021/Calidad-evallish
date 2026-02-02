@@ -208,6 +208,32 @@
                             <?php echo date('d/m/Y H:i', strtotime($evaluation['created_at'])); ?>
                         </td>
                     </tr>
+                    <tr>
+                        <td class="meta-label">DuraciÃ³n llamada</td>
+                        <td class="meta-value">
+                            <?php echo htmlspecialchars($evaluation['call_duration_formatted'] ?? '--:--'); ?>
+                        </td>
+                    </tr>
+                    <?php if (!empty($evaluation['feedback_confirmed']) || !empty($evaluation['feedback_evidence_path']) || !empty($evaluation['feedback_evidence_note'])): ?>
+                    <tr>
+                        <td class="meta-label">Feedback</td>
+                        <td class="meta-value">
+                            <?php echo !empty($evaluation['feedback_confirmed']) ? 'Realizado' : 'Pendiente'; ?>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="meta-label">Evidencia</td>
+                        <td class="meta-value">
+                            <?php echo !empty($evaluation['feedback_evidence_name']) ? htmlspecialchars($evaluation['feedback_evidence_name']) : 'No adjunta'; ?>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="meta-label">Nota</td>
+                        <td class="meta-value">
+                            <?php echo !empty($evaluation['feedback_evidence_note']) ? htmlspecialchars($evaluation['feedback_evidence_note']) : 'Sin nota'; ?>
+                        </td>
+                    </tr>
+                    <?php endif; ?>
                 </table>
             </td>
             <td width="5%"></td>
@@ -235,6 +261,10 @@
         </thead>
         <tbody>
             <?php foreach ($answers as $answer): ?>
+                <?php $maxScore = isset($answer['max_score']) ? (float) $answer['max_score'] : 100.0; ?>
+                <?php if ($maxScore <= 0): ?>
+                    <?php $maxScore = 100.0; ?>
+                <?php endif; ?>
                 <tr>
                     <td>
                         <div class="item-label">
@@ -252,7 +282,7 @@
                     </td>
                     <td>
                         <?php if ($answer['field_type'] === 'score'): ?>
-                            <?php echo number_format($answer['score_given'], 0); ?> / 100
+                            <?php echo number_format($answer['score_given'], 0); ?> / <?php echo number_format($maxScore, 0); ?>
                         <?php else: ?>
                             -
                         <?php endif; ?>
@@ -277,6 +307,31 @@
         </tbody>
     </table>
 
+    <?php
+    $actionTypeLabel = '';
+    if (!empty($evaluation['action_type'])) {
+        $actionTypeLabel = $evaluation['action_type'] === 'feedback' ? 'Feedback' : 'EvaluaciÃ³n de llamada';
+    }
+    $hasActionDetails = !empty($evaluation['action_type']) || !empty($evaluation['improvement_areas']) || !empty($evaluation['improvement_plan']) || !empty($evaluation['tasks_commitments']);
+    ?>
+    <?php if ($hasActionDetails): ?>
+        <div class="items-header">AcciÃ³n y plan de mejora</div>
+        <div style="padding: 10px; background: #f9fafb; border: 1px solid #eee; margin-bottom: 20px;">
+            <p><strong>Tipo de acciÃ³n:</strong>
+                <?php echo !empty($actionTypeLabel) ? $actionTypeLabel : 'No registrado'; ?>
+            </p>
+            <p><strong>Ãreas de mejora:</strong><br>
+                <?php echo !empty($evaluation['improvement_areas']) ? nl2br(htmlspecialchars($evaluation['improvement_areas'])) : 'No registrado'; ?>
+            </p>
+            <p><strong>Plan de mejora sugerido:</strong><br>
+                <?php echo !empty($evaluation['improvement_plan']) ? nl2br(htmlspecialchars($evaluation['improvement_plan'])) : 'No registrado'; ?>
+            </p>
+            <p><strong>Tareas / compromisos:</strong><br>
+                <?php echo !empty($evaluation['tasks_commitments']) ? nl2br(htmlspecialchars($evaluation['tasks_commitments'])) : 'No registrado'; ?>
+            </p>
+        </div>
+    <?php endif; ?>
+
     <div class="items-header">Comentarios Generales</div>
     <div style="padding: 10px; background: #f9fafb; border: 1px solid #eee;">
         <?php echo !empty($evaluation['general_comments']) ? nl2br(htmlspecialchars($evaluation['general_comments'])) : 'Sin comentarios generales.'; ?>
@@ -290,3 +345,11 @@
 </body>
 
 </html>
+
+
+
+
+
+
+
+

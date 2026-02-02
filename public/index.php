@@ -20,6 +20,7 @@ use App\Controllers\CorporateClientController;
 use App\Controllers\ClientPortalController;
 use App\Controllers\UserController;
 use App\Controllers\TrainingController;
+use App\Controllers\AiCriteriaController;
 
 Config::init();
 
@@ -69,6 +70,12 @@ $router->get('/reports/export-pdf', [\App\Controllers\ReportController::class, '
 
 // Settings
 $router->get('/settings', [\App\Controllers\SettingsController::class, 'index']);
+
+// AI Criteria (Admin)
+$router->get('/ai-criteria', [AiCriteriaController::class, 'index']);
+$router->get('/ai-criteria/edit', [AiCriteriaController::class, 'edit']);
+$router->post('/ai-criteria/store', [AiCriteriaController::class, 'store']);
+$router->post('/ai-criteria/toggle', [AiCriteriaController::class, 'toggle']);
 
 // Users (Admin)
 $router->get('/users', [UserController::class, 'index']);

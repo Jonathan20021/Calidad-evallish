@@ -83,10 +83,52 @@
                     <div>
                         <span class="text-xs font-semibold text-gray-500 uppercase tracking-wide block mb-1">Duración
                             Llamada</span>
-                        <span class="text-gray-900 font-medium tracking-wide">--:--</span>
+                        <span class="text-gray-900 font-medium tracking-wide">
+                            <?php echo htmlspecialchars($evaluation['call_duration_formatted'] ?? '--:--'); ?>
+                        </span>
                     </div>
                 </div>
-            </div>
+            
+            <?php if (!empty($evaluation['feedback_confirmed']) || !empty($evaluation['feedback_evidence_path']) || !empty($evaluation['feedback_evidence_note'])): ?>
+                <div class="bg-white shadow-lg rounded-2xl overflow-hidden mb-8">
+                    <div class="px-8 py-5 border-b border-gray-100 bg-gray-50">
+                        <h3 class="text-lg font-bold text-gray-800">Feedback confirmado</h3>
+                    </div>
+                    <div class="px-8 py-6 grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div>
+                            <span class="text-xs font-semibold text-gray-500 uppercase tracking-wide block mb-1">Estado</span>
+                            <?php if (!empty($evaluation['feedback_confirmed'])): ?>
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-green-100 text-green-800">Realizado</span>
+                            <?php else: ?>
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-yellow-100 text-yellow-800">Pendiente</span>
+                            <?php endif; ?>
+                            <?php if (!empty($evaluation['feedback_confirmed_at'])): ?>
+                                <div class="text-xs text-gray-500 mt-2">
+                                    <?php echo date('d/m/Y H:i', strtotime($evaluation['feedback_confirmed_at'])); ?>
+                                </div>
+                            <?php endif; ?>
+                        </div>
+                        <div>
+                            <span class="text-xs font-semibold text-gray-500 uppercase tracking-wide block mb-1">Evidencia</span>
+                            <?php if (!empty($evaluation['feedback_evidence_url'])): ?>
+                                <a class="text-indigo-600 hover:text-indigo-800 font-medium" href="<?php echo htmlspecialchars($evaluation['feedback_evidence_url']); ?>" target="_blank" rel="noopener">
+                                    <?php echo htmlspecialchars($evaluation['feedback_evidence_name'] ?? 'Ver archivo'); ?>
+                                </a>
+                            <?php else: ?>
+                                <span class="text-gray-500 text-sm">No adjunta</span>
+                            <?php endif; ?>
+                        </div>
+                        <div>
+                            <span class="text-xs font-semibold text-gray-500 uppercase tracking-wide block mb-1">Nota</span>
+                            <?php if (!empty($evaluation['feedback_evidence_note'])): ?>
+                                <p class="text-sm text-gray-700 whitespace-pre-wrap"><?php echo htmlspecialchars($evaluation['feedback_evidence_note']); ?></p>
+                            <?php else: ?>
+                                <span class="text-gray-500 text-sm">Sin nota</span>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                </div>
+            <?php endif; ?></div>
 
             <!-- Scorecard Details -->
             <div class="bg-white shadow-xl rounded-2xl overflow-hidden">
@@ -97,6 +139,10 @@
 
                 <div class="divide-y divide-gray-100">
                     <?php foreach ($answers as $answer): ?>
+                        <?php $maxScore = isset($answer['max_score']) ? (float) $answer['max_score'] : 100.0; ?>
+                        <?php if ($maxScore <= 0): ?>
+                            <?php $maxScore = 100.0; ?>
+                        <?php endif; ?>
                         <div class="px-8 py-6 hover:bg-gray-50 transition duration-150 relative group">
                             <div class="flex justify-between items-start">
                                 <div class="flex-1">
@@ -141,7 +187,7 @@
                                         <span
                                             class="text-2xl font-bold <?php echo $answer['score_given'] >= 80 ? 'text-green-600' : 'text-orange-600'; ?>">
                                             <?php echo number_format($answer['score_given'], 0); ?>
-                                            <span class="text-sm text-gray-400 font-normal">/ 100</span>
+                                            <span class="text-sm text-gray-400 font-normal">/ <?php echo number_format($maxScore, 0); ?></span>
                                         </span>
                                     <?php elseif ($answer['field_type'] === 'select'): ?>
                                         <span
@@ -155,6 +201,55 @@
                     <?php endforeach; ?>
                 </div>
             </div>
+
+            <?php
+            $actionTypeLabel = '';
+            if (!empty($evaluation['action_type'])) {
+                $actionTypeLabel = $evaluation['action_type'] === 'feedback' ? 'Feedback' : 'EvaluaciÃ³n de llamada';
+            }
+            $hasActionDetails = !empty($evaluation['action_type']) || !empty($evaluation['improvement_areas']) || !empty($evaluation['improvement_plan']) || !empty($evaluation['tasks_commitments']);
+            ?>
+            <?php if ($hasActionDetails): ?>
+                <div class="bg-white shadow-lg rounded-2xl overflow-hidden mt-8">
+                    <div class="px-8 py-5 border-b border-gray-100 bg-gray-50">
+                        <h3 class="text-lg font-bold text-gray-800">AcciÃ³n y plan de mejora</h3>
+                    </div>
+                    <div class="px-8 py-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <span class="text-xs font-semibold text-gray-500 uppercase tracking-wide block mb-1">Tipo de acciÃ³n</span>
+                            <?php if (!empty($actionTypeLabel)): ?>
+                                <span class="text-gray-900 font-medium"><?php echo $actionTypeLabel; ?></span>
+                            <?php else: ?>
+                                <span class="text-gray-500 text-sm">No registrado</span>
+                            <?php endif; ?>
+                        </div>
+                        <div class="md:col-span-2">
+                            <span class="text-xs font-semibold text-gray-500 uppercase tracking-wide block mb-1">Ãreas de mejora</span>
+                            <?php if (!empty($evaluation['improvement_areas'])): ?>
+                                <p class="text-sm text-gray-700 whitespace-pre-wrap"><?php echo htmlspecialchars($evaluation['improvement_areas']); ?></p>
+                            <?php else: ?>
+                                <span class="text-gray-500 text-sm">No registrado</span>
+                            <?php endif; ?>
+                        </div>
+                        <div class="md:col-span-2">
+                            <span class="text-xs font-semibold text-gray-500 uppercase tracking-wide block mb-1">Plan de mejora sugerido</span>
+                            <?php if (!empty($evaluation['improvement_plan'])): ?>
+                                <p class="text-sm text-gray-700 whitespace-pre-wrap"><?php echo htmlspecialchars($evaluation['improvement_plan']); ?></p>
+                            <?php else: ?>
+                                <span class="text-gray-500 text-sm">No registrado</span>
+                            <?php endif; ?>
+                        </div>
+                        <div class="md:col-span-2">
+                            <span class="text-xs font-semibold text-gray-500 uppercase tracking-wide block mb-1">Tareas / compromisos</span>
+                            <?php if (!empty($evaluation['tasks_commitments'])): ?>
+                                <p class="text-sm text-gray-700 whitespace-pre-wrap"><?php echo htmlspecialchars($evaluation['tasks_commitments']); ?></p>
+                            <?php else: ?>
+                                <span class="text-gray-500 text-sm">No registrado</span>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                </div>
+            <?php endif; ?>
 
             <!-- General Feedback -->
             <?php if (!empty($evaluation['general_comments'])): ?>
@@ -174,3 +269,4 @@
     </main>
 </div>
 <?php require __DIR__ . '/../layouts/footer.php'; ?>
+

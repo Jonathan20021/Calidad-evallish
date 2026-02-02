@@ -155,6 +155,12 @@
                         class="field-weight block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                         value="1" min="0" step="0.1">
                 </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Puntaje mÃ¡ximo</label>
+                    <input type="number"
+                        class="field-max-score block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                        value="100" min="1" step="1">
+                </div>
             </div>
         </div>
     </template>
@@ -175,6 +181,7 @@
                     item.querySelector('.field-label').value = data.label;
                     item.querySelector('.field-type').value = data.field_type;
                     item.querySelector('.field-weight').value = data.weight;
+                    item.querySelector('.field-max-score').value = data.max_score ?? 100;
                     if (data.field_type === 'select') {
                         item.querySelector('.options-container').style.display = 'block';
                         item.querySelector('.field-options').value = data.options;
@@ -204,7 +211,7 @@
                         type: item.querySelector('.field-type').value,
                         weight: item.querySelector('.field-weight').value,
                         options: item.querySelector('.field-options').value,
-                        max_score: 100
+                        max_score: item.querySelector('.field-max-score').value
                     });
                 });
                 document.getElementById('itemsJson').value = JSON.stringify(items);

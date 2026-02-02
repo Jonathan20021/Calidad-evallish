@@ -13,6 +13,9 @@ class GeminiService
     {
         $this->apiKey = Config::GEMINI_API_KEY;
         $this->model = Config::GEMINI_MODEL;
+        if (trim($this->apiKey) === '') {
+            throw new \RuntimeException('GEMINI_API_KEY no configurada.');
+        }
     }
 
     public function analyzeCallAudio(string $filePath, array $context = []): array
@@ -33,6 +36,8 @@ class GeminiService
                 'overall_score' => null,
                 'summary' => $text,
                 'sentiment' => 'desconocido',
+                'punto_de_vista' => 'desconocido',
+                'analisis' => 'desconocido',
                 'agent_strengths' => [],
                 'agent_opportunities' => [],
                 'compliance' => [],
@@ -127,6 +132,7 @@ class GeminiService
             'Analiza la llamada para control de calidad.',
             'Devuelve SOLO JSON valido con las claves:',
             'overall_score (0-100), summary, sentiment (positivo|neutral|negativo),',
+            'punto_de_vista, analisis,',
             'agent_strengths (array), agent_opportunities (array),',
             'compliance (obj con saludo, identificacion, verificacion, escucha_activa, empatia, cierre, politica),',
             'critical_issues (array), coaching_tips (array), call_tags (array), next_best_actions (array).',
@@ -140,6 +146,12 @@ class GeminiService
         if (!empty($context['campaign'])) {
             $meta[] = 'Campana: ' . $context['campaign'];
         }
+        if (!empty($context['project'])) {
+            $meta[] = 'Proyecto: ' . $context['project'];
+        }
+        if (!empty($context['call_type'])) {
+            $meta[] = 'Tipo de llamada: ' . $context['call_type'];
+        }
         if (!empty($context['duration'])) {
             $meta[] = 'Duracion: ' . $context['duration'];
         }
@@ -152,6 +164,10 @@ class GeminiService
 
         if (!empty($meta)) {
             $lines[] = 'Contexto: ' . implode(' | ', $meta);
+        }
+        if (!empty($context['criteria'])) {
+            $lines[] = 'Criterios de evaluacion aplicables:';
+            $lines[] = $context['criteria'];
         }
 
         return implode("\n", $lines);
@@ -406,6 +422,18 @@ class GeminiService
         $response = $this->postJsonWithRetry($url, $payload, [
             'x-goog-api-key: ' . $this->apiKey
         ]);
+
+        if ($response['status'] >= 300 && $responseMimeType) {
+            unset($payload['generationConfig']['response_mime_type']);
+            $retry = $this->postJsonWithRetry($url, $payload, [
+                'x-goog-api-key: ' . $this->apiKey
+            ]);
+            if ($retry['status'] < 300) {
+                $response = $retry;
+            } else {
+                $response = $retry;
+            }
+        }
 
         if ($response['status'] >= 300) {
             if ($response['status'] === 503) {

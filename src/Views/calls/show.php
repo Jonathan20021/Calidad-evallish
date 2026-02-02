@@ -66,9 +66,21 @@
                                     </span>
                                 </div>
                                 <div>
+                                    <span class="text-sm text-gray-500 block">Proyecto</span>
+                                    <span class="font-medium text-gray-900">
+                                        <?php echo htmlspecialchars($call['project'] ?? ''); ?>
+                                    </span>
+                                </div>
+                                <div>
                                     <span class="text-sm text-gray-500 block">Campa√±a</span>
                                     <span class="font-medium text-gray-900">
                                         <?php echo htmlspecialchars($call['campaign']); ?>
+                                    </span>
+                                </div>
+                                <div>
+                                    <span class="text-sm text-gray-500 block">Tipo de llamada</span>
+                                    <span class="font-medium text-gray-900">
+                                        <?php echo htmlspecialchars($call['call_type'] ?? ''); ?>
                                     </span>
                                 </div>
                                 <div>
@@ -146,6 +158,21 @@
                                 <div class="text-sm text-gray-500 mb-2">Resumen</div>
                                 <div class="text-sm text-gray-800">
                                     <span id="ai-analytics-summary-text"><?php echo htmlspecialchars($aiAnalytics['summary'] ?? 'Sin resumen disponible.'); ?></span>
+                                </div>
+                            </div>
+
+                            <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div class="bg-white border border-gray-100 rounded-xl p-4">
+                                    <div class="text-sm text-gray-500 mb-2">Punto de vista</div>
+                                    <div class="text-sm text-gray-800">
+                                        <span id="ai-analytics-point"><?php echo htmlspecialchars($aiAnalytics['punto_de_vista'] ?? 'Sin punto de vista disponible.'); ?></span>
+                                    </div>
+                                </div>
+                                <div class="bg-white border border-gray-100 rounded-xl p-4">
+                                    <div class="text-sm text-gray-500 mb-2">An·lisis</div>
+                                    <div class="text-sm text-gray-800">
+                                        <span id="ai-analytics-analysis"><?php echo htmlspecialchars($aiAnalytics['analisis'] ?? 'Sin an·lisis disponible.'); ?></span>
+                                    </div>
                                 </div>
                             </div>
 
@@ -311,9 +338,13 @@
                     var scoreEl = document.getElementById('ai-analytics-score');
                     var sentimentEl = document.getElementById('ai-analytics-sentiment');
                     var summaryEl = document.getElementById('ai-analytics-summary-text');
+                    var pointEl = document.getElementById('ai-analytics-point');
+                    var analysisEl = document.getElementById('ai-analytics-analysis');
                     if (scoreEl) scoreEl.textContent = (data.overall_score ?? 'N/A');
                     if (sentimentEl) sentimentEl.textContent = (data.sentiment ?? 'desconocido');
                     if (summaryEl) summaryEl.textContent = (data.summary ?? 'Sin resumen disponible.');
+                    if (pointEl) pointEl.textContent = (data.punto_de_vista ?? 'Sin punto de vista disponible.');
+                    if (analysisEl) analysisEl.textContent = (data.analisis ?? 'Sin an·lisis disponible.');
 
                     renderList('ai-analytics-strengths', 'ai-analytics-strengths-empty', data.agent_strengths);
                     renderList('ai-analytics-opportunities', 'ai-analytics-opportunities-empty', data.agent_opportunities);
@@ -412,3 +443,7 @@
     })();
 </script>
 <?php require __DIR__ . '/../layouts/footer.php'; ?>
+
+
+
+

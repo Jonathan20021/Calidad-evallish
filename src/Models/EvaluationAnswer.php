@@ -20,7 +20,8 @@ class EvaluationAnswer
             SELECT ea.*, 
                    ff.label as field_label, 
                    ff.weight as field_weight,
-                   ff.field_type
+                   ff.field_type,
+                   ff.max_score
             FROM evaluation_answers ea
             JOIN form_fields ff ON ea.field_id = ff.id
             WHERE ea.evaluation_id = ?

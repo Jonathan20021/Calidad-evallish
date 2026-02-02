@@ -44,6 +44,11 @@
                 'url' => 'clients',
                 'icon' => '<path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>'
             ]]);
+            array_splice($menuItems, 7, 0, [[
+                'label' => 'Criterios IA',
+                'url' => 'ai-criteria',
+                'icon' => '<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/><path d="M5 9h4"/><path d="M5 13h3"/>'
+            ]]);
         }
 
         foreach ($menuItems as $item):

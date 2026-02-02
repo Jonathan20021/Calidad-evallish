@@ -12,16 +12,19 @@ class Call
     public function __construct()
     {
         $this->db = Database::getInstance()->getConnection();
+        $this->ensureColumns();
     }
 
     public function getAll($limit = 50)
     {
         $stmt = $this->db->prepare("
             SELECT c.*,
+                   cc.name as project_name,
                    u.full_name as agent_name,
                    camp.name as campaign_name,
                    e.id as evaluation_id
             FROM calls c
+            LEFT JOIN corporate_clients cc ON c.project_id = cc.id
             JOIN users u ON c.agent_id = u.id
             JOIN campaigns camp ON c.campaign_id = camp.id
             LEFT JOIN evaluations e ON e.call_id = c.id
@@ -37,10 +40,12 @@ class Call
     {
         $stmt = $this->db->prepare("
             SELECT c.*,
+                   cc.name as project_name,
                    u.full_name as agent_name,
                    camp.name as campaign_name,
                    e.id as evaluation_id
             FROM calls c
+            LEFT JOIN corporate_clients cc ON c.project_id = cc.id
             JOIN users u ON c.agent_id = u.id
             JOIN campaigns camp ON c.campaign_id = camp.id
             LEFT JOIN evaluations e ON e.call_id = c.id
@@ -53,12 +58,14 @@ class Call
     public function create($data)
     {
         $stmt = $this->db->prepare("
-            INSERT INTO calls (agent_id, campaign_id, call_datetime, duration_seconds, customer_phone, notes, recording_path)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO calls (agent_id, project_id, campaign_id, call_type, call_datetime, duration_seconds, customer_phone, notes, recording_path)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         ");
         return $stmt->execute([
             $data['agent_id'],
+            $data['project_id'] ?? null,
             $data['campaign_id'],
+            $data['call_type'] ?? null,
             $data['call_datetime'],
             $data['duration_seconds'],
             $data['customer_phone'],
@@ -81,12 +88,14 @@ class Call
         $placeholders = implode(',', array_fill(0, count($campaignIds), '?'));
         $stmt = $this->db->prepare("
             SELECT c.*,
+                   cc.name as project_name,
                    u.full_name as agent_name,
                    camp.name as campaign_name,
                    e.percentage as evaluation_percentage,
                    ai.score as ai_score,
                    ai.summary as ai_summary
             FROM calls c
+            LEFT JOIN corporate_clients cc ON c.project_id = cc.id
             JOIN users u ON c.agent_id = u.id
             JOIN campaigns camp ON c.campaign_id = camp.id
             LEFT JOIN evaluations e ON e.call_id = c.id
@@ -133,5 +142,20 @@ class Call
         $stmt->execute($campaignIds);
         $value = $stmt->fetchColumn();
         return $value !== null ? (float) $value : null;
+    }
+
+    private function ensureColumns(): void
+    {
+        $this->ensureColumnExists('project_id', 'INT NULL');
+        $this->ensureColumnExists('call_type', 'VARCHAR(80) NULL');
+    }
+
+    private function ensureColumnExists(string $column, string $definition): void
+    {
+        $stmt = $this->db->prepare("SHOW COLUMNS FROM calls LIKE ?");
+        $stmt->execute([$column]);
+        if (!$stmt->fetch()) {
+            $this->db->exec("ALTER TABLE calls ADD COLUMN $column $definition");
+        }
     }
 }

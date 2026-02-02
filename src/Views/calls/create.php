@@ -8,7 +8,7 @@
             <div class="bg-white shadow-2xl rounded-2xl overflow-hidden">
                 <div class="px-6 py-6 border-b border-gray-100 bg-gray-50">
                     <h2 class="text-2xl font-bold text-gray-900">Subir Llamada</h2>
-                    <p class="mt-1 text-sm text-gray-500">Registre la llamada y cargue la grabaciÃ³n.</p>
+                    <p class="mt-1 text-sm text-gray-500">Registre la llamada y cargue la grabación.</p>
                 </div>
 
                 <form action="<?php echo \App\Config\Config::BASE_URL; ?>calls/store" method="POST"
@@ -24,7 +24,7 @@
                         </div>
                     <?php endif; ?>
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
                         <div>
                             <label for="agent_id" class="block text-sm font-medium text-gray-700">Agente</label>
                             <select name="agent_id" id="agent_id" required
@@ -39,10 +39,23 @@
                         </div>
 
                         <div>
-                            <label for="campaign_id" class="block text-sm font-medium text-gray-700">CampaÃ±a</label>
+                            <label for="project_id" class="block text-sm font-medium text-gray-700">Proyecto</label>
+                            <select name="project_id" id="project_id"
+                                class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-3 px-4 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                                <option value="">Seleccione un Proyecto...</option>
+                                <?php foreach ($projects as $project): ?>
+                                    <option value="<?php echo $project['id']; ?>" <?php echo ($old['project_id'] == $project['id']) ? 'selected' : ''; ?>>
+                                        <?php echo htmlspecialchars($project['name']); ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label for="campaign_id" class="block text-sm font-medium text-gray-700">Campaña</label>
                             <select name="campaign_id" id="campaign_id" required
                                 class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-3 px-4 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-                                <option value="">Seleccione una CampaÃ±a...</option>
+                                <option value="">Seleccione una Campaña...</option>
                                 <?php foreach ($campaigns as $campaign): ?>
                                     <option value="<?php echo $campaign['id']; ?>" <?php echo ($old['campaign_id'] == $campaign['id']) ? 'selected' : ''; ?>>
                                         <?php echo htmlspecialchars($campaign['name']); ?>
@@ -52,7 +65,14 @@
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                        <div>
+                            <label for="call_type" class="block text-sm font-medium text-gray-700">Tipo de llamada</label>
+                            <input type="text" name="call_type" id="call_type"
+                                value="<?php echo htmlspecialchars($old['call_type']); ?>"
+                                class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-3 px-4 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                placeholder="Ej: Ventas, Soporte, Retención">
+                        </div>
                         <div>
                             <label for="call_datetime" class="block text-sm font-medium text-gray-700">Fecha y hora</label>
                             <input type="datetime-local" name="call_datetime" id="call_datetime" required
@@ -60,7 +80,7 @@
                                 class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-3 px-4 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                         </div>
                         <div>
-                            <label for="duration_seconds" class="block text-sm font-medium text-gray-700">DuraciÃ³n (segundos)</label>
+                            <label for="duration_seconds" class="block text-sm font-medium text-gray-700">Duración (segundos)</label>
                             <input type="number" name="duration_seconds" id="duration_seconds" min="0"
                                 value="<?php echo htmlspecialchars($old['duration_seconds']); ?>"
                                 class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-3 px-4 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
@@ -70,14 +90,14 @@
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                         <div>
-                            <label for="customer_phone" class="block text-sm font-medium text-gray-700">TelÃ©fono del cliente</label>
+                            <label for="customer_phone" class="block text-sm font-medium text-gray-700">Teléfono del cliente</label>
                             <input type="text" name="customer_phone" id="customer_phone"
                                 value="<?php echo htmlspecialchars($old['customer_phone']); ?>"
                                 class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-3 px-4 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                                 placeholder="Ej: +1 555 000 0000">
                         </div>
                         <div>
-                            <label for="recording" class="block text-sm font-medium text-gray-700">GrabaciÃ³n (audio)</label>
+                            <label for="recording" class="block text-sm font-medium text-gray-700">Grabación (audio)</label>
                             <input type="file" name="recording" id="recording" accept="audio/*" required
                                 class="mt-1 block w-full text-sm text-gray-700">
                             <p class="mt-1 text-xs text-gray-500">Se permite cualquier formato de audio.</p>

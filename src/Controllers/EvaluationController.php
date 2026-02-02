@@ -16,6 +16,16 @@ use Dompdf\Options;
 
 class EvaluationController
 {
+    private function formatDuration($seconds): ?string
+    {
+        if ($seconds === null || $seconds === '') {
+            return null;
+        }
+        $seconds = (int) $seconds;
+        $minutes = floor($seconds / 60);
+        $remaining = $seconds % 60;
+        return str_pad((string) $minutes, 2, '0', STR_PAD_LEFT) . ':' . str_pad((string) $remaining, 2, '0', STR_PAD_LEFT);
+    }
 
     public function show()
     {
@@ -31,6 +41,12 @@ class EvaluationController
         $answerModel = new EvaluationAnswer();
 
         $evaluation = $evaluationModel->findById($id);
+        if ($evaluation) {
+            $evaluation['call_duration_formatted'] = $this->formatDuration($evaluation['call_duration'] ?? null);
+            if (!empty($evaluation['feedback_evidence_path'])) {
+                $evaluation['feedback_evidence_url'] = \App\Config\Config::BASE_URL . ltrim($evaluation['feedback_evidence_path'], '/');
+            }
+        }
 
         // Fetch answers with field details
         $answers = $answerModel->getByEvaluationId($id);
@@ -52,6 +68,12 @@ class EvaluationController
         $answerModel = new EvaluationAnswer();
 
         $evaluation = $evaluationModel->findById($id);
+        if ($evaluation) {
+            $evaluation['call_duration_formatted'] = $this->formatDuration($evaluation['call_duration'] ?? null);
+            if (!empty($evaluation['feedback_evidence_path'])) {
+                $evaluation['feedback_evidence_url'] = \App\Config\Config::BASE_URL . ltrim($evaluation['feedback_evidence_path'], '/');
+            }
+        }
         $answers = $answerModel->getByEvaluationId($id);
 
         // buffer the output
@@ -99,6 +121,7 @@ class EvaluationController
         $selectedTemplateId = $_GET['form_template_id'] ?? null;
         $callId = $_GET['call_id'] ?? null;
         $lockedCall = null;
+        $recordingUrl = null;
         $templates = [];
         $formFields = [];
         $template = null;
@@ -109,6 +132,9 @@ class EvaluationController
             if ($lockedCall) {
                 $selectedCampaignId = $lockedCall['campaign_id'];
                 $selectedAgentId = $lockedCall['agent_id'];
+                if (!empty($lockedCall['recording_path'])) {
+                    $recordingUrl = \App\Config\Config::BASE_URL . ltrim($lockedCall['recording_path'], '/');
+                }
             }
         }
 
@@ -144,6 +170,14 @@ class EvaluationController
         $answers = $_POST['answers'] ?? [];
         $fieldComments = $_POST['field_comments'] ?? [];
         $generalComments = $_POST['general_comments'] ?? '';
+        $actionType = $_POST['action_type'] ?? null;
+        $improvementAreas = $_POST['improvement_areas'] ?? '';
+        $improvementPlan = $_POST['improvement_plan'] ?? '';
+        $tasksCommitments = $_POST['tasks_commitments'] ?? '';
+        $feedbackConfirmed = isset($_POST['feedback_confirmed']) ? 1 : 0;
+        $feedbackEvidenceNote = $_POST['feedback_evidence_note'] ?? '';
+        $feedbackEvidencePath = null;
+        $feedbackEvidenceName = null;
 
         $callDate = null;
         $callDuration = null;
@@ -190,13 +224,62 @@ class EvaluationController
                 // But fieldsMap has 'weight'.
 
                 $weight = (float) $field['weight'];
-                $totalScore += ((float) $score * $weight);
-                $maxPossibleScore += (100 * $weight);
+                $maxScore = isset($field['max_score']) ? (float) $field['max_score'] : 100.0;
+                if ($maxScore <= 0) {
+                    $maxScore = 100.0;
+                }
+                $scoreValue = (float) $score;
+                if ($scoreValue < 0) {
+                    $scoreValue = 0.0;
+                } elseif ($scoreValue > $maxScore) {
+                    $scoreValue = $maxScore;
+                }
+                $totalScore += ($scoreValue * $weight);
+                $maxPossibleScore += ($maxScore * $weight);
             }
         }
 
         // Percentage
         $percentage = ($maxPossibleScore > 0) ? ($totalScore / $maxPossibleScore) * 100 : 0;
+
+        if (isset($_FILES['feedback_evidence']) && $_FILES['feedback_evidence']['error'] !== UPLOAD_ERR_NO_FILE) {
+            if ($_FILES['feedback_evidence']['error'] !== UPLOAD_ERR_OK) {
+                $errors[] = 'No se pudo subir la evidencia de feedback.';
+            } else {
+                $file = $_FILES['feedback_evidence'];
+                $maxBytes = 50 * 1024 * 1024;
+                if ($file['size'] > $maxBytes) {
+                    $errors[] = 'La evidencia supera el tamaño permitido (50MB).';
+                } else {
+                    $extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+                    if ($extension === '') {
+                        $extension = 'bin';
+                    }
+                    $uploadDir = __DIR__ . '/../../public/uploads/feedback';
+                    if (!is_dir($uploadDir)) {
+                        mkdir($uploadDir, 0755, true);
+                    }
+                    try {
+                        $random = bin2hex(random_bytes(6));
+                    } catch (\Exception $e) {
+                        $random = uniqid();
+                    }
+                    $filename = 'feedback_' . date('Ymd_His') . '_' . $random . '.' . $extension;
+                    $targetPath = $uploadDir . '/' . $filename;
+                    if (!move_uploaded_file($file['tmp_name'], $targetPath)) {
+                        $errors[] = 'No se pudo guardar la evidencia.';
+                    } else {
+                        $feedbackEvidencePath = 'uploads/feedback/' . $filename;
+                        $feedbackEvidenceName = $file['name'];
+                    }
+                }
+            }
+        }
+
+        if (!empty($errors)) {
+            require __DIR__ . '/../Views/evaluations/create.php';
+            return;
+        }
 
         // Save Evaluation
         $evaluationModel = new Evaluation();
@@ -211,7 +294,16 @@ class EvaluationController
             'total_score' => $totalScore,
             'max_possible_score' => $maxPossibleScore,
             'percentage' => $percentage,
-            'general_comments' => $generalComments
+            'general_comments' => $generalComments,
+            'action_type' => $actionType,
+            'improvement_areas' => $improvementAreas,
+            'improvement_plan' => $improvementPlan,
+            'tasks_commitments' => $tasksCommitments,
+            'feedback_confirmed' => $feedbackConfirmed,
+            'feedback_confirmed_at' => $feedbackConfirmed ? date('Y-m-d H:i:s') : null,
+            'feedback_evidence_path' => $feedbackEvidencePath,
+            'feedback_evidence_name' => $feedbackEvidenceName,
+            'feedback_evidence_note' => $feedbackEvidenceNote
         ]);
 
         $evaluationId = $evaluationModel->getLastInsertId();
@@ -230,3 +322,4 @@ class EvaluationController
         header('Location: ' . \App\Config\Config::BASE_URL . 'evaluations');
     }
 }
+

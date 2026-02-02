@@ -7,6 +7,8 @@ use App\Models\Call;
 use App\Models\CallAnalytics;
 use App\Models\User;
 use App\Models\Campaign;
+use App\Models\CorporateClient;
+use App\Models\AiEvaluationCriteria;
 use App\Services\GeminiService;
 
 class CallController
@@ -31,6 +33,7 @@ class CallController
 
         foreach ($calls as &$call) {
             $call['agent'] = $call['agent_name'];
+            $call['project'] = $call['project_name'] ?? null;
             $call['campaign'] = $call['campaign_name'];
             $call['date'] = date('d/m/Y H:i', strtotime($call['call_datetime']));
             $call['duration'] = $this->formatDuration($call['duration_seconds']);
@@ -47,13 +50,17 @@ class CallController
 
         $campaignModel = new Campaign();
         $userModel = new User();
+        $clientModel = new CorporateClient();
 
         $campaigns = $campaignModel->getActive();
         $agents = $userModel->getByRole('agent');
+        $projects = $clientModel->getAll();
         $errors = [];
         $old = [
             'agent_id' => $_GET['agent_id'] ?? '',
+            'project_id' => $_GET['project_id'] ?? '',
             'campaign_id' => $_GET['campaign_id'] ?? '',
+            'call_type' => $_GET['call_type'] ?? '',
             'call_datetime' => $_GET['call_datetime'] ?? '',
             'duration_seconds' => $_GET['duration_seconds'] ?? '',
             'customer_phone' => $_GET['customer_phone'] ?? '',
@@ -72,13 +79,17 @@ class CallController
 
         $campaignModel = new Campaign();
         $userModel = new User();
+        $clientModel = new CorporateClient();
         $campaigns = $campaignModel->getActive();
         $agents = $userModel->getByRole('agent');
+        $projects = $clientModel->getAll();
 
         $errors = [];
         $old = [
             'agent_id' => $_POST['agent_id'] ?? '',
+            'project_id' => $_POST['project_id'] ?? '',
             'campaign_id' => $_POST['campaign_id'] ?? '',
+            'call_type' => $_POST['call_type'] ?? '',
             'call_datetime' => $_POST['call_datetime'] ?? '',
             'duration_seconds' => $_POST['duration_seconds'] ?? '',
             'customer_phone' => $_POST['customer_phone'] ?? '',
@@ -150,7 +161,9 @@ class CallController
         $callModel = new Call();
         $callModel->create([
             'agent_id' => $old['agent_id'],
+            'project_id' => $old['project_id'] !== '' ? (int) $old['project_id'] : null,
             'campaign_id' => $old['campaign_id'],
+            'call_type' => $old['call_type'] !== '' ? $old['call_type'] : null,
             'call_datetime' => $callDateTime,
             'duration_seconds' => $durationSeconds,
             'customer_phone' => $old['customer_phone'],
@@ -179,6 +192,7 @@ class CallController
         }
 
         $call['agent'] = $call['agent_name'];
+        $call['project'] = $call['project_name'] ?? null;
         $call['campaign'] = $call['campaign_name'];
         $call['date'] = date('d/m/Y H:i', strtotime($call['call_datetime']));
         $call['duration'] = $this->formatDuration($call['duration_seconds']);
@@ -208,6 +222,7 @@ class CallController
         }
 
         $call['agent'] = $call['agent_name'];
+        $call['project'] = $call['project_name'] ?? null;
         $call['campaign'] = $call['campaign_name'];
         $call['date'] = date('d/m/Y H:i', strtotime($call['call_datetime']));
         $call['duration'] = $this->formatDuration($call['duration_seconds']);
@@ -246,12 +261,21 @@ class CallController
                 try {
                     $audioPath = __DIR__ . '/../../public/' . ltrim($call['recording_path'], '/');
                     $service = new GeminiService();
+                    $criteriaModel = new AiEvaluationCriteria();
+                    $criteria = $this->formatCriteria($criteriaModel->getMatching(
+                        $call['project_id'] ?? null,
+                        $call['campaign_id'] ?? null,
+                        $call['call_type'] ?? null
+                    ));
                     $result = $service->analyzeCallAudio($audioPath, [
                         'agent' => $call['agent'] ?? '',
+                        'project' => $call['project'] ?? '',
                         'campaign' => $call['campaign'] ?? '',
+                        'call_type' => $call['call_type'] ?? '',
                         'duration' => $call['duration'] ?? '',
                         'date' => $call['date'] ?? '',
-                        'notes' => $call['notes'] ?? ''
+                        'notes' => $call['notes'] ?? '',
+                        'criteria' => $criteria
                     ]);
 
                     $metricsJson = json_encode($result['data'], JSON_UNESCAPED_UNICODE);
@@ -282,6 +306,31 @@ class CallController
         }
 
         return [$aiAnalytics, $aiAnalyticsError];
+    }
+
+    private function formatCriteria(array $rows): string
+    {
+        if (empty($rows)) {
+            return '';
+        }
+
+        $lines = [];
+        foreach ($rows as $row) {
+            $scope = [];
+            if (!empty($row['project_name'])) {
+                $scope[] = 'Proyecto: ' . $row['project_name'];
+            }
+            if (!empty($row['campaign_name'])) {
+                $scope[] = 'Campaña: ' . $row['campaign_name'];
+            }
+            if (!empty($row['call_type'])) {
+                $scope[] = 'Tipo: ' . $row['call_type'];
+            }
+            $prefix = !empty($scope) ? ('[' . implode(' | ', $scope) . '] ') : '';
+            $lines[] = $prefix . trim($row['criteria_text']);
+        }
+
+        return implode("\n", $lines);
     }
 
     private function jsonResponse(array $payload, int $status = 200): void

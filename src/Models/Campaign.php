@@ -55,6 +55,11 @@ class Campaign
         ]);
     }
 
+    public function getLastInsertId()
+    {
+        return $this->db->lastInsertId();
+    }
+
     public function update($id, $data)
     {
         $stmt = $this->db->prepare("UPDATE campaigns SET name = ?, description = ?, active = ? WHERE id = ?");

@@ -92,7 +92,9 @@ CREATE TABLE IF NOT EXISTS client_portal_settings (
 CREATE TABLE IF NOT EXISTS calls (
     id INT AUTO_INCREMENT PRIMARY KEY,
     agent_id INT NOT NULL,
+    project_id INT NULL,
     campaign_id INT NOT NULL,
+    call_type VARCHAR(80) NULL,
     call_datetime DATETIME NOT NULL,
     duration_seconds INT COMMENT 'Duration in seconds',
     customer_phone VARCHAR(30),
@@ -101,6 +103,7 @@ CREATE TABLE IF NOT EXISTS calls (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (agent_id) REFERENCES users(id),
+    FOREIGN KEY (project_id) REFERENCES corporate_clients(id) ON DELETE SET NULL,
     FOREIGN KEY (campaign_id) REFERENCES campaigns(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -118,6 +121,15 @@ CREATE TABLE IF NOT EXISTS evaluations (
     max_possible_score DECIMAL(5,2),
     percentage DECIMAL(5,2),
     general_comments TEXT,
+    action_type ENUM('feedback', 'call_evaluation') NULL,
+    improvement_areas TEXT NULL,
+    improvement_plan TEXT NULL,
+    tasks_commitments TEXT NULL,
+    feedback_confirmed TINYINT(1) DEFAULT 0,
+    feedback_confirmed_at DATETIME NULL,
+    feedback_evidence_path VARCHAR(255) NULL,
+    feedback_evidence_name VARCHAR(255) NULL,
+    feedback_evidence_note TEXT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (call_id) REFERENCES calls(id) ON DELETE SET NULL,
     FOREIGN KEY (agent_id) REFERENCES users(id),
@@ -151,6 +163,20 @@ CREATE TABLE IF NOT EXISTS call_ai_analytics (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     UNIQUE KEY uniq_call_model (call_id, model),
     FOREIGN KEY (call_id) REFERENCES calls(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- AI evaluation criteria (per project/campaign/call type)
+CREATE TABLE IF NOT EXISTS ai_evaluation_criteria (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    project_id INT NULL,
+    campaign_id INT NULL,
+    call_type VARCHAR(80) NULL,
+    criteria_text TEXT NOT NULL,
+    active TINYINT(1) DEFAULT 1,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (project_id) REFERENCES corporate_clients(id) ON DELETE SET NULL,
+    FOREIGN KEY (campaign_id) REFERENCES campaigns(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Training scripts (AI roleplay sources)

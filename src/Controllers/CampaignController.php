@@ -41,7 +41,11 @@ class CampaignController
             'description' => $description,
             'active' => 1
         ]);
-
+        $campaignId = $campaignModel->getLastInsertId();
+        if ($campaignId) {
+            header('Location: ' . \App\Config\Config::BASE_URL . 'form-templates/create?campaign_id=' . $campaignId);
+            return;
+        }
         header('Location: ' . \App\Config\Config::BASE_URL . 'campaigns');
     }
 
