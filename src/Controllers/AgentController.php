@@ -4,6 +4,7 @@ namespace App\Controllers;
 
 use App\Helpers\Auth;
 use App\Models\PoncheUser;
+use App\Models\User;
 use App\Models\Campaign;
 
 class AgentController
@@ -72,6 +73,11 @@ class AgentController
             'is_active' => $active
         ]);
 
+        $poncheUser = $userModel->findByUsernameAny($username);
+        if ($poncheUser) {
+            (new User())->syncFromPoncheUser($poncheUser);
+        }
+
         header('Location: ' . \App\Config\Config::BASE_URL . 'agents');
     }
 
@@ -129,6 +135,11 @@ class AgentController
             $userModel->updatePassword($id, $password);
         }
 
+        $poncheUser = $userModel->findById($id);
+        if ($poncheUser) {
+            (new User())->syncFromPoncheUser($poncheUser);
+        }
+
         header('Location: ' . \App\Config\Config::BASE_URL . 'agents');
     }
 
@@ -146,6 +157,11 @@ class AgentController
 
         $userModel = new PoncheUser();
         $userModel->setActive($id, $active);
+
+        $poncheUser = $userModel->findById($id);
+        if ($poncheUser) {
+            (new User())->syncFromPoncheUser($poncheUser);
+        }
 
         header('Location: ' . \App\Config\Config::BASE_URL . 'agents');
     }

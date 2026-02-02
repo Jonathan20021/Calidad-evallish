@@ -3,7 +3,7 @@
 namespace App\Models;
 
 use App\Config\Database;
-use App\Models\PoncheUser;
+use App\Models\User;
 use PDO;
 
 class Evaluation
@@ -126,7 +126,7 @@ class Evaluation
         if (!$row) {
             return $row;
         }
-        $users = (new PoncheUser())->getMapByIds([$row['agent_id']]);
+        $users = (new User())->getMapByIds([$row['agent_id']]);
         $row['full_name'] = $users[(int) $row['agent_id']]['full_name'] ?? ('Agente #' . $row['agent_id']);
         return $row;
     }
@@ -213,7 +213,7 @@ class Evaluation
         if (!$row) {
             return $row;
         }
-        $users = (new PoncheUser())->getMapByIds([$row['agent_id']]);
+        $users = (new User())->getMapByIds([$row['agent_id']]);
         $row['full_name'] = $users[(int) $row['agent_id']]['full_name'] ?? ('Agente #' . $row['agent_id']);
         return $row;
     }
@@ -246,7 +246,7 @@ class Evaluation
             return $rows;
         }
         $ids = array_column($rows, 'agent_id');
-        $users = (new PoncheUser())->getMapByIds($ids);
+        $users = (new User())->getMapByIds($ids);
         foreach ($rows as &$row) {
             $row['full_name'] = $users[(int) $row['agent_id']]['full_name'] ?? ('Agente #' . $row['agent_id']);
         }
@@ -327,7 +327,7 @@ class Evaluation
             return $rows;
         }
         $ids = array_column($rows, 'agent_id');
-        $users = (new PoncheUser())->getMapByIds($ids);
+        $users = (new User())->getMapByIds($ids);
         foreach ($rows as &$row) {
             $row['agent_name'] = $users[(int) $row['agent_id']]['full_name'] ?? ('Agente #' . $row['agent_id']);
         }
@@ -359,9 +359,9 @@ class Evaluation
             }
         }
 
-        $poncheUser = new PoncheUser();
-        $agentMap = $poncheUser->getMapByIds($agentIds);
-        $qaMap = $poncheUser->getMapByIds($qaIds);
+        $userModel = new User();
+        $agentMap = $userModel->getMapByIds($agentIds);
+        $qaMap = $userModel->getMapByIds($qaIds);
 
         foreach ($rows as &$row) {
             $agentId = (int) ($row['agent_id'] ?? 0);

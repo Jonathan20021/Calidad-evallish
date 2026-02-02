@@ -42,8 +42,14 @@ class AuthController
         $poncheUser = $poncheUserModel->findByUsername($username);
         if ($poncheUser && $poncheUserModel->verifyPassword($password, $poncheUser['password'])) {
             $role = strtolower($poncheUser['role'] ?? '');
-            if ($role === 'qa') {
-                Auth::login($poncheUserModel->toSessionUser($poncheUser));
+            if ($role !== 'agent') {
+                $localId = $userModel->syncFromPoncheUser($poncheUser);
+                $localUser = $userModel->findById($localId);
+                if ($localUser) {
+                    Auth::login($localUser);
+                } else {
+                    Auth::login($poncheUserModel->toSessionUser($poncheUser));
+                }
                 header('Location: ' . Config::BASE_URL . 'dashboard');
                 exit;
             }

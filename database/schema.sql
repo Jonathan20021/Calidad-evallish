@@ -21,9 +21,12 @@ CREATE TABLE IF NOT EXISTS users (
     role ENUM('admin', 'qa', 'agent', 'client') NOT NULL DEFAULT 'agent',
     client_id INT NULL,
     active TINYINT(1) DEFAULT 1,
+    source ENUM('quality', 'ponche') NOT NULL DEFAULT 'quality',
+    external_id INT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (client_id) REFERENCES corporate_clients(id) ON DELETE SET NULL
+    FOREIGN KEY (client_id) REFERENCES corporate_clients(id) ON DELETE SET NULL,
+    UNIQUE KEY uidx_users_source_external (source, external_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- QA permissions (configurable from UI)

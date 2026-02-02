@@ -3,7 +3,7 @@
 namespace App\Models;
 
 use App\Config\Database;
-use App\Models\PoncheUser;
+use App\Models\User;
 use PDO;
 
 class TrainingRoleplayCoachNote
@@ -45,7 +45,7 @@ class TrainingRoleplayCoachNote
             return $rows;
         }
         $ids = array_column($rows, 'qa_id');
-        $map = (new PoncheUser())->getMapByIds($ids);
+        $map = (new User())->getMapByIds($ids);
         foreach ($rows as &$row) {
             $qaId = (int) ($row['qa_id'] ?? 0);
             $row['qa_name'] = $map[$qaId]['full_name'] ?? ('QA #' . $qaId);

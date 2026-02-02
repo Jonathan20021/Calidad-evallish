@@ -4,7 +4,7 @@ namespace App\Controllers;
 
 use App\Helpers\Auth;
 use App\Config\Database;
-use App\Models\PoncheUser;
+use App\Models\User;
 use Dompdf\Dompdf;
 use Dompdf\Options;
 
@@ -209,7 +209,7 @@ class ReportController
         }
         $agentIds = array_column($rows, 'agent_id');
         $qaIds = array_column($rows, 'qa_id');
-        $map = (new PoncheUser())->getMapByIds(array_merge($agentIds, $qaIds));
+        $map = (new User())->getMapByIds(array_merge($agentIds, $qaIds));
         foreach ($rows as &$row) {
             $agentId = (int) ($row['agent_id'] ?? 0);
             $qaId = (int) ($row['qa_id'] ?? 0);
@@ -226,7 +226,7 @@ class ReportController
             return $rows;
         }
         $ids = array_column($rows, 'agent_id');
-        $map = (new PoncheUser())->getMapByIds($ids);
+        $map = (new User())->getMapByIds($ids);
         foreach ($rows as &$row) {
             $agentId = (int) ($row['agent_id'] ?? 0);
             $row['agent_name'] = $map[$agentId]['full_name'] ?? ('Agente #' . $agentId);
@@ -241,7 +241,7 @@ class ReportController
             return $rows;
         }
         $ids = array_column($rows, 'qa_id');
-        $map = (new PoncheUser())->getMapByIds($ids);
+        $map = (new User())->getMapByIds($ids);
         foreach ($rows as &$row) {
             $qaId = (int) ($row['qa_id'] ?? 0);
             $row['qa_name'] = $map[$qaId]['full_name'] ?? ('QA #' . $qaId);

@@ -8,7 +8,7 @@
             <div class="bg-white shadow-2xl rounded-2xl overflow-hidden">
                 <div class="px-6 py-6 border-b border-gray-100 bg-gray-50">
                     <h2 class="text-2xl font-bold text-gray-900">Subir Llamada</h2>
-                    <p class="mt-1 text-sm text-gray-500">Registre la llamada y cargue la grabaci髇.</p>
+                    <p class="mt-1 text-sm text-gray-500">Registre la llamada y cargue la grabaci贸n.</p>
                 </div>
 
                 <form action="<?php echo \App\Config\Config::BASE_URL; ?>calls/store" method="POST"
@@ -49,13 +49,16 @@
                                     </option>
                                 <?php endforeach; ?>
                             </select>
+                            <p class="mt-2 text-xs text-gray-500">
+                                驴No ves tu proyecto? <a class="text-indigo-600 hover:text-indigo-700" href="<?php echo \App\Config\Config::BASE_URL; ?>clients/create">Crea un cliente corporativo</a>.
+                            </p>
                         </div>
 
                         <div>
-                            <label for="campaign_id" class="block text-sm font-medium text-gray-700">Campa馻</label>
+                            <label for="campaign_id" class="block text-sm font-medium text-gray-700">Campa帽a</label>
                             <select name="campaign_id" id="campaign_id" required
                                 class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-3 px-4 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-                                <option value="">Seleccione una Campa馻...</option>
+                                <option value="">Seleccione una Campa锟絘...</option>
                                 <?php foreach ($campaigns as $campaign): ?>
                                     <option value="<?php echo $campaign['id']; ?>" <?php echo ($old['campaign_id'] == $campaign['id']) ? 'selected' : ''; ?>>
                                         <?php echo htmlspecialchars($campaign['name']); ?>
@@ -71,7 +74,7 @@
                             <input type="text" name="call_type" id="call_type"
                                 value="<?php echo htmlspecialchars($old['call_type']); ?>"
                                 class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-3 px-4 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                                placeholder="Ej: Ventas, Soporte, Retenci髇">
+                                placeholder="Ej: Ventas, Soporte, Retenci贸n">
                         </div>
                         <div>
                             <label for="call_datetime" class="block text-sm font-medium text-gray-700">Fecha y hora</label>
@@ -80,7 +83,7 @@
                                 class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-3 px-4 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                         </div>
                         <div>
-                            <label for="duration_seconds" class="block text-sm font-medium text-gray-700">Duraci髇 (segundos)</label>
+                            <label for="duration_seconds" class="block text-sm font-medium text-gray-700">Duraci贸n (segundos)</label>
                             <input type="number" name="duration_seconds" id="duration_seconds" min="0"
                                 value="<?php echo htmlspecialchars($old['duration_seconds']); ?>"
                                 class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-3 px-4 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
@@ -90,14 +93,14 @@
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                         <div>
-                            <label for="customer_phone" class="block text-sm font-medium text-gray-700">Tel閒ono del cliente</label>
+                            <label for="customer_phone" class="block text-sm font-medium text-gray-700">Tel茅fono del cliente</label>
                             <input type="text" name="customer_phone" id="customer_phone"
                                 value="<?php echo htmlspecialchars($old['customer_phone']); ?>"
                                 class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-3 px-4 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                                 placeholder="Ej: +1 555 000 0000">
                         </div>
                         <div>
-                            <label for="recording" class="block text-sm font-medium text-gray-700">Grabaci髇 (audio)</label>
+                            <label for="recording" class="block text-sm font-medium text-gray-700">Grabaci贸n (audio)</label>
                             <input type="file" name="recording" id="recording" accept="audio/*" required
                                 class="mt-1 block w-full text-sm text-gray-700">
                             <p class="mt-1 text-xs text-gray-500">Se permite cualquier formato de audio.</p>

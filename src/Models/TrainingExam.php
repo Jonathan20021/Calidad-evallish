@@ -3,7 +3,7 @@
 namespace App\Models;
 
 use App\Config\Database;
-use App\Models\PoncheUser;
+use App\Models\User;
 use PDO;
 
 class TrainingExam
@@ -174,8 +174,8 @@ class TrainingExam
             return $row;
         }
 
-        $poncheUser = new PoncheUser();
-        $map = $poncheUser->getMapByIds([(int) ($row['agent_id'] ?? 0), (int) ($row['qa_id'] ?? 0)]);
+        $userModel = new User();
+        $map = $userModel->getMapByIds([(int) ($row['agent_id'] ?? 0), (int) ($row['qa_id'] ?? 0)]);
 
         $agentId = (int) ($row['agent_id'] ?? 0);
         $qaId = (int) ($row['qa_id'] ?? 0);
@@ -199,7 +199,7 @@ class TrainingExam
                 $ids[] = (int) $row['qa_id'];
             }
         }
-        $map = (new PoncheUser())->getMapByIds($ids);
+        $map = (new User())->getMapByIds($ids);
 
         foreach ($rows as &$row) {
             $agentId = (int) ($row['agent_id'] ?? 0);

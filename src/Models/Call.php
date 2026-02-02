@@ -3,7 +3,7 @@
 namespace App\Models;
 
 use App\Config\Database;
-use App\Models\PoncheUser;
+use App\Models\User;
 use PDO;
 
 class Call
@@ -171,8 +171,8 @@ class Call
             return $row['agent_id'] ?? null;
         }, $rows);
 
-        $poncheUser = new PoncheUser();
-        $map = $poncheUser->getMapByIds($agentIds);
+        $userModel = new User();
+        $map = $userModel->getMapByIds($agentIds);
 
         foreach ($rows as &$row) {
             $agentId = (int) ($row['agent_id'] ?? 0);

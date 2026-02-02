@@ -3,6 +3,7 @@
 namespace App\Helpers;
 
 use App\Models\QaPermission;
+use App\Models\User;
 
 class Auth
 {
@@ -35,6 +36,8 @@ class Auth
             header('Location: ' . \App\Config\Config::BASE_URL . 'login');
             exit;
         }
+
+        self::syncPoncheUsersIfNeeded();
 
         if ((self::user()['role'] ?? '') === 'client') {
             header('Location: ' . \App\Config\Config::BASE_URL . 'client-portal');
@@ -110,5 +113,22 @@ class Auth
             self::$qaPermissionsCache = $model->get();
         }
         return self::$qaPermissionsCache;
+    }
+
+    private static function syncPoncheUsersIfNeeded(): void
+    {
+        $lastSync = $_SESSION['ponche_sync_at'] ?? 0;
+        $now = time();
+        if ($now - (int) $lastSync < 300) {
+            return;
+        }
+
+        try {
+            $userModel = new User();
+            $userModel->syncPoncheUsersByRoles(['agent', 'qa'], false);
+            $_SESSION['ponche_sync_at'] = $now;
+        } catch (\Throwable $e) {
+            return;
+        }
     }
 }
