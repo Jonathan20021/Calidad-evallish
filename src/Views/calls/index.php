@@ -9,7 +9,7 @@
             <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 flex justify-between items-center">
                 <div>
                     <h1 class="text-2xl font-bold text-gray-900">Registro de Llamadas</h1>
-                    <p class="mt-1 text-sm text-gray-500">Historial de llamadas recientes y estado de evaluación</p>
+                    <p class="mt-1 text-sm text-gray-500">Historial de llamadas recientes y estado de evaluaciÃ³n</p>
                 </div>
                 <div class="flex items-center space-x-4">
                     <a href="<?php echo \App\Config\Config::BASE_URL; ?>calls/create"
@@ -58,7 +58,7 @@
                                     Proyecto</th>
                                 <th
                                     class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Campaña</th>
+                                    CampaÃ±a</th>
                                 <th
                                     class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     Tipo</th>
@@ -67,7 +67,7 @@
                                     Fecha / Hora</th>
                                 <th
                                     class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Duración</th>
+                                    DuraciÃ³n</th>
                                 <th
                                     class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     Estado</th>
@@ -137,6 +137,14 @@
                                         <?php endif; ?>
                                         <a href="<?php echo \App\Config\Config::BASE_URL; ?>calls/show?id=<?php echo $call['id']; ?>"
                                             class="text-indigo-600 hover:text-indigo-900">Ver Detalle</a>
+                                        <form action="<?php echo \App\Config\Config::BASE_URL; ?>calls/delete" method="POST" class="inline">
+                                            <input type="hidden" name="id" value="<?php echo $call['id']; ?>">
+                                            <button type="submit"
+                                                class="ml-3 text-red-600 hover:text-red-900"
+                                                onclick="return confirm('Â¿Eliminar esta llamada?');">
+                                                Eliminar
+                                            </button>
+                                        </form>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>

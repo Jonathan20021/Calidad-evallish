@@ -205,6 +205,35 @@ class CallController
         require __DIR__ . '/../Views/calls/show.php';
     }
 
+    public function destroy()
+    {
+        Auth::requireAuth();
+
+        $id = $_POST['id'] ?? null;
+        if (!$id) {
+            header('Location: ' . \App\Config\Config::BASE_URL . 'calls');
+            exit;
+        }
+
+        $callModel = new Call();
+        $call = $callModel->findById($id);
+        if (!$call) {
+            header('Location: ' . \App\Config\Config::BASE_URL . 'calls');
+            exit;
+        }
+
+        $callModel->deleteById($id);
+
+        if (!empty($call['recording_path'])) {
+            $recordingFile = __DIR__ . '/../../public/' . $call['recording_path'];
+            if (is_file($recordingFile)) {
+                @unlink($recordingFile);
+            }
+        }
+
+        header('Location: ' . \App\Config\Config::BASE_URL . 'calls');
+    }
+
     public function analyze()
     {
         Auth::requireAuth();

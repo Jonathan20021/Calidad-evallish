@@ -82,6 +82,12 @@ class Call
         return $this->db->lastInsertId();
     }
 
+    public function deleteById($id): bool
+    {
+        $stmt = $this->db->prepare("DELETE FROM calls WHERE id = ?");
+        return $stmt->execute([(int) $id]);
+    }
+
     public function getByCampaignIds(array $campaignIds, $limit = 50): array
     {
         if (empty($campaignIds)) {

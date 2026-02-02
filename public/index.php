@@ -54,6 +54,7 @@ $router->get('/calls/create', [\App\Controllers\CallController::class, 'create']
 $router->post('/calls/store', [\App\Controllers\CallController::class, 'store']);
 $router->get('/calls/show', [\App\Controllers\CallController::class, 'show']);
 $router->get('/calls/analyze', [\App\Controllers\CallController::class, 'analyze']);
+$router->post('/calls/delete', [\App\Controllers\CallController::class, 'destroy']);
 
 // Form Templates
 $router->get('/form-templates', [\App\Controllers\FormTemplateController::class, 'index']);
