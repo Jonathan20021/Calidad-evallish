@@ -10,6 +10,7 @@ use App\Models\PoncheUser;
 class UserController
 {
     private const ROLES = ['admin', 'client'];
+    private const FILTER_ROLES = ['admin', 'client', 'qa', 'agent'];
 
     public function index()
     {
@@ -20,7 +21,7 @@ class UserController
             'status' => $_GET['status'] ?? '',
             'q' => trim($_GET['q'] ?? '')
         ];
-        if ($filters['role'] !== '' && !in_array($filters['role'], self::ROLES, true)) {
+        if ($filters['role'] !== '' && !in_array($filters['role'], self::FILTER_ROLES, true)) {
             $filters['role'] = '';
         }
 
@@ -100,7 +101,7 @@ class UserController
 
     public function edit()
     {
-        Auth::requirePermission('users.view');
+        Auth::requirePermission('users.create');
 
         $id = $_GET['id'] ?? null;
         if (!$id) {
@@ -123,7 +124,7 @@ class UserController
 
     public function update()
     {
-        Auth::requirePermission('users.view');
+        Auth::requirePermission('users.create');
 
         $id = $_POST['id'] ?? null;
         if (!$id) {
@@ -187,7 +188,7 @@ class UserController
 
     public function toggle()
     {
-        Auth::requirePermission('users.view');
+        Auth::requirePermission('users.create');
 
         $id = $_POST['id'] ?? null;
         $active = isset($_POST['active']) ? (int) $_POST['active'] : null;

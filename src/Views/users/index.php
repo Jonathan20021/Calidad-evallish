@@ -10,13 +10,15 @@
                     <h1 class="text-2xl font-bold text-gray-900">Usuarios</h1>
                     <p class="mt-1 text-sm text-gray-500">Gestiona usuarios, roles y estado</p>
                 </div>
-                <a href="<?php echo \App\Config\Config::BASE_URL; ?>users/create"
-                    class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg shadow-sm transition duration-200 flex items-center">
-                    <svg class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                    </svg>
-                    Nuevo Usuario
-                </a>
+                <?php if (\App\Helpers\Auth::hasPermission('users.create')): ?>
+                    <a href="<?php echo \App\Config\Config::BASE_URL; ?>users/create"
+                        class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg shadow-sm transition duration-200 flex items-center">
+                        <svg class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                        </svg>
+                        Nuevo Usuario
+                    </a>
+                <?php endif; ?>
             </div>
         </header>
 
@@ -41,6 +43,8 @@
                             class="mt-1 block w-full bg-white border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
                             <option value="">Todos</option>
                             <option value="admin" <?php echo ($filters['role'] ?? '') === 'admin' ? 'selected' : ''; ?>>Admin</option>
+                            <option value="qa" <?php echo ($filters['role'] ?? '') === 'qa' ? 'selected' : ''; ?>>QA</option>
+                            <option value="agent" <?php echo ($filters['role'] ?? '') === 'agent' ? 'selected' : ''; ?>>Agente</option>
                             <option value="client" <?php echo ($filters['role'] ?? '') === 'client' ? 'selected' : ''; ?>>Cliente</option>
                         </select>
                     </div>
@@ -81,6 +85,7 @@
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Usuario</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rol</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cliente</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Origen</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
                                 <th class="relative px-6 py-3"><span class="sr-only">Acciones</span></th>
                             </tr>
@@ -88,7 +93,7 @@
                         <tbody class="bg-white divide-y divide-gray-200">
                             <?php if (empty($users)): ?>
                                 <tr>
-                                    <td colspan="6" class="px-6 py-4 text-center text-sm text-gray-500">
+                                    <td colspan="7" class="px-6 py-4 text-center text-sm text-gray-500">
                                         No hay usuarios registrados aun.
                                     </td>
                                 </tr>
@@ -103,10 +108,16 @@
                                     if ($role === 'agent') $roleClass = 'bg-green-100 text-green-800';
                                     if ($role === 'client') $roleClass = 'bg-yellow-100 text-yellow-800';
                                     $clientName = $user['client_id'] ? ($clientMap[(int) $user['client_id']] ?? ('Cliente #' . $user['client_id'])) : '-';
+                                    $sourceLabel = ($user['source'] ?? '') === 'ponche' ? 'Ponche' : 'Calidad';
+                                    $canManage = (bool) ($user['can_manage'] ?? true);
                                     ?>
                                     <tr class="hover:bg-gray-50 transition-colors duration-150">
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            US-<?php echo str_pad($user['id'], 3, '0', STR_PAD_LEFT); ?>
+                                            <?php if (($user['source'] ?? '') === 'ponche'): ?>
+                                                PO-<?php echo str_pad($user['id'], 3, '0', STR_PAD_LEFT); ?>
+                                            <?php else: ?>
+                                                US-<?php echo str_pad($user['id'], 3, '0', STR_PAD_LEFT); ?>
+                                            <?php endif; ?>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap">
                                             <div class="flex items-center">
@@ -133,6 +144,9 @@
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                             <?php echo htmlspecialchars($clientName); ?>
                                         </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            <?php echo htmlspecialchars($sourceLabel); ?>
+                                        </td>
                                         <td class="px-6 py-4 whitespace-nowrap">
                                             <?php if ((int) $user['active'] === 1): ?>
                                                 <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">Activo</span>
@@ -141,26 +155,30 @@
                                             <?php endif; ?>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                            <a href="<?php echo \App\Config\Config::BASE_URL; ?>users/edit?id=<?php echo $user['id']; ?>"
-                                                class="text-blue-600 hover:text-blue-900">Editar</a>
-                                            <form action="<?php echo \App\Config\Config::BASE_URL; ?>users/toggle" method="POST"
-                                                class="inline">
-                                                <input type="hidden" name="id" value="<?php echo $user['id']; ?>">
-                                                <?php if ((int) $user['active'] === 1): ?>
-                                                    <input type="hidden" name="active" value="0">
-                                                    <button type="submit"
-                                                        class="ml-4 text-red-600 hover:text-red-900"
-                                                        onclick="return confirm('¿Deseas desactivar este usuario?');">
-                                                        Desactivar
-                                                    </button>
-                                                <?php else: ?>
-                                                    <input type="hidden" name="active" value="1">
-                                                    <button type="submit"
-                                                        class="ml-4 text-green-600 hover:text-green-900">
-                                                        Activar
-                                                    </button>
-                                                <?php endif; ?>
-                                            </form>
+                                            <?php if ($canManage && \App\Helpers\Auth::hasPermission('users.create')): ?>
+                                                <a href="<?php echo \App\Config\Config::BASE_URL; ?>users/edit?id=<?php echo $user['id']; ?>"
+                                                    class="text-blue-600 hover:text-blue-900">Editar</a>
+                                                <form action="<?php echo \App\Config\Config::BASE_URL; ?>users/toggle" method="POST"
+                                                    class="inline">
+                                                    <input type="hidden" name="id" value="<?php echo $user['id']; ?>">
+                                                    <?php if ((int) $user['active'] === 1): ?>
+                                                        <input type="hidden" name="active" value="0">
+                                                        <button type="submit"
+                                                            class="ml-4 text-red-600 hover:text-red-900"
+                                                            onclick="return confirm('¿Deseas desactivar este usuario?');">
+                                                            Desactivar
+                                                        </button>
+                                                    <?php else: ?>
+                                                        <input type="hidden" name="active" value="1">
+                                                        <button type="submit"
+                                                            class="ml-4 text-green-600 hover:text-green-900">
+                                                            Activar
+                                                        </button>
+                                                    <?php endif; ?>
+                                                </form>
+                                            <?php else: ?>
+                                                <span class="text-gray-400">Solo lectura</span>
+                                            <?php endif; ?>
                                         </td>
                                     </tr>
                                 <?php endforeach; ?>

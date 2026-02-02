@@ -72,7 +72,67 @@ class User
 
         $stmt = $this->db->prepare($sql);
         $stmt->execute($params);
-        return $stmt->fetchAll();
+        $localRows = $stmt->fetchAll();
+
+        $localUsers = array_map(function ($row) {
+            $row['source'] = 'quality';
+            $row['external_id'] = $row['id'];
+            $row['can_manage'] = true;
+            return $row;
+        }, $localRows);
+
+        $roleFilter = $filters['role'] ?? '';
+        $includePonche = $roleFilter === '' || in_array($roleFilter, ['agent', 'qa'], true);
+        $poncheUsers = [];
+
+        if ($includePonche) {
+            $roles = $roleFilter === '' ? ['agent', 'qa'] : [$roleFilter];
+            $poncheUser = new PoncheUser();
+            $rows = $poncheUser->getByRoles($roles, false);
+            $query = strtolower(trim($filters['q'] ?? ''));
+            $statusFilter = $filters['status'] ?? '';
+
+            foreach ($rows as $row) {
+                $active = (int) ($row['is_active'] ?? 1);
+
+                if ($statusFilter !== '' && $statusFilter !== null && (int) $statusFilter !== $active) {
+                    continue;
+                }
+
+                if ($query !== '') {
+                    $haystack = strtolower(($row['username'] ?? '') . ' ' . ($row['full_name'] ?? ''));
+                    if (strpos($haystack, $query) === false) {
+                        continue;
+                    }
+                }
+
+                $poncheUsers[] = [
+                    'id' => $row['id'],
+                    'username' => $row['username'],
+                    'full_name' => $row['full_name'],
+                    'role' => strtolower($row['role']),
+                    'active' => $active,
+                    'client_id' => null,
+                    'created_at' => $row['created_at'] ?? null,
+                    'source' => 'ponche',
+                    'external_id' => $row['id'],
+                    'can_manage' => false
+                ];
+            }
+        }
+
+        $merged = array_merge($localUsers, $poncheUsers);
+
+        usort($merged, function ($a, $b) {
+            $dateA = $a['created_at'] ?? '';
+            $dateB = $b['created_at'] ?? '';
+            if ($dateA === $dateB) {
+                return 0;
+            }
+            return $dateA < $dateB ? 1 : -1;
+        });
+
+        return $merged;
     }
 
     public function getByRole($role)
