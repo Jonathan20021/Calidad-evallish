@@ -69,7 +69,7 @@ class PoncheUser
         $normalizedRoles = array_map([$this, 'normalizeRoleValue'], $roles);
         $activeClause = $activeOnly ? ' AND is_active = 1' : '';
         $stmt = $this->db->prepare("
-            SELECT id, username, full_name, role, is_active, created_at
+            SELECT id, username, full_name, role, password, is_active, created_at
             FROM users
             WHERE UPPER(role) IN ($placeholders)$activeClause
         ");
