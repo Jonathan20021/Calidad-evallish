@@ -190,10 +190,16 @@
                                             <span class="text-sm text-gray-400 font-normal">/ <?php echo number_format($maxScore, 0); ?></span>
                                         </span>
                                     <?php elseif ($answer['field_type'] === 'select'): ?>
+                                        <?php $displayValue = $answer['text_answer'] ?? $answer['score_given']; ?>
                                         <span
                                             class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-50 text-blue-700 border border-blue-100">
-                                            <?php echo htmlspecialchars($answer['score_given']); ?>
+                                            <?php echo htmlspecialchars($displayValue); ?>
                                         </span>
+                                    <?php elseif ($answer['field_type'] === 'text'): ?>
+                                        <?php $displayValue = $answer['text_answer'] ?? $answer['score_given']; ?>
+                                        <div class="text-sm text-gray-700 bg-gray-50 border border-gray-200 rounded-md px-3 py-2 max-w-xs">
+                                            <?php echo nl2br(htmlspecialchars($displayValue)); ?>
+                                        </div>
                                     <?php endif; ?>
                                 </div>
                             </div>

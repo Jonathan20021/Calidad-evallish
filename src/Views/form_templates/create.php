@@ -135,8 +135,7 @@
                     <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Tipo de
                         Respuesta</label>
                     <select
-                        class="field-type block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                        onchange="this.closest('.field-item').querySelector('.options-container').style.display = this.value === 'select' ? 'block' : 'none'">
+                        class="field-type block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                         <option value="yes_no">Sí / No (Cumple/No Cumple)</option>
                         <option value="score">Puntuación (Escala 1-100)</option>
                         <option value="text">Texto Libre</option>
@@ -155,7 +154,7 @@
                         class="field-weight block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                         value="1" min="0" step="0.1">
                 </div>
-                <div>
+                <div class="max-score-container">
                     <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Puntaje mÃ¡ximo</label>
                     <input type="number"
                         class="field-max-score block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
@@ -173,25 +172,56 @@
 
             const existingFields = <?php echo json_encode($fields ?? []); ?>;
 
+            function updateFieldUI(item) {
+                const type = item.querySelector('.field-type').value;
+                const optionsContainer = item.querySelector('.options-container');
+                const optionsInput = item.querySelector('.field-options');
+                const maxScoreContainer = item.querySelector('.max-score-container');
+                const maxScoreInput = item.querySelector('.field-max-score');
+
+                if (type === 'select') {
+                    optionsContainer.style.display = 'block';
+                    optionsInput.required = true;
+                } else {
+                    optionsContainer.style.display = 'none';
+                    optionsInput.required = false;
+                    optionsInput.value = '';
+                }
+
+                if (type === 'score' || type === 'yes_no') {
+                    maxScoreContainer.style.display = 'block';
+                    maxScoreInput.disabled = false;
+                    if (!maxScoreInput.value || maxScoreInput.value === '0') {
+                        maxScoreInput.value = '100';
+                    }
+                } else {
+                    maxScoreContainer.style.display = 'none';
+                    maxScoreInput.value = '0';
+                    maxScoreInput.disabled = true;
+                }
+            }
+
             function addField(data = null) {
                 const clone = template.content.cloneNode(true);
                 const item = clone.querySelector('.field-item');
 
                 if (data) {
+                    item.dataset.fieldId = data.id;
                     item.querySelector('.field-label').value = data.label;
                     item.querySelector('.field-type').value = data.field_type;
                     item.querySelector('.field-weight').value = data.weight;
                     item.querySelector('.field-max-score').value = data.max_score ?? 100;
                     if (data.field_type === 'select') {
-                        item.querySelector('.options-container').style.display = 'block';
                         item.querySelector('.field-options').value = data.options;
                     }
                 }
 
+                item.querySelector('.field-type').addEventListener('change', () => updateFieldUI(item));
                 item.querySelector('.remove-field').addEventListener('click', () => {
                     item.remove();
                 });
 
+                updateFieldUI(item);
                 container.appendChild(clone);
             }
 
@@ -207,6 +237,7 @@
                 const items = [];
                 container.querySelectorAll('.field-item').forEach(item => {
                     items.push({
+                        id: item.dataset.fieldId || null,
                         label: item.querySelector('.field-label').value,
                         type: item.querySelector('.field-type').value,
                         weight: item.querySelector('.field-weight').value,

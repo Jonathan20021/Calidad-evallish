@@ -149,9 +149,11 @@
                                             </div>
                                         <?php elseif ($field['field_type'] === 'text'): ?>
                                             <textarea name="answers[<?php echo $field['id']; ?>]" rows="2"
+                                                <?php echo $field['required'] ? 'required' : ''; ?>
                                                 class="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"></textarea>
                                         <?php elseif ($field['field_type'] === 'select'): ?>
                                             <select name="answers[<?php echo $field['id']; ?>]"
+                                                <?php echo $field['required'] ? 'required' : ''; ?>
                                                 class="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                                                 <option value="">Seleccione una opción...</option>
                                                 <?php

@@ -298,8 +298,9 @@
                             <span style="font-weight:bold;">
                                 <?php echo number_format($answer['score_given'], 0); ?>
                             </span>
-                        <?php else: ?>
-                            <?php echo htmlspecialchars($answer['score_given']); ?>
+                        <?php elseif ($answer['field_type'] === 'select' || $answer['field_type'] === 'text'): ?>
+                            <?php $displayValue = $answer['text_answer'] ?? $answer['score_given']; ?>
+                            <?php echo nl2br(htmlspecialchars($displayValue)); ?>
                         <?php endif; ?>
                     </td>
                 </tr>

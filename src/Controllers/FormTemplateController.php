@@ -120,11 +120,11 @@ class FormTemplateController
         $fieldModel = new FormField();
 
         $templateModel->updateTitle($templateId, $title);
-        $fieldModel->deleteByTemplate($templateId);
 
+        $keepIds = [];
         if ($items && is_array($items)) {
             foreach ($items as $index => $item) {
-                $fieldModel->create([
+                $payload = [
                     'template_id' => $templateId,
                     'label' => $item['label'],
                     'field_type' => $item['type'],
@@ -133,11 +133,21 @@ class FormTemplateController
                     'weight' => $item['weight'] ?? 1,
                     'field_order' => $index,
                     'required' => 1
-                ]);
+                ];
+
+                if (!empty($item['id'])) {
+                    $fieldModel->update($item['id'], $payload);
+                    $keepIds[] = (int) $item['id'];
+                } else {
+                    $fieldModel->create($payload);
+                    $keepIds[] = (int) $fieldModel->getLastInsertId();
+                }
             }
         }
 
-        header('Location: ' . \App\Config\Config::BASE_URL . 'form-templates');
+        $fieldModel->deleteMissingByTemplate($templateId, $keepIds);
+
+        header('Location: ' . \\App\\Config\\Config::BASE_URL . 'form-templates/edit?id=' . $templateId);
     }
 
     public function toggle()

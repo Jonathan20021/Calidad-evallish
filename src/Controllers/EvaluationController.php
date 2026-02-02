@@ -311,12 +311,22 @@ class EvaluationController
         // Save Answers
         $answerModel = new EvaluationAnswer();
         foreach ($answers as $fieldId => $score) {
-            $answerModel->create([
+            $fieldType = $fieldsMap[$fieldId]['field_type'] ?? null;
+            $payload = [
                 'evaluation_id' => $evaluationId,
                 'field_id' => $fieldId,
-                'score_given' => $score,
                 'comment' => $fieldComments[$fieldId] ?? ''
-            ]);
+            ];
+
+            if ($fieldType === 'text' || $fieldType === 'select') {
+                $payload['text_answer'] = $score;
+                $payload['score_given'] = null;
+            } else {
+                $payload['score_given'] = $score;
+                $payload['text_answer'] = null;
+            }
+
+            $answerModel->create($payload);
         }
 
         header('Location: ' . \App\Config\Config::BASE_URL . 'evaluations');
