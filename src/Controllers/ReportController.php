@@ -4,6 +4,7 @@ namespace App\Controllers;
 
 use App\Helpers\Auth;
 use App\Config\Database;
+use App\Models\PoncheUser;
 use Dompdf\Dompdf;
 use Dompdf\Options;
 
@@ -48,17 +49,16 @@ class ReportController
                 e.id,
                 e.percentage,
                 e.created_at,
-                u.full_name as agent_name,
-                qa.full_name as qa_name,
+                e.agent_id,
+                e.qa_id,
                 c.name as campaign_name
             FROM evaluations e
-            JOIN users u ON u.id = e.agent_id
-            JOIN users qa ON qa.id = e.qa_id
             JOIN campaigns c ON c.id = e.campaign_id
             ORDER BY e.created_at DESC
             LIMIT 10
         ");
         $recentEvaluations = $stmt->fetchAll();
+        $recentEvaluations = $this->attachNames($recentEvaluations);
 
         // Stats by Campaign
         $stmt = $db->query("
@@ -79,44 +79,41 @@ class ReportController
         // Stats by Agent (Top 5)
         $stmt = $db->query("
             SELECT 
-                u.full_name as agent_name,
+                e.agent_id,
                 COUNT(e.id) as total_evaluations,
                 AVG(e.percentage) as avg_score
-            FROM users u
-            JOIN evaluations e ON u.id = e.agent_id
-            GROUP BY u.id, u.full_name
+            FROM evaluations e
+            GROUP BY e.agent_id
             ORDER BY avg_score DESC
             LIMIT 5
         ");
-        $topAgents = $stmt->fetchAll();
+        $topAgents = $this->attachAgentNames($stmt->fetchAll());
 
         // Stats by Agent (Bottom 5)
         $stmt = $db->query("
             SELECT 
-                u.full_name as agent_name,
+                e.agent_id,
                 COUNT(e.id) as total_evaluations,
                 AVG(e.percentage) as avg_score
-            FROM users u
-            JOIN evaluations e ON u.id = e.agent_id
-            GROUP BY u.id, u.full_name
+            FROM evaluations e
+            GROUP BY e.agent_id
             HAVING total_evaluations >= 3
             ORDER BY avg_score ASC
             LIMIT 5
         ");
-        $bottomAgents = $stmt->fetchAll();
+        $bottomAgents = $this->attachAgentNames($stmt->fetchAll());
 
         // QA performance
         $stmt = $db->query("
             SELECT 
-                qa.full_name as qa_name,
+                e.qa_id,
                 COUNT(e.id) as total_evaluations,
                 AVG(e.percentage) as avg_score
-            FROM users qa
-            JOIN evaluations e ON qa.id = e.qa_id
-            GROUP BY qa.id, qa.full_name
+            FROM evaluations e
+            GROUP BY e.qa_id
             ORDER BY avg_score DESC
         ");
-        $qaStats = $stmt->fetchAll();
+        $qaStats = $this->attachQaNames($stmt->fetchAll());
 
         // Monthly trend (last 6 months)
         $stmt = $db->query("
@@ -167,28 +164,26 @@ class ReportController
 
         $stmt = $db->query("
             SELECT 
-                u.full_name as agent_name,
+                e.agent_id,
                 COUNT(e.id) as total_evaluations,
                 AVG(e.percentage) as avg_score
-            FROM users u
-            JOIN evaluations e ON u.id = e.agent_id
-            GROUP BY u.id, u.full_name
+            FROM evaluations e
+            GROUP BY e.agent_id
             ORDER BY avg_score DESC
             LIMIT 10
         ");
-        $topAgents = $stmt->fetchAll();
+        $topAgents = $this->attachAgentNames($stmt->fetchAll());
 
         $stmt = $db->query("
             SELECT 
-                qa.full_name as qa_name,
+                e.qa_id,
                 COUNT(e.id) as total_evaluations,
                 AVG(e.percentage) as avg_score
-            FROM users qa
-            JOIN evaluations e ON qa.id = e.qa_id
-            GROUP BY qa.id, qa.full_name
+            FROM evaluations e
+            GROUP BY e.qa_id
             ORDER BY avg_score DESC
         ");
-        $qaStats = $stmt->fetchAll();
+        $qaStats = $this->attachQaNames($stmt->fetchAll());
 
         ob_start();
         require __DIR__ . '/../Views/reports/pdf.php';
@@ -205,5 +200,53 @@ class ReportController
 
         $filename = 'Reporte-Calidad-' . date('Ymd') . '.pdf';
         $dompdf->stream($filename, ["Attachment" => true]);
+    }
+
+    private function attachNames(array $rows): array
+    {
+        if (empty($rows)) {
+            return $rows;
+        }
+        $agentIds = array_column($rows, 'agent_id');
+        $qaIds = array_column($rows, 'qa_id');
+        $map = (new PoncheUser())->getMapByIds(array_merge($agentIds, $qaIds));
+        foreach ($rows as &$row) {
+            $agentId = (int) ($row['agent_id'] ?? 0);
+            $qaId = (int) ($row['qa_id'] ?? 0);
+            $row['agent_name'] = $map[$agentId]['full_name'] ?? ('Agente #' . $agentId);
+            $row['qa_name'] = $map[$qaId]['full_name'] ?? ('QA #' . $qaId);
+        }
+        unset($row);
+        return $rows;
+    }
+
+    private function attachAgentNames(array $rows): array
+    {
+        if (empty($rows)) {
+            return $rows;
+        }
+        $ids = array_column($rows, 'agent_id');
+        $map = (new PoncheUser())->getMapByIds($ids);
+        foreach ($rows as &$row) {
+            $agentId = (int) ($row['agent_id'] ?? 0);
+            $row['agent_name'] = $map[$agentId]['full_name'] ?? ('Agente #' . $agentId);
+        }
+        unset($row);
+        return $rows;
+    }
+
+    private function attachQaNames(array $rows): array
+    {
+        if (empty($rows)) {
+            return $rows;
+        }
+        $ids = array_column($rows, 'qa_id');
+        $map = (new PoncheUser())->getMapByIds($ids);
+        foreach ($rows as &$row) {
+            $qaId = (int) ($row['qa_id'] ?? 0);
+            $row['qa_name'] = $map[$qaId]['full_name'] ?? ('QA #' . $qaId);
+        }
+        unset($row);
+        return $rows;
     }
 }

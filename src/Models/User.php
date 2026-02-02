@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Config\Database;
+use App\Models\PoncheUser;
 use PDO;
 
 class User
@@ -76,8 +77,23 @@ class User
 
     public function getByRole($role)
     {
-        $stmt = $this->db->prepare("SELECT id, username, full_name, role FROM users WHERE role = ? AND active = 1");
-        $stmt->execute([$role]);
+        $normalizedRole = strtolower($role);
+        if (in_array($normalizedRole, ['agent', 'qa'], true)) {
+            $poncheUser = new PoncheUser();
+            $rows = $poncheUser->getByRoles([$normalizedRole]);
+            return array_map(function ($row) {
+                return [
+                    'id' => $row['id'],
+                    'username' => $row['username'],
+                    'full_name' => $row['full_name'],
+                    'role' => strtolower($row['role']),
+                    'active' => (int) ($row['is_active'] ?? 1)
+                ];
+            }, $rows);
+        }
+
+        $stmt = $this->db->prepare("SELECT id, username, full_name, role, active FROM users WHERE role = ? AND active = 1");
+        $stmt->execute([$normalizedRole]);
         return $stmt->fetchAll();
     }
 

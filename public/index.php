@@ -91,6 +91,7 @@ $router->get('/agents/create', [\App\Controllers\AgentController::class, 'create
 $router->post('/agents/store', [\App\Controllers\AgentController::class, 'store']);
 $router->get('/agents/edit', [\App\Controllers\AgentController::class, 'edit']);
 $router->post('/agents/update', [\App\Controllers\AgentController::class, 'update']);
+$router->post('/agents/toggle', [\App\Controllers\AgentController::class, 'toggle']);
 
 // Corporate Clients (Admin)
 $router->get('/clients', [CorporateClientController::class, 'index']);

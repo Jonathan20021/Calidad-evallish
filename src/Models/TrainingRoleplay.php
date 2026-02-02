@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Config\Database;
+use App\Models\PoncheUser;
 use PDO;
 
 class TrainingRoleplay
@@ -53,20 +54,17 @@ class TrainingRoleplay
                    ts.script_text,
                    ts.scenario_text,
                    ts.persona_json,
-                   a.full_name as agent_name,
-                   qa.full_name as qa_name,
                    c.name as campaign_name,
                    r.title as rubric_title
             FROM training_roleplays tr
             LEFT JOIN training_scripts ts ON tr.script_id = ts.id
-            JOIN users a ON tr.agent_id = a.id
-            LEFT JOIN users qa ON tr.qa_id = qa.id
             LEFT JOIN campaigns c ON tr.campaign_id = c.id
             LEFT JOIN training_rubrics r ON tr.rubric_id = r.id
             WHERE tr.id = ?
         ");
         $stmt->execute([$id]);
-        return $stmt->fetch();
+        $row = $stmt->fetch();
+        return $this->attachUserNames($row);
     }
 
     public function getByAgentId($agentId, $limit = 50): array
@@ -93,20 +91,17 @@ class TrainingRoleplay
         $stmt = $this->db->prepare("
             SELECT tr.*,
                    ts.title as script_title,
-                   a.full_name as agent_name,
-                   qa.full_name as qa_name,
                    c.name as campaign_name
             FROM training_roleplays tr
             LEFT JOIN training_scripts ts ON tr.script_id = ts.id
-            JOIN users a ON tr.agent_id = a.id
-            LEFT JOIN users qa ON tr.qa_id = qa.id
             LEFT JOIN campaigns c ON tr.campaign_id = c.id
             ORDER BY tr.created_at DESC
             LIMIT :limit
         ");
         $stmt->bindValue(':limit', (int) $limit, PDO::PARAM_INT);
         $stmt->execute();
-        return $stmt->fetchAll();
+        $rows = $stmt->fetchAll();
+        return $this->attachUserNamesToRows($rows);
     }
 
     public function getRecentByAgent($agentId, $limit = 5): array
@@ -181,5 +176,49 @@ class TrainingRoleplay
             'completed' => (int) ($row['completed'] ?? 0),
             'avg_score' => $row['avg_score'] !== null ? (float) $row['avg_score'] : null
         ];
+    }
+
+    private function attachUserNames($row)
+    {
+        if (!$row) {
+            return $row;
+        }
+
+        $poncheUser = new PoncheUser();
+        $map = $poncheUser->getMapByIds([(int) ($row['agent_id'] ?? 0), (int) ($row['qa_id'] ?? 0)]);
+
+        $agentId = (int) ($row['agent_id'] ?? 0);
+        $qaId = (int) ($row['qa_id'] ?? 0);
+        $row['agent_name'] = $map[$agentId]['full_name'] ?? ('Agente #' . $agentId);
+        $row['qa_name'] = $map[$qaId]['full_name'] ?? ('QA #' . $qaId);
+        return $row;
+    }
+
+    private function attachUserNamesToRows(array $rows): array
+    {
+        if (empty($rows)) {
+            return $rows;
+        }
+
+        $ids = [];
+        foreach ($rows as $row) {
+            if (isset($row['agent_id'])) {
+                $ids[] = (int) $row['agent_id'];
+            }
+            if (isset($row['qa_id'])) {
+                $ids[] = (int) $row['qa_id'];
+            }
+        }
+        $map = (new PoncheUser())->getMapByIds($ids);
+
+        foreach ($rows as &$row) {
+            $agentId = (int) ($row['agent_id'] ?? 0);
+            $qaId = (int) ($row['qa_id'] ?? 0);
+            $row['agent_name'] = $map[$agentId]['full_name'] ?? ('Agente #' . $agentId);
+            $row['qa_name'] = $map[$qaId]['full_name'] ?? ('QA #' . $qaId);
+        }
+        unset($row);
+
+        return $rows;
     }
 }

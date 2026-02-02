@@ -35,6 +35,8 @@
                                         <?php
                                         if ($_GET['error'] == 'username_exists')
                                             echo 'El nombre de usuario ya existe.';
+                                        elseif ($_GET['error'] == 'invalid_role')
+                                            echo 'El rol seleccionado no es valido.';
                                         else
                                             echo 'Por favor complete todos los campos requeridos.';
                                         ?>
@@ -45,6 +47,15 @@
                     <?php endif; ?>
 
                     <div class="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
+                        <div class="sm:col-span-3">
+                            <label for="role" class="block text-sm font-medium text-gray-700">Rol</label>
+                            <select id="role" name="role" required
+                                class="mt-1 block w-full bg-white border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                                <option value="AGENT" selected>Agente</option>
+                                <option value="QA">QA</option>
+                            </select>
+                        </div>
+
                         <div class="sm:col-span-3">
                             <label for="username" class="block text-sm font-medium text-gray-700">Usuario (Para
                                 Login)</label>
@@ -78,6 +89,14 @@
                                 Inicial</label>
                             <input type="password" name="password" id="password" required
                                 class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                        </div>
+
+                        <div class="sm:col-span-6">
+                            <label class="inline-flex items-center">
+                                <input type="checkbox" name="active" checked
+                                    class="rounded border-gray-300 text-blue-600 shadow-sm focus:ring-blue-500">
+                                <span class="ml-2 text-sm text-gray-700">Activo</span>
+                            </label>
                         </div>
                     </div>
 

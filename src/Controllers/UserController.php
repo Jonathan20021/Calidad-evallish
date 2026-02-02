@@ -5,10 +5,11 @@ namespace App\Controllers;
 use App\Helpers\Auth;
 use App\Models\User;
 use App\Models\CorporateClient;
+use App\Models\PoncheUser;
 
 class UserController
 {
-    private const ROLES = ['admin', 'qa', 'agent', 'client'];
+    private const ROLES = ['admin', 'client'];
 
     public function index()
     {
@@ -19,6 +20,9 @@ class UserController
             'status' => $_GET['status'] ?? '',
             'q' => trim($_GET['q'] ?? '')
         ];
+        if ($filters['role'] !== '' && !in_array($filters['role'], self::ROLES, true)) {
+            $filters['role'] = '';
+        }
 
         $userModel = new User();
         $users = $userModel->getAllFiltered($filters);
@@ -48,7 +52,7 @@ class UserController
         $username = trim($_POST['username'] ?? '');
         $fullName = trim($_POST['full_name'] ?? '');
         $password = $_POST['password'] ?? '';
-        $role = $_POST['role'] ?? 'agent';
+        $role = $_POST['role'] ?? 'admin';
         $clientId = $_POST['client_id'] ?? null;
         $active = isset($_POST['active']) ? 1 : 0;
 
@@ -72,7 +76,12 @@ class UserController
         }
 
         $userModel = new User();
+        $poncheUserModel = new PoncheUser();
         if ($userModel->findByUsernameAny($username)) {
+            header('Location: ' . \App\Config\Config::BASE_URL . 'users/create?error=username_exists');
+            exit;
+        }
+        if ($poncheUserModel->findByUsernameAny($username)) {
             header('Location: ' . \App\Config\Config::BASE_URL . 'users/create?error=username_exists');
             exit;
         }
@@ -125,7 +134,7 @@ class UserController
         $username = trim($_POST['username'] ?? '');
         $fullName = trim($_POST['full_name'] ?? '');
         $password = $_POST['password'] ?? '';
-        $role = $_POST['role'] ?? 'agent';
+        $role = $_POST['role'] ?? 'admin';
         $clientId = $_POST['client_id'] ?? null;
         $active = isset($_POST['active']) ? 1 : 0;
 
@@ -151,6 +160,12 @@ class UserController
         $userModel = new User();
         $existing = $userModel->findByUsernameAny($username);
         if ($existing && (int) $existing['id'] !== (int) $id) {
+            header('Location: ' . \App\Config\Config::BASE_URL . 'users/edit?id=' . $id . '&error=username_exists');
+            exit;
+        }
+        $poncheUserModel = new PoncheUser();
+        $poncheExisting = $poncheUserModel->findByUsernameAny($username);
+        if ($poncheExisting) {
             header('Location: ' . \App\Config\Config::BASE_URL . 'users/edit?id=' . $id . '&error=username_exists');
             exit;
         }

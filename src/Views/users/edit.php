@@ -70,10 +70,9 @@
                             <select id="role" name="role" required
                                 class="mt-1 block w-full bg-white border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
                                 <option value="admin" <?php echo $user['role'] === 'admin' ? 'selected' : ''; ?>>Admin</option>
-                                <option value="qa" <?php echo $user['role'] === 'qa' ? 'selected' : ''; ?>>QA</option>
-                                <option value="agent" <?php echo $user['role'] === 'agent' ? 'selected' : ''; ?>>Agente</option>
                                 <option value="client" <?php echo $user['role'] === 'client' ? 'selected' : ''; ?>>Cliente</option>
                             </select>
+                            <p class="mt-2 text-xs text-gray-500">Para QA o agentes, usa el mÃ³dulo de Agentes.</p>
                         </div>
 
                         <div class="sm:col-span-3">

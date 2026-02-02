@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Config\Database;
+use App\Models\PoncheUser;
 use PDO;
 
 class Call
@@ -20,12 +21,10 @@ class Call
         $stmt = $this->db->prepare("
             SELECT c.*,
                    cc.name as project_name,
-                   u.full_name as agent_name,
                    camp.name as campaign_name,
                    e.id as evaluation_id
             FROM calls c
             LEFT JOIN corporate_clients cc ON c.project_id = cc.id
-            JOIN users u ON c.agent_id = u.id
             JOIN campaigns camp ON c.campaign_id = camp.id
             LEFT JOIN evaluations e ON e.call_id = c.id
             ORDER BY c.call_datetime DESC
@@ -33,7 +32,8 @@ class Call
         ");
         $stmt->bindValue(':limit', (int) $limit, PDO::PARAM_INT);
         $stmt->execute();
-        return $stmt->fetchAll();
+        $rows = $stmt->fetchAll();
+        return $this->attachAgentNames($rows);
     }
 
     public function findById($id)
@@ -41,18 +41,21 @@ class Call
         $stmt = $this->db->prepare("
             SELECT c.*,
                    cc.name as project_name,
-                   u.full_name as agent_name,
                    camp.name as campaign_name,
                    e.id as evaluation_id
             FROM calls c
             LEFT JOIN corporate_clients cc ON c.project_id = cc.id
-            JOIN users u ON c.agent_id = u.id
             JOIN campaigns camp ON c.campaign_id = camp.id
             LEFT JOIN evaluations e ON e.call_id = c.id
             WHERE c.id = ?
         ");
         $stmt->execute([$id]);
-        return $stmt->fetch();
+        $row = $stmt->fetch();
+        if (!$row) {
+            return $row;
+        }
+        $rows = $this->attachAgentNames([$row]);
+        return $rows[0] ?? $row;
     }
 
     public function create($data)
@@ -89,14 +92,12 @@ class Call
         $stmt = $this->db->prepare("
             SELECT c.*,
                    cc.name as project_name,
-                   u.full_name as agent_name,
                    camp.name as campaign_name,
                    e.percentage as evaluation_percentage,
                    ai.score as ai_score,
                    ai.summary as ai_summary
             FROM calls c
             LEFT JOIN corporate_clients cc ON c.project_id = cc.id
-            JOIN users u ON c.agent_id = u.id
             JOIN campaigns camp ON c.campaign_id = camp.id
             LEFT JOIN evaluations e ON e.call_id = c.id
             LEFT JOIN call_ai_analytics ai ON ai.call_id = c.id AND ai.model = ?
@@ -116,7 +117,8 @@ class Call
             $index++;
         }
         $stmt->execute();
-        return $stmt->fetchAll();
+        $rows = $stmt->fetchAll();
+        return $this->attachAgentNames($rows);
     }
 
     public function getCountByCampaignIds(array $campaignIds): int
@@ -157,5 +159,29 @@ class Call
         if (!$stmt->fetch()) {
             $this->db->exec("ALTER TABLE calls ADD COLUMN $column $definition");
         }
+    }
+
+    private function attachAgentNames(array $rows): array
+    {
+        if (empty($rows)) {
+            return $rows;
+        }
+
+        $agentIds = array_map(function ($row) {
+            return $row['agent_id'] ?? null;
+        }, $rows);
+
+        $poncheUser = new PoncheUser();
+        $map = $poncheUser->getMapByIds($agentIds);
+
+        foreach ($rows as &$row) {
+            $agentId = (int) ($row['agent_id'] ?? 0);
+            $user = $map[$agentId] ?? null;
+            $row['agent_name'] = $user['full_name'] ?? ('Agente #' . $agentId);
+            $row['agent_username'] = $user['username'] ?? null;
+        }
+        unset($row);
+
+        return $rows;
     }
 }

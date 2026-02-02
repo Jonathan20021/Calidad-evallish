@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Config\Database;
+use App\Models\PoncheUser;
 use PDO;
 
 class Evaluation
@@ -18,13 +19,9 @@ class Evaluation
     {
         $stmt = $this->db->prepare("
             SELECT e.*, 
-                   u1.full_name as agent_name,
-                   u2.full_name as qa_name,
                    c.name as campaign_name,
                    ft.title as form_title
             FROM evaluations e
-            JOIN users u1 ON e.agent_id = u1.id
-            JOIN users u2 ON e.qa_id = u2.id
             JOIN campaigns c ON e.campaign_id = c.id
             JOIN form_templates ft ON e.form_template_id = ft.id
             ORDER BY e.created_at DESC
@@ -32,26 +29,28 @@ class Evaluation
         ");
         $stmt->bindValue(':limit', (int) $limit, PDO::PARAM_INT);
         $stmt->execute();
-        return $stmt->fetchAll();
+        $rows = $stmt->fetchAll();
+        return $this->attachUserNames($rows);
     }
 
     public function findById($id)
     {
         $stmt = $this->db->prepare("
             SELECT e.*, 
-                   u1.full_name as agent_name,
-                   u2.full_name as qa_name,
                    c.name as campaign_name,
                    ft.title as form_title
             FROM evaluations e
-            JOIN users u1 ON e.agent_id = u1.id
-            JOIN users u2 ON e.qa_id = u2.id
             JOIN campaigns c ON e.campaign_id = c.id
             JOIN form_templates ft ON e.form_template_id = ft.id
             WHERE e.id = ?
         ");
         $stmt->execute([$id]);
-        return $stmt->fetch();
+        $row = $stmt->fetch();
+        if (!$row) {
+            return $row;
+        }
+        $rows = $this->attachUserNames([$row]);
+        return $rows[0] ?? $row;
     }
 
     public function create($data)
@@ -117,14 +116,19 @@ class Evaluation
     public function getTopAgent()
     {
         $stmt = $this->db->query("
-            SELECT u.full_name, AVG(e.percentage) as avg_score
+            SELECT e.agent_id, AVG(e.percentage) as avg_score
             FROM evaluations e
-            JOIN users u ON e.agent_id = u.id
-            GROUP BY u.id, u.full_name
+            GROUP BY e.agent_id
             ORDER BY avg_score DESC
             LIMIT 1
         ");
-        return $stmt->fetch();
+        $row = $stmt->fetch();
+        if (!$row) {
+            return $row;
+        }
+        $users = (new PoncheUser())->getMapByIds([$row['agent_id']]);
+        $row['full_name'] = $users[(int) $row['agent_id']]['full_name'] ?? ('Agente #' . $row['agent_id']);
+        return $row;
     }
 
     public function getCriticalFailsCount($threshold = 70)
@@ -197,16 +201,21 @@ class Evaluation
 
         $placeholders = implode(',', array_fill(0, count($campaignIds), '?'));
         $stmt = $this->db->prepare("
-            SELECT u.full_name, AVG(e.percentage) as avg_score, COUNT(*) as total
+            SELECT e.agent_id, AVG(e.percentage) as avg_score, COUNT(*) as total
             FROM evaluations e
-            JOIN users u ON e.agent_id = u.id
             WHERE e.campaign_id IN ($placeholders)
-            GROUP BY u.id, u.full_name
+            GROUP BY e.agent_id
             ORDER BY avg_score DESC
             LIMIT 1
         ");
         $stmt->execute($campaignIds);
-        return $stmt->fetch();
+        $row = $stmt->fetch();
+        if (!$row) {
+            return $row;
+        }
+        $users = (new PoncheUser())->getMapByIds([$row['agent_id']]);
+        $row['full_name'] = $users[(int) $row['agent_id']]['full_name'] ?? ('Agente #' . $row['agent_id']);
+        return $row;
     }
 
     public function getTopAgentsByCampaignIds(array $campaignIds, $limit = 5): array
@@ -217,11 +226,10 @@ class Evaluation
 
         $placeholders = implode(',', array_fill(0, count($campaignIds), '?'));
         $stmt = $this->db->prepare("
-            SELECT u.full_name, AVG(e.percentage) as avg_score, COUNT(*) as total
+            SELECT e.agent_id, AVG(e.percentage) as avg_score, COUNT(*) as total
             FROM evaluations e
-            JOIN users u ON e.agent_id = u.id
             WHERE e.campaign_id IN ($placeholders)
-            GROUP BY u.id, u.full_name
+            GROUP BY e.agent_id
             ORDER BY avg_score DESC
             LIMIT ?
         ");
@@ -233,7 +241,17 @@ class Evaluation
             $index++;
         }
         $stmt->execute();
-        return $stmt->fetchAll();
+        $rows = $stmt->fetchAll();
+        if (empty($rows)) {
+            return $rows;
+        }
+        $ids = array_column($rows, 'agent_id');
+        $users = (new PoncheUser())->getMapByIds($ids);
+        foreach ($rows as &$row) {
+            $row['full_name'] = $users[(int) $row['agent_id']]['full_name'] ?? ('Agente #' . $row['agent_id']);
+        }
+        unset($row);
+        return $rows;
     }
 
     public function getCampaignAverages(array $campaignIds): array
@@ -281,11 +299,10 @@ class Evaluation
                    c.id as call_id,
                    c.call_datetime,
                    c.recording_path,
-                   u.full_name as agent_name,
+                   e.agent_id,
                    camp.name as campaign_name
             FROM evaluations e
             JOIN calls c ON e.call_id = c.id
-            JOIN users u ON e.agent_id = u.id
             JOIN campaigns camp ON e.campaign_id = camp.id
             WHERE c.recording_path IS NOT NULL
         ";
@@ -305,7 +322,17 @@ class Evaluation
             $index++;
         }
         $stmt->execute();
-        return $stmt->fetchAll();
+        $rows = $stmt->fetchAll();
+        if (empty($rows)) {
+            return $rows;
+        }
+        $ids = array_column($rows, 'agent_id');
+        $users = (new PoncheUser())->getMapByIds($ids);
+        foreach ($rows as &$row) {
+            $row['agent_name'] = $users[(int) $row['agent_id']]['full_name'] ?? ('Agente #' . $row['agent_id']);
+        }
+        unset($row);
+        return $rows;
     }
 
     public function findByCallId($callId)
@@ -313,5 +340,37 @@ class Evaluation
         $stmt = $this->db->prepare("SELECT * FROM evaluations WHERE call_id = ? ORDER BY created_at DESC LIMIT 1");
         $stmt->execute([$callId]);
         return $stmt->fetch();
+    }
+
+    private function attachUserNames(array $rows): array
+    {
+        if (empty($rows)) {
+            return $rows;
+        }
+
+        $agentIds = [];
+        $qaIds = [];
+        foreach ($rows as $row) {
+            if (isset($row['agent_id'])) {
+                $agentIds[] = (int) $row['agent_id'];
+            }
+            if (isset($row['qa_id'])) {
+                $qaIds[] = (int) $row['qa_id'];
+            }
+        }
+
+        $poncheUser = new PoncheUser();
+        $agentMap = $poncheUser->getMapByIds($agentIds);
+        $qaMap = $poncheUser->getMapByIds($qaIds);
+
+        foreach ($rows as &$row) {
+            $agentId = (int) ($row['agent_id'] ?? 0);
+            $qaId = (int) ($row['qa_id'] ?? 0);
+            $row['agent_name'] = $agentMap[$agentId]['full_name'] ?? ('Agente #' . $agentId);
+            $row['qa_name'] = $qaMap[$qaId]['full_name'] ?? ('QA #' . $qaId);
+        }
+        unset($row);
+
+        return $rows;
     }
 }

@@ -3,22 +3,22 @@
 namespace App\Controllers;
 
 use App\Helpers\Auth;
-use App\Models\User;
+use App\Models\PoncheUser;
 use App\Models\Campaign;
 
 class AgentController
 {
     public function index()
     {
-        Auth::requireAuth(); // Open to all or just admins? Design implies management, so Admin/QA
+        Auth::requireAuth();
 
-        $userModel = new User();
-        // Since User model doesn't have complex relationship methods yet, we fetch all agents manually for now
-        // Enhancing User model would be better, but sticking to existing pattern first.
-        $agents = $userModel->getByRole('agent');
-
-        // Enhance agent data with campaign info if possible (needs join in User model ideally)
-        // For now, listing raw agent data.
+        $userModel = new PoncheUser();
+        $agents = $userModel->getByRoles(['AGENT', 'QA'], false);
+        $agents = array_map(function ($row) {
+            $row['role'] = strtolower($row['role']);
+            $row['active'] = (int) ($row['is_active'] ?? 1);
+            return $row;
+        }, $agents);
 
         require __DIR__ . '/../Views/agents/index.php';
     }
@@ -27,8 +27,6 @@ class AgentController
     {
         Auth::requireRole('admin');
 
-        // Need campaigns to assign agent to (if design supports it)
-        // Design shows "Campaña" column.
         $campaignModel = new Campaign();
         $campaigns = $campaignModel->getActive();
 
@@ -39,25 +37,29 @@ class AgentController
     {
         Auth::requireRole('admin');
 
-        $username = $_POST['username'] ?? '';
-        $email = $_POST['email'] ?? ''; // Not in schema yet, but design has it. Ignoring for now or adding column?
-        // Schema: username, password_hash, full_name, role, active
-        $fullName = $_POST['full_name'] ?? '';
+        $username = trim($_POST['username'] ?? '');
+        $fullName = trim($_POST['full_name'] ?? '');
         $password = $_POST['password'] ?? '';
-        $campaignId = $_POST['campaign_id'] ?? null; // Not in users table. Users <-> Campaigns relationship missing.
-        // Ignoring Campaign assingment in DB for now, just UI placeholder?
-        // Or adding updated_at/created_at
+        $role = strtoupper(trim($_POST['role'] ?? 'AGENT'));
+        $active = isset($_POST['active']) ? 1 : 0;
 
-        // Simple validation
-        if (empty($username) || empty($password) || empty($fullName)) {
-            // Flash error?
+        if ($username === '' || $password === '' || $fullName === '') {
             header('Location: ' . \App\Config\Config::BASE_URL . 'agents/create?error=missing_fields');
             exit;
         }
 
-        $userModel = new User();
-        // Check if username exists
-        if ($userModel->findByUsername($username)) {
+        if (!in_array($role, ['AGENT', 'QA'], true)) {
+            header('Location: ' . \App\Config\Config::BASE_URL . 'agents/create?error=invalid_role');
+            exit;
+        }
+
+        $userModel = new PoncheUser();
+        if ($userModel->findByUsernameAny($username)) {
+            header('Location: ' . \App\Config\Config::BASE_URL . 'agents/create?error=username_exists');
+            exit;
+        }
+        $localUser = new \App\Models\User();
+        if ($localUser->findByUsernameAny($username)) {
             header('Location: ' . \App\Config\Config::BASE_URL . 'agents/create?error=username_exists');
             exit;
         }
@@ -66,11 +68,13 @@ class AgentController
             'username' => $username,
             'password' => $password,
             'full_name' => $fullName,
-            'role' => 'agent'
+            'role' => $role,
+            'is_active' => $active
         ]);
 
         header('Location: ' . \App\Config\Config::BASE_URL . 'agents');
     }
+
     public function edit()
     {
         Auth::requireRole('admin');
@@ -80,8 +84,14 @@ class AgentController
             exit;
         }
 
-        $userModel = new User();
-        $agent = $userModel->findById($id);
+        $userModel = new PoncheUser();
+        $agent = $userModel->findById((int) $id);
+        if (!$agent) {
+            header('Location: ' . \App\Config\Config::BASE_URL . 'agents');
+            exit;
+        }
+        $agent['role'] = strtolower($agent['role']);
+        $agent['active'] = (int) ($agent['is_active'] ?? 1);
 
         $campaignModel = new Campaign();
         $campaigns = $campaignModel->getActive();
@@ -92,18 +102,50 @@ class AgentController
     public function update()
     {
         Auth::requireRole('admin');
-        $id = $_POST['id'];
-        $fullName = $_POST['full_name'];
+        $id = (int) ($_POST['id'] ?? 0);
+        $fullName = trim($_POST['full_name'] ?? '');
         $password = $_POST['password'] ?? '';
+        $role = strtoupper(trim($_POST['role'] ?? 'AGENT'));
+        $active = isset($_POST['active']) ? 1 : 0;
 
-        $userModel = new User();
+        if ($id === 0 || $fullName === '') {
+            header('Location: ' . \App\Config\Config::BASE_URL . 'agents');
+            exit;
+        }
 
-        // Update basic info
-        // Need to add update method to User model first
-        // $userModel->update($id, ['full_name' => $fullName]);
+        if (!in_array($role, ['AGENT', 'QA'], true)) {
+            header('Location: ' . \App\Config\Config::BASE_URL . 'agents/edit?id=' . $id . '&error=invalid_role');
+            exit;
+        }
 
-        // If password provided, update it
-        // if (!empty($password)) $userModel->updatePassword($id, $password);
+        $userModel = new PoncheUser();
+        $userModel->update($id, [
+            'full_name' => $fullName,
+            'role' => $role,
+            'is_active' => $active
+        ]);
+
+        if ($password !== '') {
+            $userModel->updatePassword($id, $password);
+        }
+
+        header('Location: ' . \App\Config\Config::BASE_URL . 'agents');
+    }
+
+    public function toggle()
+    {
+        Auth::requireRole('admin');
+
+        $id = isset($_POST['id']) ? (int) $_POST['id'] : 0;
+        $active = isset($_POST['active']) ? (int) $_POST['active'] : null;
+
+        if ($id === 0 || ($active !== 0 && $active !== 1)) {
+            header('Location: ' . \App\Config\Config::BASE_URL . 'agents');
+            exit;
+        }
+
+        $userModel = new PoncheUser();
+        $userModel->setActive($id, $active);
 
         header('Location: ' . \App\Config\Config::BASE_URL . 'agents');
     }

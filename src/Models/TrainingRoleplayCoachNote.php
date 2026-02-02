@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Config\Database;
+use App\Models\PoncheUser;
 use PDO;
 
 class TrainingRoleplayCoachNote
@@ -30,9 +31,8 @@ class TrainingRoleplayCoachNote
     public function getByRoleplayId($roleplayId, $limit = 100): array
     {
         $stmt = $this->db->prepare("
-            SELECT trcn.*, u.full_name as qa_name
+            SELECT trcn.*
             FROM training_roleplay_coach_notes trcn
-            JOIN users u ON trcn.qa_id = u.id
             WHERE trcn.roleplay_id = ?
             ORDER BY trcn.created_at DESC
             LIMIT ?
@@ -40,6 +40,17 @@ class TrainingRoleplayCoachNote
         $stmt->bindValue(1, (int) $roleplayId, PDO::PARAM_INT);
         $stmt->bindValue(2, (int) $limit, PDO::PARAM_INT);
         $stmt->execute();
-        return $stmt->fetchAll();
+        $rows = $stmt->fetchAll();
+        if (empty($rows)) {
+            return $rows;
+        }
+        $ids = array_column($rows, 'qa_id');
+        $map = (new PoncheUser())->getMapByIds($ids);
+        foreach ($rows as &$row) {
+            $qaId = (int) ($row['qa_id'] ?? 0);
+            $row['qa_name'] = $map[$qaId]['full_name'] ?? ('QA #' . $qaId);
+        }
+        unset($row);
+        return $rows;
     }
 }

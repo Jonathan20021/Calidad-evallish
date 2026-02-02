@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Config\Database;
+use App\Models\PoncheUser;
 use PDO;
 
 class TrainingExam
@@ -43,27 +44,22 @@ class TrainingExam
     {
         $stmt = $this->db->prepare("
             SELECT te.*,
-                   a.full_name as agent_name,
-                   qa.full_name as qa_name,
                    c.name as campaign_name
             FROM training_exams te
-            JOIN users a ON te.agent_id = a.id
-            JOIN users qa ON te.qa_id = qa.id
             LEFT JOIN campaigns c ON te.campaign_id = c.id
             WHERE te.id = ?
         ");
         $stmt->execute([$id]);
-        return $stmt->fetch();
+        $row = $stmt->fetch();
+        return $this->attachUserNames($row);
     }
 
     public function getByAgentId($agentId, $limit = 50): array
     {
         $stmt = $this->db->prepare("
             SELECT te.*,
-                   qa.full_name as qa_name,
                    c.name as campaign_name
             FROM training_exams te
-            JOIN users qa ON te.qa_id = qa.id
             LEFT JOIN campaigns c ON te.campaign_id = c.id
             WHERE te.agent_id = ?
             ORDER BY te.created_at DESC
@@ -72,26 +68,24 @@ class TrainingExam
         $stmt->bindValue(1, $agentId, PDO::PARAM_INT);
         $stmt->bindValue(':limit', (int) $limit, PDO::PARAM_INT);
         $stmt->execute();
-        return $stmt->fetchAll();
+        $rows = $stmt->fetchAll();
+        return $this->attachUserNamesToRows($rows);
     }
 
     public function getRecent($limit = 20): array
     {
         $stmt = $this->db->prepare("
             SELECT te.*,
-                   a.full_name as agent_name,
-                   qa.full_name as qa_name,
                    c.name as campaign_name
             FROM training_exams te
-            JOIN users a ON te.agent_id = a.id
-            JOIN users qa ON te.qa_id = qa.id
             LEFT JOIN campaigns c ON te.campaign_id = c.id
             ORDER BY te.created_at DESC
             LIMIT :limit
         ");
         $stmt->bindValue(':limit', (int) $limit, PDO::PARAM_INT);
         $stmt->execute();
-        return $stmt->fetchAll();
+        $rows = $stmt->fetchAll();
+        return $this->attachUserNamesToRows($rows);
     }
 
     public function getStats(): array
@@ -163,17 +157,58 @@ class TrainingExam
     {
         $stmt = $this->db->prepare("
             SELECT te.*,
-                   a.full_name as agent_name,
-                   qa.full_name as qa_name,
                    c.name as campaign_name
             FROM training_exams te
-            JOIN users a ON te.agent_id = a.id
-            JOIN users qa ON te.qa_id = qa.id
             LEFT JOIN campaigns c ON te.campaign_id = c.id
             WHERE te.public_token = ?
             LIMIT 1
         ");
         $stmt->execute([$token]);
-        return $stmt->fetch();
+        $row = $stmt->fetch();
+        return $this->attachUserNames($row);
+    }
+
+    private function attachUserNames($row)
+    {
+        if (!$row) {
+            return $row;
+        }
+
+        $poncheUser = new PoncheUser();
+        $map = $poncheUser->getMapByIds([(int) ($row['agent_id'] ?? 0), (int) ($row['qa_id'] ?? 0)]);
+
+        $agentId = (int) ($row['agent_id'] ?? 0);
+        $qaId = (int) ($row['qa_id'] ?? 0);
+        $row['agent_name'] = $map[$agentId]['full_name'] ?? ('Agente #' . $agentId);
+        $row['qa_name'] = $map[$qaId]['full_name'] ?? ('QA #' . $qaId);
+        return $row;
+    }
+
+    private function attachUserNamesToRows(array $rows): array
+    {
+        if (empty($rows)) {
+            return $rows;
+        }
+
+        $ids = [];
+        foreach ($rows as $row) {
+            if (isset($row['agent_id'])) {
+                $ids[] = (int) $row['agent_id'];
+            }
+            if (isset($row['qa_id'])) {
+                $ids[] = (int) $row['qa_id'];
+            }
+        }
+        $map = (new PoncheUser())->getMapByIds($ids);
+
+        foreach ($rows as &$row) {
+            $agentId = (int) ($row['agent_id'] ?? 0);
+            $qaId = (int) ($row['qa_id'] ?? 0);
+            $row['agent_name'] = $map[$agentId]['full_name'] ?? ('Agente #' . $agentId);
+            $row['qa_name'] = $map[$qaId]['full_name'] ?? ('QA #' . $qaId);
+        }
+        unset($row);
+
+        return $rows;
     }
 }

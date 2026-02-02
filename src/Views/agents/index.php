@@ -10,7 +10,7 @@
             <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 flex justify-between items-center">
                 <div>
                     <h1 class="text-2xl font-bold text-gray-900">Agentes</h1>
-                    <p class="mt-1 text-sm text-gray-500">Gestiona los agentes del call center</p>
+                    <p class="mt-1 text-sm text-gray-500">Gestiona agentes y QA del sistema de ponche</p>
                 </div>
                 <div class="flex items-center space-x-4">
                     <a href="<?php echo \App\Config\Config::BASE_URL; ?>agents/create"
@@ -30,7 +30,7 @@
                 <div class="px-6 py-5 border-b border-gray-200 bg-gray-50 flex justify-between items-center">
                     <h3 class="text-lg font-semibold text-gray-900">Lista de Agentes</h3>
                     <div class="text-sm text-gray-500">
-                        Todos los agentes registrados en el sistema
+                        Agentes y QA sincronizados con ponche
                     </div>
                 </div>
                 <div class="overflow-x-auto">
@@ -45,28 +45,28 @@
                                     Nombre</th>
                                 <th
                                     class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Campaña</th>
+                                    Rol</th>
                                 <th
                                     class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     Estado</th>
-                                <th
-                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Promedio</th>
-                                <th
-                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Evaluaciones</th>
                                 <th class="relative px-6 py-3"><span class="sr-only">Acciones</span></th>
                             </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
                             <?php if (empty($agents)): ?>
                                 <tr>
-                                    <td colspan="7" class="px-6 py-4 text-center text-sm text-gray-500">
+                                    <td colspan="5" class="px-6 py-4 text-center text-sm text-gray-500">
                                         No hay agentes registrados aún.
                                     </td>
                                 </tr>
                             <?php else: ?>
                                 <?php foreach ($agents as $agent): ?>
+                                    <?php
+                                    $role = $agent['role'] ?? 'agent';
+                                    $roleLabel = strtoupper($role);
+                                    $roleClass = $role === 'qa' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800';
+                                    $isActive = (int) ($agent['active'] ?? 1) === 1;
+                                    ?>
                                     <tr class="hover:bg-gray-50 transition-colors duration-150">
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                             AG-
@@ -86,31 +86,50 @@
                                                     </div>
                                                     <div class="text-sm text-gray-500">
                                                         <?php echo htmlspecialchars($agent['username']); ?>
-                                                    </div> <!-- Using username as email placeholder -->
+                                                    </div>
                                                 </div>
                                             </div>
                                         </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            <!-- Placeholder Campaign -->
+                                        <td class="px-6 py-4 whitespace-nowrap">
                                             <span
-                                                class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
-                                                General
+                                                class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full <?php echo $roleClass; ?>">
+                                                <?php echo $roleLabel; ?>
                                             </span>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap">
-                                            <span
-                                                class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
-                                                Activo
-                                            </span>
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-green-600 font-bold">
-                                            -- %
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            0
+                                            <?php if ($isActive): ?>
+                                                <span
+                                                    class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                                                    Activo
+                                                </span>
+                                            <?php else: ?>
+                                                <span
+                                                    class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
+                                                    Inactivo
+                                                </span>
+                                            <?php endif; ?>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                            <a href="#" class="text-blue-600 hover:text-blue-900">Editar</a>
+                                            <a href="<?php echo \App\Config\Config::BASE_URL; ?>agents/edit?id=<?php echo $agent['id']; ?>"
+                                                class="text-blue-600 hover:text-blue-900">Editar</a>
+                                            <form action="<?php echo \App\Config\Config::BASE_URL; ?>agents/toggle" method="POST"
+                                                class="inline">
+                                                <input type="hidden" name="id" value="<?php echo $agent['id']; ?>">
+                                                <?php if ($isActive): ?>
+                                                    <input type="hidden" name="active" value="0">
+                                                    <button type="submit"
+                                                        class="ml-4 text-red-600 hover:text-red-900"
+                                                        onclick="return confirm('¿Deseas desactivar este usuario?');">
+                                                        Desactivar
+                                                    </button>
+                                                <?php else: ?>
+                                                    <input type="hidden" name="active" value="1">
+                                                    <button type="submit"
+                                                        class="ml-4 text-green-600 hover:text-green-900">
+                                                        Activar
+                                                    </button>
+                                                <?php endif; ?>
+                                            </form>
                                         </td>
                                     </tr>
                                 <?php endforeach; ?>

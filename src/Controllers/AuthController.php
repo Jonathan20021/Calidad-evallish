@@ -3,6 +3,7 @@
 namespace App\Controllers;
 
 use App\Models\User;
+use App\Models\PoncheUser;
 use App\Helpers\Auth;
 use App\Config\Config;
 
@@ -34,6 +35,14 @@ class AuthController
             Auth::login($user);
             $redirect = $user['role'] === 'client' ? 'client-portal' : 'dashboard';
             header('Location: ' . Config::BASE_URL . $redirect);
+            exit;
+        }
+
+        $poncheUserModel = new PoncheUser();
+        $poncheUser = $poncheUserModel->findByUsername($username);
+        if ($poncheUser && $poncheUserModel->verifyPassword($password, $poncheUser['password'])) {
+            Auth::login($poncheUserModel->toSessionUser($poncheUser));
+            header('Location: ' . Config::BASE_URL . 'dashboard');
             exit;
         }
 
