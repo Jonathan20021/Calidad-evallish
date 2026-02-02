@@ -29,17 +29,16 @@
                 </div>
             <?php endif; ?>
 
-            <form method="GET" class="bg-white border border-gray-200 rounded-xl p-4 mb-6">
+            <div class="bg-white border border-gray-200 rounded-xl p-4 mb-6">
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
                     <div>
-                        <label for="q" class="block text-sm font-medium text-gray-700">Buscar</label>
-                        <input type="text" id="q" name="q" value="<?php echo htmlspecialchars($filters['q'] ?? ''); ?>"
-                            placeholder="Nombre o usuario"
+                        <label for="userSearch" class="block text-sm font-medium text-gray-700">Buscar</label>
+                        <input type="text" id="userSearch" placeholder="Nombre, usuario u origen"
                             class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
                     </div>
                     <div>
-                        <label for="role" class="block text-sm font-medium text-gray-700">Rol</label>
-                        <select id="role" name="role"
+                        <label for="roleFilter" class="block text-sm font-medium text-gray-700">Rol</label>
+                        <select id="roleFilter"
                             class="mt-1 block w-full bg-white border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
                             <option value="">Todos</option>
                             <option value="admin" <?php echo ($filters['role'] ?? '') === 'admin' ? 'selected' : ''; ?>>Admin</option>
@@ -49,26 +48,26 @@
                         </select>
                     </div>
                     <div>
-                        <label for="status" class="block text-sm font-medium text-gray-700">Estado</label>
-                        <select id="status" name="status"
+                        <label for="statusFilter" class="block text-sm font-medium text-gray-700">Estado</label>
+                        <select id="statusFilter"
                             class="mt-1 block w-full bg-white border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
                             <option value="">Todos</option>
                             <option value="1" <?php echo ($filters['status'] ?? '') === '1' ? 'selected' : ''; ?>>Activo</option>
                             <option value="0" <?php echo ($filters['status'] ?? '') === '0' ? 'selected' : ''; ?>>Inactivo</option>
                         </select>
                     </div>
-                    <div class="flex gap-3">
-                        <button type="submit"
-                            class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg shadow-sm transition duration-200">
-                            Filtrar
-                        </button>
-                        <a href="<?php echo \App\Config\Config::BASE_URL; ?>users"
-                            class="bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 font-semibold py-2 px-4 rounded-lg shadow-sm transition duration-200">
-                            Limpiar
-                        </a>
+                    <div>
+                        <label for="pageSize" class="block text-sm font-medium text-gray-700">Filas por página</label>
+                        <select id="pageSize"
+                            class="mt-1 block w-full bg-white border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                            <option value="10" selected>10</option>
+                            <option value="20">20</option>
+                            <option value="50">50</option>
+                            <option value="100">100</option>
+                        </select>
                     </div>
                 </div>
-            </form>
+            </div>
 
             <div class="bg-white shadow-sm rounded-xl border border-gray-200 overflow-hidden">
                 <div class="px-6 py-5 border-b border-gray-200 bg-gray-50 flex justify-between items-center">
@@ -90,7 +89,7 @@
                                 <th class="relative px-6 py-3"><span class="sr-only">Acciones</span></th>
                             </tr>
                         </thead>
-                        <tbody class="bg-white divide-y divide-gray-200">
+                        <tbody class="bg-white divide-y divide-gray-200" id="usersTableBody">
                             <?php if (empty($users)): ?>
                                 <tr>
                                     <td colspan="7" class="px-6 py-4 text-center text-sm text-gray-500">
@@ -111,7 +110,10 @@
                                     $sourceLabel = ($user['source'] ?? '') === 'ponche' ? 'Ponche' : 'Calidad';
                                     $canManage = (bool) ($user['can_manage'] ?? true);
                                     ?>
-                                    <tr class="hover:bg-gray-50 transition-colors duration-150">
+                                    <tr class="hover:bg-gray-50 transition-colors duration-150"
+                                        data-search="<?php echo strtolower(htmlspecialchars($user['full_name'] . ' ' . $user['username'] . ' ' . $role . ' ' . $sourceLabel)); ?>"
+                                        data-role="<?php echo htmlspecialchars($role); ?>"
+                                        data-active="<?php echo (int) $user['active']; ?>">
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                             <?php if (($user['source'] ?? '') === 'ponche'): ?>
                                                 PO-<?php echo str_pad($user['id'], 3, '0', STR_PAD_LEFT); ?>
@@ -187,8 +189,129 @@
                     </table>
                 </div>
             </div>
+
+            <div class="mt-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                <div class="text-sm text-gray-600" id="paginationInfo">Mostrando 0 de 0</div>
+                <div class="flex items-center gap-2">
+                    <button id="prevPage"
+                        class="px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-700 hover:bg-gray-50">
+                        Anterior
+                    </button>
+                    <span class="text-sm text-gray-600" id="pageIndicator">Página 1 de 1</span>
+                    <button id="nextPage"
+                        class="px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-700 hover:bg-gray-50">
+                        Siguiente
+                    </button>
+                </div>
+            </div>
         </div>
     </main>
 </div>
 
 <?php require __DIR__ . '/../layouts/footer.php'; ?>
+
+<script>
+    (function () {
+        const searchInput = document.getElementById('userSearch');
+        const roleFilter = document.getElementById('roleFilter');
+        const statusFilter = document.getElementById('statusFilter');
+        const pageSizeSelect = document.getElementById('pageSize');
+        const tableBody = document.getElementById('usersTableBody');
+        const rows = Array.from(tableBody ? tableBody.querySelectorAll('tr[data-search]') : []);
+        const info = document.getElementById('paginationInfo');
+        const indicator = document.getElementById('pageIndicator');
+        const prevBtn = document.getElementById('prevPage');
+        const nextBtn = document.getElementById('nextPage');
+
+        if (!tableBody) {
+            return;
+        }
+
+        let currentPage = 1;
+
+        const getPageSize = () => parseInt(pageSizeSelect.value, 10) || 10;
+
+        const getFilteredRows = () => {
+            const query = (searchInput.value || '').trim().toLowerCase();
+            const roleValue = (roleFilter.value || '').trim().toLowerCase();
+            const statusValue = statusFilter.value;
+
+            return rows.filter(row => {
+                const searchText = (row.dataset.search || '').toLowerCase();
+                const rowRole = (row.dataset.role || '').toLowerCase();
+                const rowActive = row.dataset.active || '';
+
+                if (query && !searchText.includes(query)) {
+                    return false;
+                }
+                if (roleValue && rowRole !== roleValue) {
+                    return false;
+                }
+                if (statusValue !== '' && rowActive !== statusValue) {
+                    return false;
+                }
+                return true;
+            });
+        };
+
+        const render = () => {
+            const filtered = getFilteredRows();
+            const pageSize = getPageSize();
+            const total = filtered.length;
+            const totalPages = Math.max(1, Math.ceil(total / pageSize));
+
+            if (currentPage > totalPages) {
+                currentPage = totalPages;
+            }
+
+            const start = (currentPage - 1) * pageSize;
+            const end = start + pageSize;
+
+            rows.forEach(row => row.classList.add('hidden'));
+            filtered.slice(start, end).forEach(row => row.classList.remove('hidden'));
+
+            info.textContent = `Mostrando ${total === 0 ? 0 : start + 1} a ${Math.min(end, total)} de ${total}`;
+            indicator.textContent = `Página ${currentPage} de ${totalPages}`;
+            prevBtn.disabled = currentPage === 1;
+            nextBtn.disabled = currentPage === totalPages;
+            prevBtn.classList.toggle('opacity-50', prevBtn.disabled);
+            nextBtn.classList.toggle('opacity-50', nextBtn.disabled);
+        };
+
+        searchInput.addEventListener('input', () => {
+            currentPage = 1;
+            render();
+        });
+
+        roleFilter.addEventListener('change', () => {
+            currentPage = 1;
+            render();
+        });
+
+        statusFilter.addEventListener('change', () => {
+            currentPage = 1;
+            render();
+        });
+
+        pageSizeSelect.addEventListener('change', () => {
+            currentPage = 1;
+            render();
+        });
+
+        prevBtn.addEventListener('click', () => {
+            if (currentPage > 1) {
+                currentPage -= 1;
+                render();
+            }
+        });
+
+        nextBtn.addEventListener('click', () => {
+            if (currentPage < Math.max(1, Math.ceil(getFilteredRows().length / getPageSize()))) {
+                currentPage += 1;
+                render();
+            }
+        });
+
+        render();
+    })();
+</script>
