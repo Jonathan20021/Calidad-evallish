@@ -121,7 +121,14 @@
                                             </span>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                            <?php echo htmlspecialchars($agent['password'] ?? ''); ?>
+                                            <div class="flex items-center gap-2">
+                                                <span class="agent-password" data-password="<?php echo htmlspecialchars($agent['password'] ?? ''); ?>">••••••••</span>
+                                                <button type="button"
+                                                    class="text-blue-600 hover:text-blue-900 text-xs font-semibold toggle-password"
+                                                    aria-pressed="false">
+                                                    Ver
+                                                </button>
+                                            </div>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap">
                                             <?php if ($isActive): ?>
@@ -256,6 +263,28 @@
         nextBtn.addEventListener('click', () => {
             currentPage += 1;
             render();
+        });
+
+        tableBody.addEventListener('click', (event) => {
+            const button = event.target.closest('.toggle-password');
+            if (!button) {
+                return;
+            }
+            const container = button.closest('td');
+            const passwordSpan = container ? container.querySelector('.agent-password') : null;
+            if (!passwordSpan) {
+                return;
+            }
+            const isVisible = button.getAttribute('aria-pressed') === 'true';
+            if (isVisible) {
+                passwordSpan.textContent = '••••••••';
+                button.textContent = 'Ver';
+                button.setAttribute('aria-pressed', 'false');
+            } else {
+                passwordSpan.textContent = passwordSpan.dataset.password || '';
+                button.textContent = 'Ocultar';
+                button.setAttribute('aria-pressed', 'true');
+            }
         });
 
         render();
