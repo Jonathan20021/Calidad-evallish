@@ -70,6 +70,7 @@ $router->get('/reports/export-pdf', [\App\Controllers\ReportController::class, '
 
 // Settings
 $router->get('/settings', [\App\Controllers\SettingsController::class, 'index']);
+$router->post('/settings/qa-permissions', [\App\Controllers\SettingsController::class, 'updateQaPermissions']);
 
 // AI Criteria (Admin)
 $router->get('/ai-criteria', [AiCriteriaController::class, 'index']);

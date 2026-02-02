@@ -26,6 +26,17 @@ CREATE TABLE IF NOT EXISTS users (
     FOREIGN KEY (client_id) REFERENCES corporate_clients(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- QA permissions (configurable from UI)
+CREATE TABLE IF NOT EXISTS qa_permissions (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    can_view_users TINYINT(1) DEFAULT 0,
+    can_create_users TINYINT(1) DEFAULT 0,
+    can_view_clients TINYINT(1) DEFAULT 0,
+    can_manage_clients TINYINT(1) DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- Campaigns table
 CREATE TABLE IF NOT EXISTS campaigns (
     id INT AUTO_INCREMENT PRIMARY KEY,

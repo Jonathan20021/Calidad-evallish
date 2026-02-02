@@ -55,7 +55,7 @@ class CorporateClientController
 
     public function index()
     {
-        Auth::requireRole('admin');
+        Auth::requirePermission('clients.view');
 
         $clientModel = new CorporateClient();
         $clientCampaigns = new ClientCampaign();
@@ -69,7 +69,7 @@ class CorporateClientController
 
     public function create()
     {
-        Auth::requireRole('admin');
+        Auth::requirePermission('clients.manage');
 
         $campaignModel = new Campaign();
         $campaigns = $campaignModel->getActive();
@@ -103,7 +103,7 @@ class CorporateClientController
 
     public function store()
     {
-        Auth::requireRole('admin');
+        Auth::requirePermission('clients.manage');
 
         $campaignModel = new Campaign();
         $campaigns = $campaignModel->getActive();
@@ -179,7 +179,7 @@ class CorporateClientController
 
     public function edit()
     {
-        Auth::requireRole('admin');
+        Auth::requirePermission('clients.view');
 
         $id = $_GET['id'] ?? null;
         if (!$id) {
@@ -226,7 +226,7 @@ class CorporateClientController
 
     public function update()
     {
-        Auth::requireRole('admin');
+        Auth::requirePermission('clients.manage');
 
         $id = $_POST['id'] ?? null;
         if (!$id) {

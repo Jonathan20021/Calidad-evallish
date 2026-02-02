@@ -11,7 +11,7 @@ class AiCriteriaController
 {
     public function index()
     {
-        Auth::requireRole('admin');
+        Auth::requireAnyRole(['admin', 'qa']);
 
         $criteriaModel = new AiEvaluationCriteria();
         $campaignModel = new Campaign();
@@ -28,7 +28,7 @@ class AiCriteriaController
 
     public function edit()
     {
-        Auth::requireRole('admin');
+        Auth::requireAnyRole(['admin', 'qa']);
 
         $id = $_GET['id'] ?? null;
         if (!$id) {
@@ -55,7 +55,7 @@ class AiCriteriaController
 
     public function store()
     {
-        Auth::requireRole('admin');
+        Auth::requireAnyRole(['admin', 'qa']);
 
         $id = $_POST['id'] ?? null;
         $criteriaText = trim($_POST['criteria_text'] ?? '');
@@ -84,7 +84,7 @@ class AiCriteriaController
 
     public function toggle()
     {
-        Auth::requireRole('admin');
+        Auth::requireAnyRole(['admin', 'qa']);
 
         $id = $_POST['id'] ?? null;
         $active = isset($_POST['active']) ? (int) $_POST['active'] : null;

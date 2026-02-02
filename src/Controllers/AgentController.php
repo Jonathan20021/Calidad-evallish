@@ -25,7 +25,7 @@ class AgentController
 
     public function create()
     {
-        Auth::requireRole('admin');
+        Auth::requireAnyRole(['admin', 'qa']);
 
         $campaignModel = new Campaign();
         $campaigns = $campaignModel->getActive();
@@ -35,7 +35,7 @@ class AgentController
 
     public function store()
     {
-        Auth::requireRole('admin');
+        Auth::requireAnyRole(['admin', 'qa']);
 
         $username = trim($_POST['username'] ?? '');
         $fullName = trim($_POST['full_name'] ?? '');
@@ -77,7 +77,7 @@ class AgentController
 
     public function edit()
     {
-        Auth::requireRole('admin');
+        Auth::requireAnyRole(['admin', 'qa']);
         $id = $_GET['id'] ?? null;
         if (!$id) {
             header('Location: ' . \App\Config\Config::BASE_URL . 'agents');
@@ -101,7 +101,7 @@ class AgentController
 
     public function update()
     {
-        Auth::requireRole('admin');
+        Auth::requireAnyRole(['admin', 'qa']);
         $id = (int) ($_POST['id'] ?? 0);
         $fullName = trim($_POST['full_name'] ?? '');
         $password = $_POST['password'] ?? '';
@@ -134,7 +134,7 @@ class AgentController
 
     public function toggle()
     {
-        Auth::requireRole('admin');
+        Auth::requireAnyRole(['admin', 'qa']);
 
         $id = isset($_POST['id']) ? (int) $_POST['id'] : 0;
         $active = isset($_POST['active']) ? (int) $_POST['active'] : null;

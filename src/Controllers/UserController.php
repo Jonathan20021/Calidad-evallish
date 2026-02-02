@@ -13,7 +13,7 @@ class UserController
 
     public function index()
     {
-        Auth::requireRole('admin');
+        Auth::requirePermission('users.view');
 
         $filters = [
             'role' => $_GET['role'] ?? '',
@@ -37,7 +37,7 @@ class UserController
 
     public function create()
     {
-        Auth::requireRole('admin');
+        Auth::requirePermission('users.create');
 
         $clientModel = new CorporateClient();
         $clients = $clientModel->getAll();
@@ -47,7 +47,7 @@ class UserController
 
     public function store()
     {
-        Auth::requireRole('admin');
+        Auth::requirePermission('users.create');
 
         $username = trim($_POST['username'] ?? '');
         $fullName = trim($_POST['full_name'] ?? '');
@@ -100,7 +100,7 @@ class UserController
 
     public function edit()
     {
-        Auth::requireRole('admin');
+        Auth::requirePermission('users.view');
 
         $id = $_GET['id'] ?? null;
         if (!$id) {
@@ -123,7 +123,7 @@ class UserController
 
     public function update()
     {
-        Auth::requireRole('admin');
+        Auth::requirePermission('users.view');
 
         $id = $_POST['id'] ?? null;
         if (!$id) {
@@ -187,7 +187,7 @@ class UserController
 
     public function toggle()
     {
-        Auth::requireRole('admin');
+        Auth::requirePermission('users.view');
 
         $id = $_POST['id'] ?? null;
         $active = isset($_POST['active']) ? (int) $_POST['active'] : null;

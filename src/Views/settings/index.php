@@ -12,6 +12,12 @@
         </header>
 
         <div class="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8 space-y-8">
+            <?php if (isset($_GET['updated']) && $_GET['updated'] === 'qa'): ?>
+                <div class="bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-lg">
+                    Permisos de QA actualizados correctamente.
+                </div>
+            <?php endif; ?>
+
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
                     <p class="text-sm text-gray-500">Campañas</p>
@@ -82,6 +88,41 @@
                     <a href="<?php echo \App\Config\Config::BASE_URL; ?>agents/create"
                         class="bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 font-semibold py-2 px-4 rounded-lg shadow-sm transition">Crear agente</a>
                 </div>
+            </div>
+
+            <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+                <h2 class="text-lg font-semibold text-gray-900">Permisos QA (Ponche)</h2>
+                <p class="text-sm text-gray-500 mt-1">Define qué puede ver o gestionar QA que inicia sesión con credenciales de Ponche.</p>
+                <form action="<?php echo \App\Config\Config::BASE_URL; ?>settings/qa-permissions" method="POST"
+                    class="mt-6 space-y-4">
+                    <label class="flex items-center">
+                        <input type="checkbox" name="can_view_users" <?php echo ((int) ($qaPermissions['can_view_users'] ?? 0) === 1) ? 'checked' : ''; ?>
+                            class="rounded border-gray-300 text-blue-600 shadow-sm focus:ring-blue-500">
+                        <span class="ml-2 text-sm text-gray-700">Permitir ver usuarios</span>
+                    </label>
+                    <label class="flex items-center">
+                        <input type="checkbox" name="can_create_users" <?php echo ((int) ($qaPermissions['can_create_users'] ?? 0) === 1) ? 'checked' : ''; ?>
+                            class="rounded border-gray-300 text-blue-600 shadow-sm focus:ring-blue-500">
+                        <span class="ml-2 text-sm text-gray-700">Permitir crear usuarios</span>
+                    </label>
+                    <label class="flex items-center">
+                        <input type="checkbox" name="can_view_clients" <?php echo ((int) ($qaPermissions['can_view_clients'] ?? 0) === 1) ? 'checked' : ''; ?>
+                            class="rounded border-gray-300 text-blue-600 shadow-sm focus:ring-blue-500">
+                        <span class="ml-2 text-sm text-gray-700">Permitir ver clientes</span>
+                    </label>
+                    <label class="flex items-center">
+                        <input type="checkbox" name="can_manage_clients" <?php echo ((int) ($qaPermissions['can_manage_clients'] ?? 0) === 1) ? 'checked' : ''; ?>
+                            class="rounded border-gray-300 text-blue-600 shadow-sm focus:ring-blue-500">
+                        <span class="ml-2 text-sm text-gray-700">Permitir gestionar clientes</span>
+                    </label>
+
+                    <div class="pt-4">
+                        <button type="submit"
+                            class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700">
+                            Guardar permisos
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     </main>

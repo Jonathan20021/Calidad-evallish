@@ -41,12 +41,16 @@ class AuthController
         $poncheUserModel = new PoncheUser();
         $poncheUser = $poncheUserModel->findByUsername($username);
         if ($poncheUser && $poncheUserModel->verifyPassword($password, $poncheUser['password'])) {
-            Auth::login($poncheUserModel->toSessionUser($poncheUser));
-            header('Location: ' . Config::BASE_URL . 'dashboard');
-            exit;
+            $role = strtolower($poncheUser['role'] ?? '');
+            if ($role === 'qa') {
+                Auth::login($poncheUserModel->toSessionUser($poncheUser));
+                header('Location: ' . Config::BASE_URL . 'dashboard');
+                exit;
+            }
+            $error = "Acceso no permitido para agentes en el sistema de calidad.";
+        } else {
+            $error = "Credenciales inválidas. Por favor intente de nuevo.";
         }
-
-        $error = "Credenciales inválidas. Por favor intente de nuevo.";
         require __DIR__ . '/../Views/auth/login.php';
     }
 

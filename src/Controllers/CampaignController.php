@@ -10,7 +10,7 @@ class CampaignController
 
     public function index()
     {
-        Auth::requireRole('admin');
+        Auth::requireAnyRole(['admin', 'qa']);
 
         $campaignModel = new Campaign();
         $campaigns = $campaignModel->getAll();
@@ -20,13 +20,13 @@ class CampaignController
 
     public function create()
     {
-        Auth::requireRole('admin');
+        Auth::requireAnyRole(['admin', 'qa']);
         require __DIR__ . '/../Views/campaigns/create.php';
     }
 
     public function store()
     {
-        Auth::requireRole('admin');
+        Auth::requireAnyRole(['admin', 'qa']);
 
         $name = $_POST['name'] ?? '';
         $description = $_POST['description'] ?? '';
@@ -51,7 +51,7 @@ class CampaignController
 
     public function edit()
     {
-        Auth::requireRole('admin');
+        Auth::requireAnyRole(['admin', 'qa']);
         $id = $_GET['id'] ?? null;
 
         if (!$id) {
@@ -72,7 +72,7 @@ class CampaignController
 
     public function update()
     {
-        Auth::requireRole('admin');
+        Auth::requireAnyRole(['admin', 'qa']);
 
         $id = $_POST['id'] ?? null;
         $name = $_POST['name'] ?? '';

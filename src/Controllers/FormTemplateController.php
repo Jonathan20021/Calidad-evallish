@@ -12,7 +12,7 @@ class FormTemplateController
 
     public function index()
     {
-        Auth::requireRole('admin');
+        Auth::requireAnyRole(['admin', 'qa']);
 
         $templateModel = new FormTemplate();
         $templates = $templateModel->getAllWithCampaign();
@@ -22,7 +22,7 @@ class FormTemplateController
 
     public function create()
     {
-        Auth::requireRole('admin');
+        Auth::requireAnyRole(['admin', 'qa']);
 
         $campaignId = $_GET['campaign_id'] ?? null;
         $campaignModel = new Campaign();
@@ -38,7 +38,7 @@ class FormTemplateController
 
     public function edit()
     {
-        Auth::requireRole('admin');
+        Auth::requireAnyRole(['admin', 'qa']);
 
         $templateId = $_GET['id'] ?? null;
         if (!$templateId) {
@@ -66,7 +66,7 @@ class FormTemplateController
 
     public function store()
     {
-        Auth::requireRole('admin');
+        Auth::requireAnyRole(['admin', 'qa']);
 
         $campaignId = $_POST['campaign_id'];
         $title = $_POST['title'];
@@ -105,7 +105,7 @@ class FormTemplateController
 
     public function update()
     {
-        Auth::requireRole('admin');
+        Auth::requireAnyRole(['admin', 'qa']);
 
         $templateId = $_POST['template_id'] ?? null;
         if (!$templateId) {
@@ -142,7 +142,7 @@ class FormTemplateController
 
     public function toggle()
     {
-        Auth::requireRole('admin');
+        Auth::requireAnyRole(['admin', 'qa']);
 
         $templateId = $_POST['id'] ?? null;
         $active = isset($_POST['active']) ? (int) $_POST['active'] : null;
@@ -159,7 +159,7 @@ class FormTemplateController
 
     public function duplicate()
     {
-        Auth::requireRole('admin');
+        Auth::requireAnyRole(['admin', 'qa']);
 
         $templateId = $_POST['id'] ?? null;
         if (!$templateId) {
