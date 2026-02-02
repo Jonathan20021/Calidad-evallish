@@ -50,6 +50,7 @@ $router->get('/evaluations/create', [EvaluationController::class, 'create']);
 $router->post('/evaluations/store', [EvaluationController::class, 'store']);
 $router->get('/evaluations/edit', [EvaluationController::class, 'edit']);
 $router->post('/evaluations/update', [EvaluationController::class, 'update']);
+$router->post('/evaluations/update-feedback', [EvaluationController::class, 'updateFeedback']);
 
 $router->get('/calls', [\App\Controllers\CallController::class, 'index']);
 $router->get('/calls/create', [\App\Controllers\CallController::class, 'create']);

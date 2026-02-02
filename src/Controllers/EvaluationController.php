@@ -698,5 +698,77 @@ class EvaluationController
 
         header('Location: ' . \App\Config\Config::BASE_URL . 'evaluations/show?id=' . $evaluationId);
     }
+
+    public function updateFeedback()
+    {
+        Auth::requireAuth();
+
+        $evaluationId = $_POST['evaluation_id'] ?? null;
+        if (!$evaluationId) {
+            header('Location: ' . \App\Config\Config::BASE_URL . 'evaluations');
+            exit;
+        }
+
+        $evaluationModel = new Evaluation();
+        $evaluation = $evaluationModel->findById($evaluationId);
+        if (!$evaluation) {
+            header('Location: ' . \App\Config\Config::BASE_URL . 'evaluations');
+            exit;
+        }
+
+        $generalComments = $_POST['general_comments'] ?? '';
+        $actionType = $_POST['action_type'] ?? null;
+        $improvementAreas = $_POST['improvement_areas'] ?? '';
+        $improvementPlan = $_POST['improvement_plan'] ?? '';
+        $tasksCommitments = $_POST['tasks_commitments'] ?? '';
+        $feedbackConfirmed = isset($_POST['feedback_confirmed']) ? 1 : 0;
+        $feedbackEvidenceNote = $_POST['feedback_evidence_note'] ?? '';
+
+        $feedbackEvidencePath = $evaluation['feedback_evidence_path'] ?? null;
+        $feedbackEvidenceName = $evaluation['feedback_evidence_name'] ?? null;
+
+        if (isset($_FILES['feedback_evidence']) && $_FILES['feedback_evidence']['error'] !== UPLOAD_ERR_NO_FILE) {
+            if ($_FILES['feedback_evidence']['error'] === UPLOAD_ERR_OK) {
+                $file = $_FILES['feedback_evidence'];
+                $maxBytes = 50 * 1024 * 1024;
+                if ($file['size'] <= $maxBytes) {
+                    $extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+                    if ($extension === '') {
+                        $extension = 'bin';
+                    }
+                    $uploadDir = __DIR__ . '/../../public/uploads/feedback';
+                    if (!is_dir($uploadDir)) {
+                        mkdir($uploadDir, 0755, true);
+                    }
+                    try {
+                        $random = bin2hex(random_bytes(6));
+                    } catch (\Exception $e) {
+                        $random = uniqid();
+                    }
+                    $filename = 'feedback_' . date('Ymd_His') . '_' . $random . '.' . $extension;
+                    $targetPath = $uploadDir . '/' . $filename;
+                    if (move_uploaded_file($file['tmp_name'], $targetPath)) {
+                        $feedbackEvidencePath = 'uploads/feedback/' . $filename;
+                        $feedbackEvidenceName = $file['name'];
+                    }
+                }
+            }
+        }
+
+        $evaluationModel->updateFeedback($evaluationId, [
+            'general_comments' => $generalComments,
+            'action_type' => $actionType,
+            'improvement_areas' => $improvementAreas,
+            'improvement_plan' => $improvementPlan,
+            'tasks_commitments' => $tasksCommitments,
+            'feedback_confirmed' => $feedbackConfirmed,
+            'feedback_confirmed_at' => $feedbackConfirmed ? date('Y-m-d H:i:s') : null,
+            'feedback_evidence_path' => $feedbackEvidencePath,
+            'feedback_evidence_name' => $feedbackEvidenceName,
+            'feedback_evidence_note' => $feedbackEvidenceNote
+        ]);
+
+        header('Location: ' . \App\Config\Config::BASE_URL . 'evaluations/show?id=' . $evaluationId);
+    }
 }
 

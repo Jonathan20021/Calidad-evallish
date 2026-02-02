@@ -265,6 +265,85 @@
                 </div>
             <?php endif; ?>
 
+            <div class="bg-white shadow-lg rounded-2xl overflow-hidden mt-8">
+                <div class="px-8 py-5 border-b border-gray-100 bg-gray-50">
+                    <h3 class="text-lg font-bold text-gray-800">Actualizar feedback</h3>
+                    <p class="text-sm text-gray-500">El QA puede ajustar comentarios y evidencias en cualquier momento.</p>
+                </div>
+                <form action="<?php echo \App\Config\Config::BASE_URL; ?>evaluations/update-feedback" method="POST" enctype="multipart/form-data" class="px-8 py-6">
+                    <input type="hidden" name="evaluation_id" value="<?php echo (int) $evaluation['id']; ?>">
+
+                    <div class="mb-6">
+                        <label for="general_comments" class="block text-sm font-medium text-gray-700">Comentarios generales / Feedback</label>
+                        <textarea name="general_comments" id="general_comments" rows="4"
+                            class="mt-2 block w-full border border-gray-300 rounded-md shadow-sm py-3 px-4 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"><?php echo htmlspecialchars($evaluation['general_comments'] ?? ''); ?></textarea>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="action_type" class="block text-sm font-medium text-gray-700">Tipo de acción</label>
+                            <select name="action_type" id="action_type"
+                                class="mt-2 block w-full border border-gray-300 rounded-md shadow-sm py-3 px-4 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                                <option value="">Seleccione una opción...</option>
+                                <option value="feedback" <?php echo (($evaluation['action_type'] ?? '') === 'feedback') ? 'selected' : ''; ?>>Feedback</option>
+                                <option value="call_evaluation" <?php echo (($evaluation['action_type'] ?? '') === 'call_evaluation') ? 'selected' : ''; ?>>Evaluación de llamada</option>
+                            </select>
+                        </div>
+                        <div class="md:col-span-2">
+                            <label for="improvement_areas" class="block text-sm font-medium text-gray-700">Áreas de mejora</label>
+                            <textarea name="improvement_areas" id="improvement_areas" rows="3"
+                                class="mt-2 block w-full border border-gray-300 rounded-md shadow-sm py-3 px-4 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"><?php echo htmlspecialchars($evaluation['improvement_areas'] ?? ''); ?></textarea>
+                        </div>
+                        <div class="md:col-span-2">
+                            <label for="improvement_plan" class="block text-sm font-medium text-gray-700">Plan de mejora</label>
+                            <textarea name="improvement_plan" id="improvement_plan" rows="3"
+                                class="mt-2 block w-full border border-gray-300 rounded-md shadow-sm py-3 px-4 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"><?php echo htmlspecialchars($evaluation['improvement_plan'] ?? ''); ?></textarea>
+                        </div>
+                        <div class="md:col-span-2">
+                            <label for="tasks_commitments" class="block text-sm font-medium text-gray-700">Tareas / compromisos</label>
+                            <textarea name="tasks_commitments" id="tasks_commitments" rows="3"
+                                class="mt-2 block w-full border border-gray-300 rounded-md shadow-sm py-3 px-4 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"><?php echo htmlspecialchars($evaluation['tasks_commitments'] ?? ''); ?></textarea>
+                        </div>
+                    </div>
+
+                    <div class="mt-6">
+                        <div class="flex items-center gap-3">
+                            <input type="checkbox" name="feedback_confirmed" id="feedback_confirmed"
+                                <?php echo !empty($evaluation['feedback_confirmed']) ? 'checked' : ''; ?>
+                                class="h-4 w-4 text-indigo-600 border-gray-300 rounded">
+                            <label for="feedback_confirmed" class="text-sm text-gray-700">
+                                Feedback realizado con el agente
+                            </label>
+                        </div>
+                        <div class="mt-4">
+                            <label for="feedback_evidence" class="block text-sm font-medium text-gray-700">Evidencia (audio, nota, documento, etc.)</label>
+                            <input type="file" name="feedback_evidence" id="feedback_evidence"
+                                class="mt-2 block w-full text-sm text-gray-600 file:mr-4 file:rounded-md file:border-0 file:bg-indigo-50 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-indigo-700 hover:file:bg-indigo-100">
+                            <p class="mt-1 text-xs text-gray-500">Máximo 50MB. Opcional.</p>
+                            <?php if (!empty($evaluation['feedback_evidence_url'])): ?>
+                                <p class="mt-2 text-xs text-indigo-600">
+                                    Evidencia actual: <a class="underline" href="<?php echo htmlspecialchars($evaluation['feedback_evidence_url']); ?>" target="_blank" rel="noopener">
+                                        <?php echo htmlspecialchars($evaluation['feedback_evidence_name'] ?? 'Ver archivo'); ?>
+                                    </a>
+                                </p>
+                            <?php endif; ?>
+                        </div>
+                        <div class="mt-4">
+                            <label for="feedback_evidence_note" class="block text-sm font-medium text-gray-700">Nota de evidencia</label>
+                            <textarea name="feedback_evidence_note" id="feedback_evidence_note" rows="3"
+                                class="mt-2 block w-full border border-gray-300 rounded-md shadow-sm py-3 px-4 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"><?php echo htmlspecialchars($evaluation['feedback_evidence_note'] ?? ''); ?></textarea>
+                        </div>
+                    </div>
+
+                    <div class="mt-6 flex justify-end">
+                        <button type="submit"
+                            class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 px-6 rounded-lg shadow-sm transition duration-200">
+                            Guardar feedback
+                        </button>
+                    </div>
+                </form>
+            </div>
+
             <!-- General Feedback -->
             <?php if (!empty($evaluation['general_comments'])): ?>
                 <div class="bg-white shadow-lg rounded-2xl overflow-hidden mt-8">
