@@ -26,6 +26,26 @@
 
         <!-- Content -->
         <div class="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+            <div class="bg-white border border-gray-200 rounded-xl p-4 mb-6">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+                    <div class="md:col-span-2">
+                        <label for="agentSearch" class="block text-sm font-medium text-gray-700">Buscar</label>
+                        <input type="text" id="agentSearch" placeholder="Nombre, usuario o rol"
+                            class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                    </div>
+                    <div>
+                        <label for="pageSize" class="block text-sm font-medium text-gray-700">Filas por página</label>
+                        <select id="pageSize"
+                            class="mt-1 block w-full bg-white border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                            <option value="10" selected>10</option>
+                            <option value="20">20</option>
+                            <option value="50">50</option>
+                            <option value="100">100</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
             <div class="bg-white shadow-sm rounded-xl border border-gray-200 overflow-hidden">
                 <div class="px-6 py-5 border-b border-gray-200 bg-gray-50 flex justify-between items-center">
                     <h3 class="text-lg font-semibold text-gray-900">Lista de Agentes</h3>
@@ -52,7 +72,7 @@
                                 <th class="relative px-6 py-3"><span class="sr-only">Acciones</span></th>
                             </tr>
                         </thead>
-                        <tbody class="bg-white divide-y divide-gray-200">
+                        <tbody class="bg-white divide-y divide-gray-200" id="agentsTableBody">
                             <?php if (empty($agents)): ?>
                                 <tr>
                                     <td colspan="5" class="px-6 py-4 text-center text-sm text-gray-500">
@@ -67,7 +87,8 @@
                                     $roleClass = $role === 'qa' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800';
                                     $isActive = (int) ($agent['active'] ?? 1) === 1;
                                     ?>
-                                    <tr class="hover:bg-gray-50 transition-colors duration-150">
+                                    <tr class="hover:bg-gray-50 transition-colors duration-150"
+                                        data-search="<?php echo strtolower(htmlspecialchars($agent['full_name'] . ' ' . $agent['username'] . ' ' . ($agent['role'] ?? ''))); ?>">
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                             AG-
                                             <?php echo str_pad($agent['id'], 3, '0', STR_PAD_LEFT); ?>
@@ -138,7 +159,99 @@
                     </table>
                 </div>
             </div>
+
+            <div class="mt-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                <div class="text-sm text-gray-600" id="paginationInfo">Mostrando 0 de 0</div>
+                <div class="flex items-center gap-2">
+                    <button id="prevPage"
+                        class="px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-700 hover:bg-gray-50">
+                        Anterior
+                    </button>
+                    <span class="text-sm text-gray-600" id="pageIndicator">Página 1 de 1</span>
+                    <button id="nextPage"
+                        class="px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-700 hover:bg-gray-50">
+                        Siguiente
+                    </button>
+                </div>
+            </div>
         </div>
     </main>
 </div>
 <?php require __DIR__ . '/../layouts/footer.php'; ?>
+
+<script>
+    (function () {
+        const searchInput = document.getElementById('agentSearch');
+        const pageSizeSelect = document.getElementById('pageSize');
+        const tableBody = document.getElementById('agentsTableBody');
+        const rows = Array.from(tableBody ? tableBody.querySelectorAll('tr[data-search]') : []);
+        const info = document.getElementById('paginationInfo');
+        const indicator = document.getElementById('pageIndicator');
+        const prevBtn = document.getElementById('prevPage');
+        const nextBtn = document.getElementById('nextPage');
+
+        let currentPage = 1;
+
+        const getPageSize = () => parseInt(pageSizeSelect.value, 10) || 10;
+
+        const getFilteredRows = () => {
+            const query = (searchInput.value || '').trim().toLowerCase();
+            if (!query) {
+                return rows;
+            }
+            return rows.filter(row => (row.dataset.search || '').includes(query));
+        };
+
+        const render = () => {
+            const filtered = getFilteredRows();
+            const pageSize = getPageSize();
+            const total = filtered.length;
+            const totalPages = Math.max(1, Math.ceil(total / pageSize));
+
+            if (currentPage > totalPages) {
+                currentPage = totalPages;
+            }
+
+            const start = (currentPage - 1) * pageSize;
+            const end = start + pageSize;
+
+            rows.forEach(row => row.classList.add('hidden'));
+            filtered.slice(start, end).forEach(row => row.classList.remove('hidden'));
+
+            info.textContent = `Mostrando ${total === 0 ? 0 : start + 1} a ${Math.min(end, total)} de ${total}`;
+            indicator.textContent = `Página ${currentPage} de ${totalPages}`;
+            prevBtn.disabled = currentPage === 1;
+            nextBtn.disabled = currentPage === totalPages;
+            prevBtn.classList.toggle('opacity-50', prevBtn.disabled);
+            nextBtn.classList.toggle('opacity-50', nextBtn.disabled);
+        };
+
+        if (!tableBody) {
+            return;
+        }
+
+        searchInput.addEventListener('input', () => {
+            currentPage = 1;
+            render();
+        });
+
+        pageSizeSelect.addEventListener('change', () => {
+            currentPage = 1;
+            render();
+        });
+
+        prevBtn.addEventListener('click', () => {
+            if (currentPage > 1) {
+                currentPage -= 1;
+                render();
+            }
+        });
+
+        nextBtn.addEventListener('click', () => {
+            currentPage += 1;
+            render();
+        });
+
+        render();
+    })();
+</script>
