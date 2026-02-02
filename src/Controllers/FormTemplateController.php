@@ -147,7 +147,7 @@ class FormTemplateController
 
         $fieldModel->deleteMissingByTemplate($templateId, $keepIds);
 
-        header('Location: ' . \\App\\Config\\Config::BASE_URL . 'form-templates/edit?id=' . $templateId);
+        header('Location: ' . \App\Config\Config::BASE_URL . 'form-templates/edit?id=' . $templateId);
     }
 
     public function toggle()
