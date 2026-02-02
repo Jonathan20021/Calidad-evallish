@@ -48,6 +48,8 @@ $router->get('/evaluations/show', [EvaluationController::class, 'show']);
 $router->get('/evaluations/export-pdf', [EvaluationController::class, 'exportPdf']);
 $router->get('/evaluations/create', [EvaluationController::class, 'create']);
 $router->post('/evaluations/store', [EvaluationController::class, 'store']);
+$router->get('/evaluations/edit', [EvaluationController::class, 'edit']);
+$router->post('/evaluations/update', [EvaluationController::class, 'update']);
 
 $router->get('/calls', [\App\Controllers\CallController::class, 'index']);
 $router->get('/calls/create', [\App\Controllers\CallController::class, 'create']);

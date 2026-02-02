@@ -72,7 +72,7 @@
                                 <option value="admin" <?php echo $user['role'] === 'admin' ? 'selected' : ''; ?>>Admin</option>
                                 <option value="client" <?php echo $user['role'] === 'client' ? 'selected' : ''; ?>>Cliente</option>
                             </select>
-                            <p class="mt-2 text-xs text-gray-500">Para QA o agentes, usa el mÃ³dulo de Agentes.</p>
+                            <p class="mt-2 text-xs text-gray-500">Para QA o agentes, usa el módulo de Agentes.</p>
                         </div>
 
                         <div class="sm:col-span-3">

@@ -17,6 +17,14 @@
                     Volver a Evaluaciones
                 </a>
                 <div class="flex space-x-3">
+                    <a href="<?php echo \App\Config\Config::BASE_URL; ?>evaluations/edit?id=<?php echo $evaluation['id']; ?>"
+                        class="bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 font-semibold py-2 px-4 rounded-lg shadow-sm transition duration-200 flex items-center">
+                        <svg class="h-5 w-5 mr-2 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M11 5h2m-1-1v2m-7 7l9.586-9.586a2 2 0 012.828 0L20 6.414a2 2 0 010 2.828L10.414 19H6v-4.414z" />
+                        </svg>
+                        Editar
+                    </a>
                     <a href="<?php echo \App\Config\Config::BASE_URL; ?>evaluations/export-pdf?id=<?php echo $evaluation['id']; ?>"
                         class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded-lg shadow-sm transition duration-200 flex items-center">
                         <svg class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">

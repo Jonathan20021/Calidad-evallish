@@ -43,6 +43,12 @@ class EvaluationAnswer
         ]);
     }
 
+    public function deleteByEvaluationId($evaluationId): bool
+    {
+        $stmt = $this->db->prepare("DELETE FROM evaluation_answers WHERE evaluation_id = ?");
+        return $stmt->execute([$evaluationId]);
+    }
+
     public function getWeakAreasByAgent($agentId, $limit = 5): array
     {
         $stmt = $this->db->prepare("

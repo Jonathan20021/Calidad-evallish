@@ -83,6 +83,58 @@ class Evaluation
         ]);
     }
 
+    public function update($id, array $data): bool
+    {
+        $stmt = $this->db->prepare("
+            UPDATE evaluations
+            SET call_id = ?,
+                agent_id = ?,
+                qa_id = ?,
+                campaign_id = ?,
+                form_template_id = ?,
+                call_date = ?,
+                call_duration = ?,
+                total_score = ?,
+                max_possible_score = ?,
+                percentage = ?,
+                general_comments = ?,
+                action_type = ?,
+                improvement_areas = ?,
+                improvement_plan = ?,
+                tasks_commitments = ?,
+                feedback_confirmed = ?,
+                feedback_confirmed_at = ?,
+                feedback_evidence_path = ?,
+                feedback_evidence_name = ?,
+                feedback_evidence_note = ?
+            WHERE id = ?
+        ");
+
+        return $stmt->execute([
+            $data['call_id'] ?? null,
+            $data['agent_id'],
+            $data['qa_id'],
+            $data['campaign_id'],
+            $data['form_template_id'],
+            $data['call_date'] ?? date('Y-m-d'),
+            $data['call_duration'] ?? null,
+            $data['total_score'],
+            $data['max_possible_score'],
+            $data['percentage'],
+            $data['general_comments'] ?? '',
+            $data['action_type'] ?? null,
+            $data['improvement_areas'] ?? null,
+            $data['improvement_plan'] ?? null,
+            $data['tasks_commitments'] ?? null,
+            $data['feedback_confirmed'] ?? 0,
+            $data['feedback_confirmed_at'] ?? null,
+            $data['feedback_evidence_path'] ?? null,
+            $data['feedback_evidence_name'] ?? null,
+            $data['feedback_evidence_note'] ?? null,
+            $id
+        ]);
+    }
+
     public function getLastInsertId()
     {
         return $this->db->lastInsertId();

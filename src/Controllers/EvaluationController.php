@@ -125,6 +125,13 @@ class EvaluationController
         $templates = [];
         $formFields = [];
         $template = null;
+        $isEdit = false;
+        $evaluationId = null;
+        $formAction = 'evaluations/store';
+        $formMethod = 'POST';
+        $formValues = [];
+        $prefillAnswers = [];
+        $prefillComments = [];
 
         if ($callId) {
             $callModel = new Call();
@@ -156,6 +163,93 @@ class EvaluationController
             }
         }
 
+        $formAction = $selectedCampaignId ? 'evaluations/store' : 'evaluations/create';
+        $formMethod = $selectedCampaignId ? 'POST' : 'GET';
+
+        require __DIR__ . '/../Views/evaluations/create.php';
+    }
+
+    public function edit()
+    {
+        Auth::requireAuth();
+
+        $id = $_GET['id'] ?? null;
+        if (!$id) {
+            header('Location: ' . \App\Config\Config::BASE_URL . 'evaluations');
+            exit;
+        }
+
+        $evaluationModel = new Evaluation();
+        $answerModel = new EvaluationAnswer();
+        $campaignModel = new Campaign();
+        $userModel = new User();
+        $templateModel = new FormTemplate();
+        $fieldModel = new FormField();
+        $callModel = new Call();
+
+        $evaluation = $evaluationModel->findById($id);
+        if (!$evaluation) {
+            header('Location: ' . \App\Config\Config::BASE_URL . 'evaluations');
+            exit;
+        }
+
+        $campaigns = $campaignModel->getActive();
+        $agents = $userModel->getByRole('agent');
+
+        $selectedCampaignId = $evaluation['campaign_id'] ?? null;
+        $selectedAgentId = $evaluation['agent_id'] ?? null;
+        $selectedTemplateId = $evaluation['form_template_id'] ?? null;
+        $callId = $evaluation['call_id'] ?? null;
+        $lockedCall = null;
+        $recordingUrl = null;
+        $templates = [];
+        $formFields = [];
+        $template = null;
+
+        if ($callId) {
+            $lockedCall = $callModel->findById($callId);
+            if ($lockedCall && !empty($lockedCall['recording_path'])) {
+                $recordingUrl = \App\Config\Config::BASE_URL . ltrim($lockedCall['recording_path'], '/');
+            }
+        }
+
+        if ($selectedCampaignId) {
+            $templates = $templateModel->getByCampaign($selectedCampaignId);
+            if (!empty($templates)) {
+                foreach ($templates as $item) {
+                    if ((int) $item['id'] === (int) $selectedTemplateId) {
+                        $template = $item;
+                        break;
+                    }
+                }
+                if (!$template) {
+                    $template = $templates[0];
+                    $selectedTemplateId = $template['id'];
+                }
+                $formFields = $fieldModel->getByTemplate($template['id']);
+            }
+        }
+
+        $isEdit = true;
+        $evaluationId = (int) $id;
+        $formAction = 'evaluations/update';
+        $formMethod = 'POST';
+        $formValues = $evaluation;
+        if (!empty($evaluation['feedback_evidence_path'])) {
+            $formValues['feedback_evidence_url'] = \App\Config\Config::BASE_URL . ltrim($evaluation['feedback_evidence_path'], '/');
+        }
+
+        $existingAnswers = $answerModel->getByEvaluationId($evaluationId);
+        $prefillAnswers = [];
+        $prefillComments = [];
+        foreach ($existingAnswers as $answer) {
+            $prefillAnswers[(int) $answer['field_id']] = [
+                'score_given' => $answer['score_given'],
+                'text_answer' => $answer['text_answer']
+            ];
+            $prefillComments[(int) $answer['field_id']] = $answer['comment'] ?? '';
+        }
+
         require __DIR__ . '/../Views/evaluations/create.php';
     }
 
@@ -176,8 +270,10 @@ class EvaluationController
         $tasksCommitments = $_POST['tasks_commitments'] ?? '';
         $feedbackConfirmed = isset($_POST['feedback_confirmed']) ? 1 : 0;
         $feedbackEvidenceNote = $_POST['feedback_evidence_note'] ?? '';
+        $errors = [];
         $feedbackEvidencePath = null;
         $feedbackEvidenceName = null;
+        $errors = [];
 
         $callDate = null;
         $callDuration = null;
@@ -242,6 +338,10 @@ class EvaluationController
         // Percentage
         $percentage = ($maxPossibleScore > 0) ? ($totalScore / $maxPossibleScore) * 100 : 0;
 
+        $selectedCampaignId = $campaignId;
+        $selectedAgentId = $agentId;
+        $selectedTemplateId = $formTemplateId;
+
         if (isset($_FILES['feedback_evidence']) && $_FILES['feedback_evidence']['error'] !== UPLOAD_ERR_NO_FILE) {
             if ($_FILES['feedback_evidence']['error'] !== UPLOAD_ERR_OK) {
                 $errors[] = 'No se pudo subir la evidencia de feedback.';
@@ -277,6 +377,54 @@ class EvaluationController
         }
 
         if (!empty($errors)) {
+            $isEdit = false;
+            $evaluationId = null;
+            $formAction = 'evaluations/store';
+            $formMethod = 'POST';
+            $formValues = $_POST;
+            $prefillAnswers = [];
+            $prefillComments = [];
+            foreach ($answers as $fieldId => $score) {
+                $prefillAnswers[(int) $fieldId] = [
+                    'score_given' => $score,
+                    'text_answer' => $score
+                ];
+                $prefillComments[(int) $fieldId] = $fieldComments[$fieldId] ?? '';
+            }
+            if (!empty($feedbackEvidencePath)) {
+                $formValues['feedback_evidence_path'] = $feedbackEvidencePath;
+                $formValues['feedback_evidence_name'] = $feedbackEvidenceName;
+                $formValues['feedback_evidence_url'] = \App\Config\Config::BASE_URL . ltrim($feedbackEvidencePath, '/');
+            }
+            $campaignModel = new Campaign();
+            $userModel = new User();
+            $templateModel = new FormTemplate();
+            $fieldModel = new FormField();
+            $campaigns = $campaignModel->getActive();
+            $agents = $userModel->getByRole('agent');
+            $templates = $selectedCampaignId ? $templateModel->getByCampaign($selectedCampaignId) : [];
+            $template = null;
+            if (!empty($templates)) {
+                foreach ($templates as $item) {
+                    if ((int) $item['id'] === (int) $selectedTemplateId) {
+                        $template = $item;
+                        break;
+                    }
+                }
+                if (!$template) {
+                    $template = $templates[0];
+                }
+                $formFields = $fieldModel->getByTemplate($template['id']);
+            }
+            $lockedCall = null;
+            $recordingUrl = null;
+            if ($callId) {
+                $callModel = new Call();
+                $lockedCall = $callModel->findById($callId);
+                if ($lockedCall && !empty($lockedCall['recording_path'])) {
+                    $recordingUrl = \App\Config\Config::BASE_URL . ltrim($lockedCall['recording_path'], '/');
+                }
+            }
             require __DIR__ . '/../Views/evaluations/create.php';
             return;
         }
@@ -330,6 +478,225 @@ class EvaluationController
         }
 
         header('Location: ' . \App\Config\Config::BASE_URL . 'evaluations');
+    }
+
+    public function update()
+    {
+        Auth::requireAuth();
+
+        $evaluationId = $_POST['evaluation_id'] ?? null;
+        if (!$evaluationId) {
+            header('Location: ' . \App\Config\Config::BASE_URL . 'evaluations');
+            exit;
+        }
+
+        $evaluationModel = new Evaluation();
+        $answerModel = new EvaluationAnswer();
+        $callModel = new Call();
+        $fieldModel = new FormField();
+        $templateModel = new FormTemplate();
+        $campaignModel = new Campaign();
+        $userModel = new User();
+
+        $evaluation = $evaluationModel->findById($evaluationId);
+        if (!$evaluation) {
+            header('Location: ' . \App\Config\Config::BASE_URL . 'evaluations');
+            exit;
+        }
+
+        $callId = $_POST['call_id'] ?? $evaluation['call_id'] ?? null;
+        $agentId = $_POST['agent_id'] ?? $evaluation['agent_id'];
+        $campaignId = $_POST['campaign_id'] ?? $evaluation['campaign_id'];
+        $formTemplateId = $_POST['form_template_id'] ?? $evaluation['form_template_id'];
+
+        $answers = $_POST['answers'] ?? [];
+        $fieldComments = $_POST['field_comments'] ?? [];
+        $generalComments = $_POST['general_comments'] ?? '';
+        $actionType = $_POST['action_type'] ?? null;
+        $improvementAreas = $_POST['improvement_areas'] ?? '';
+        $improvementPlan = $_POST['improvement_plan'] ?? '';
+        $tasksCommitments = $_POST['tasks_commitments'] ?? '';
+        $feedbackConfirmed = isset($_POST['feedback_confirmed']) ? 1 : 0;
+        $feedbackEvidenceNote = $_POST['feedback_evidence_note'] ?? '';
+
+        $callDate = $evaluation['call_date'] ?? null;
+        $callDuration = $evaluation['call_duration'] ?? null;
+        if ($callId) {
+            $call = $callModel->findById($callId);
+            if ($call) {
+                $agentId = $call['agent_id'];
+                $campaignId = $call['campaign_id'];
+                $callDate = date('Y-m-d', strtotime($call['call_datetime']));
+                $callDuration = $call['duration_seconds'];
+            }
+        }
+
+        $totalScore = 0;
+        $maxPossibleScore = 0;
+        $fields = $fieldModel->getByTemplate($formTemplateId);
+        $fieldsMap = [];
+        foreach ($fields as $field) {
+            $fieldsMap[$field['id']] = $field;
+        }
+
+        foreach ($answers as $fieldId => $score) {
+            if (isset($fieldsMap[$fieldId])) {
+                $field = $fieldsMap[$fieldId];
+                if ($field['field_type'] === 'select' || $field['field_type'] === 'text') {
+                    continue;
+                }
+                $weight = (float) $field['weight'];
+                $maxScore = isset($field['max_score']) ? (float) $field['max_score'] : 100.0;
+                if ($maxScore <= 0) {
+                    $maxScore = 100.0;
+                }
+                $scoreValue = (float) $score;
+                if ($scoreValue < 0) {
+                    $scoreValue = 0.0;
+                } elseif ($scoreValue > $maxScore) {
+                    $scoreValue = $maxScore;
+                }
+                $totalScore += ($scoreValue * $weight);
+                $maxPossibleScore += ($maxScore * $weight);
+            }
+        }
+
+        $percentage = ($maxPossibleScore > 0) ? ($totalScore / $maxPossibleScore) * 100 : 0;
+
+        $feedbackEvidencePath = $evaluation['feedback_evidence_path'] ?? null;
+        $feedbackEvidenceName = $evaluation['feedback_evidence_name'] ?? null;
+
+        if (isset($_FILES['feedback_evidence']) && $_FILES['feedback_evidence']['error'] !== UPLOAD_ERR_NO_FILE) {
+            if ($_FILES['feedback_evidence']['error'] !== UPLOAD_ERR_OK) {
+                $errors[] = 'No se pudo subir la evidencia de feedback.';
+            } else {
+                $file = $_FILES['feedback_evidence'];
+                $maxBytes = 50 * 1024 * 1024;
+                if ($file['size'] > $maxBytes) {
+                    $errors[] = 'La evidencia supera el tamaño permitido (50MB).';
+                } else {
+                    $extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+                    if ($extension === '') {
+                        $extension = 'bin';
+                    }
+                    $uploadDir = __DIR__ . '/../../public/uploads/feedback';
+                    if (!is_dir($uploadDir)) {
+                        mkdir($uploadDir, 0755, true);
+                    }
+                    try {
+                        $random = bin2hex(random_bytes(6));
+                    } catch (\Exception $e) {
+                        $random = uniqid();
+                    }
+                    $filename = 'feedback_' . date('Ymd_His') . '_' . $random . '.' . $extension;
+                    $targetPath = $uploadDir . '/' . $filename;
+                    if (!move_uploaded_file($file['tmp_name'], $targetPath)) {
+                        $errors[] = 'No se pudo guardar la evidencia.';
+                    } else {
+                        $feedbackEvidencePath = 'uploads/feedback/' . $filename;
+                        $feedbackEvidenceName = $file['name'];
+                    }
+                }
+            }
+        }
+
+        if (!empty($errors)) {
+            $campaigns = $campaignModel->getActive();
+            $agents = $userModel->getByRole('agent');
+            $selectedCampaignId = $campaignId;
+            $selectedAgentId = $agentId;
+            $selectedTemplateId = $formTemplateId;
+            $templates = $selectedCampaignId ? $templateModel->getByCampaign($selectedCampaignId) : [];
+            $template = null;
+            if (!empty($templates)) {
+                foreach ($templates as $item) {
+                    if ((int) $item['id'] === (int) $selectedTemplateId) {
+                        $template = $item;
+                        break;
+                    }
+                }
+                if (!$template) {
+                    $template = $templates[0];
+                }
+            }
+            $formFields = $template ? $fieldModel->getByTemplate($template['id']) : [];
+            $lockedCall = null;
+            $recordingUrl = null;
+            if ($callId) {
+                $lockedCall = $callModel->findById($callId);
+                if ($lockedCall && !empty($lockedCall['recording_path'])) {
+                    $recordingUrl = \App\Config\Config::BASE_URL . ltrim($lockedCall['recording_path'], '/');
+                }
+            }
+
+            $isEdit = true;
+            $formAction = 'evaluations/update';
+            $formMethod = 'POST';
+            $formValues = array_merge($evaluation, $_POST);
+            if (!empty($feedbackEvidencePath)) {
+                $formValues['feedback_evidence_path'] = $feedbackEvidencePath;
+                $formValues['feedback_evidence_name'] = $feedbackEvidenceName;
+                $formValues['feedback_evidence_url'] = \App\Config\Config::BASE_URL . ltrim($feedbackEvidencePath, '/');
+            }
+
+            $prefillAnswers = [];
+            $prefillComments = [];
+            foreach ($answers as $fieldId => $score) {
+                $prefillAnswers[(int) $fieldId] = [
+                    'score_given' => $score,
+                    'text_answer' => $score
+                ];
+                $prefillComments[(int) $fieldId] = $fieldComments[$fieldId] ?? '';
+            }
+
+            require __DIR__ . '/../Views/evaluations/create.php';
+            return;
+        }
+
+        $evaluationModel->update($evaluationId, [
+            'call_id' => $callId,
+            'agent_id' => $agentId,
+            'qa_id' => $evaluation['qa_id'],
+            'campaign_id' => $campaignId,
+            'form_template_id' => $formTemplateId,
+            'call_date' => $callDate,
+            'call_duration' => $callDuration,
+            'total_score' => $totalScore,
+            'max_possible_score' => $maxPossibleScore,
+            'percentage' => $percentage,
+            'general_comments' => $generalComments,
+            'action_type' => $actionType,
+            'improvement_areas' => $improvementAreas,
+            'improvement_plan' => $improvementPlan,
+            'tasks_commitments' => $tasksCommitments,
+            'feedback_confirmed' => $feedbackConfirmed,
+            'feedback_confirmed_at' => $feedbackConfirmed ? date('Y-m-d H:i:s') : null,
+            'feedback_evidence_path' => $feedbackEvidencePath,
+            'feedback_evidence_name' => $feedbackEvidenceName,
+            'feedback_evidence_note' => $feedbackEvidenceNote
+        ]);
+
+        $answerModel->deleteByEvaluationId($evaluationId);
+        foreach ($answers as $fieldId => $score) {
+            $fieldType = $fieldsMap[$fieldId]['field_type'] ?? null;
+            $payload = [
+                'evaluation_id' => $evaluationId,
+                'field_id' => $fieldId,
+                'comment' => $fieldComments[$fieldId] ?? ''
+            ];
+
+            if ($fieldType === 'text' || $fieldType === 'select') {
+                $payload['text_answer'] = $score;
+                $payload['score_given'] = null;
+            } else {
+                $payload['score_given'] = $score;
+                $payload['text_answer'] = null;
+            }
+
+            $answerModel->create($payload);
+        }
+
+        header('Location: ' . \App\Config\Config::BASE_URL . 'evaluations/show?id=' . $evaluationId);
     }
 }
 
