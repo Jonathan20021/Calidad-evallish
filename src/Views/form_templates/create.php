@@ -155,7 +155,7 @@
                         value="1" min="0" step="0.1">
                 </div>
                 <div class="max-score-container">
-                    <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Puntaje mÃ¡ximo</label>
+                    <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Puntaje máximo</label>
                     <input type="number"
                         class="field-max-score block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                         value="100" min="1" step="1">

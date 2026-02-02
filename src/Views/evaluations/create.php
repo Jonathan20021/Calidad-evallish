@@ -212,19 +212,19 @@
                         </div>
 
                         <div class="border-t border-gray-200 pt-6 mt-6">
-                            <h4 class="text-sm font-semibold text-gray-800 mb-3">DocumentaciÃ³n de acciÃ³n y mejora</h4>
+                            <h4 class="text-sm font-semibold text-gray-800 mb-3">Documentación de acción y mejora</h4>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div>
-                                    <label for="action_type" class="block text-sm font-medium text-gray-700">Tipo de acciÃ³n realizada</label>
+                                    <label for="action_type" class="block text-sm font-medium text-gray-700">Tipo de acción realizada</label>
                                     <select name="action_type" id="action_type"
                                         class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-3 px-4 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-                                        <option value="">Seleccione una opciÃ³n...</option>
+                                        <option value="">Seleccione una opción...</option>
                                         <option value="feedback" <?php echo (($formValues['action_type'] ?? '') === 'feedback') ? 'selected' : ''; ?>>Feedback</option>
-                                        <option value="call_evaluation" <?php echo (($formValues['action_type'] ?? '') === 'call_evaluation') ? 'selected' : ''; ?>>EvaluaciÃ³n de llamada</option>
+                                        <option value="call_evaluation" <?php echo (($formValues['action_type'] ?? '') === 'call_evaluation') ? 'selected' : ''; ?>>Evaluación de llamada</option>
                                     </select>
                                 </div>
                                 <div class="md:col-span-2">
-                                    <label for="improvement_areas" class="block text-sm font-medium text-gray-700">Ãreas de mejora identificadas</label>
+                                    <label for="improvement_areas" class="block text-sm font-medium text-gray-700">Áreas de mejora identificadas</label>
                                     <textarea name="improvement_areas" id="improvement_areas" rows="3"
                                         class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-3 px-4 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"><?php echo htmlspecialchars($formValues['improvement_areas'] ?? ''); ?></textarea>
                                 </div>

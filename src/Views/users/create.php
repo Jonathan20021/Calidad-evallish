@@ -68,7 +68,7 @@
                                 <option value="admin">Admin</option>
                                 <option value="client">Cliente</option>
                             </select>
-                            <p class="mt-2 text-xs text-gray-500">Para crear QA o agentes, usa el mÃ³dulo de Agentes.</p>
+                            <p class="mt-2 text-xs text-gray-500">Para crear QA o agentes, usa el módulo de Agentes.</p>
                         </div>
 
                         <div class="sm:col-span-3">

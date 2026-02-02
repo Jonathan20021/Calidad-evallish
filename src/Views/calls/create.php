@@ -58,7 +58,7 @@
                             <label for="campaign_id" class="block text-sm font-medium text-gray-700">Campaña</label>
                             <select name="campaign_id" id="campaign_id" required
                                 class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-3 px-4 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-                                <option value="">Seleccione una Campa�a...</option>
+                                   <option value="">Seleccione una Campaña...</option>
                                 <?php foreach ($campaigns as $campaign): ?>
                                     <option value="<?php echo $campaign['id']; ?>" <?php echo ($old['campaign_id'] == $campaign['id']) ? 'selected' : ''; ?>>
                                         <?php echo htmlspecialchars($campaign['name']); ?>

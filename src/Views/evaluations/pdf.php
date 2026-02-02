@@ -209,7 +209,7 @@
                         </td>
                     </tr>
                     <tr>
-                        <td class="meta-label">DuraciÃ³n llamada</td>
+                        <td class="meta-label">Duración llamada</td>
                         <td class="meta-value">
                             <?php echo htmlspecialchars($evaluation['call_duration_formatted'] ?? '--:--'); ?>
                         </td>
@@ -311,17 +311,17 @@
     <?php
     $actionTypeLabel = '';
     if (!empty($evaluation['action_type'])) {
-        $actionTypeLabel = $evaluation['action_type'] === 'feedback' ? 'Feedback' : 'EvaluaciÃ³n de llamada';
+        $actionTypeLabel = $evaluation['action_type'] === 'feedback' ? 'Feedback' : 'Evaluación de llamada';
     }
     $hasActionDetails = !empty($evaluation['action_type']) || !empty($evaluation['improvement_areas']) || !empty($evaluation['improvement_plan']) || !empty($evaluation['tasks_commitments']);
     ?>
     <?php if ($hasActionDetails): ?>
-        <div class="items-header">AcciÃ³n y plan de mejora</div>
+        <div class="items-header">Acción y plan de mejora</div>
         <div style="padding: 10px; background: #f9fafb; border: 1px solid #eee; margin-bottom: 20px;">
-            <p><strong>Tipo de acciÃ³n:</strong>
+            <p><strong>Tipo de acción:</strong>
                 <?php echo !empty($actionTypeLabel) ? $actionTypeLabel : 'No registrado'; ?>
             </p>
-            <p><strong>Ãreas de mejora:</strong><br>
+            <p><strong>Áreas de mejora:</strong><br>
                 <?php echo !empty($evaluation['improvement_areas']) ? nl2br(htmlspecialchars($evaluation['improvement_areas'])) : 'No registrado'; ?>
             </p>
             <p><strong>Plan de mejora sugerido:</strong><br>

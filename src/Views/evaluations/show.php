@@ -219,18 +219,18 @@
             <?php
             $actionTypeLabel = '';
             if (!empty($evaluation['action_type'])) {
-                $actionTypeLabel = $evaluation['action_type'] === 'feedback' ? 'Feedback' : 'EvaluaciÃ³n de llamada';
+                $actionTypeLabel = $evaluation['action_type'] === 'feedback' ? 'Feedback' : 'Evaluación de llamada';
             }
             $hasActionDetails = !empty($evaluation['action_type']) || !empty($evaluation['improvement_areas']) || !empty($evaluation['improvement_plan']) || !empty($evaluation['tasks_commitments']);
             ?>
             <?php if ($hasActionDetails): ?>
                 <div class="bg-white shadow-lg rounded-2xl overflow-hidden mt-8">
                     <div class="px-8 py-5 border-b border-gray-100 bg-gray-50">
-                        <h3 class="text-lg font-bold text-gray-800">AcciÃ³n y plan de mejora</h3>
+                        <h3 class="text-lg font-bold text-gray-800">Acción y plan de mejora</h3>
                     </div>
                     <div class="px-8 py-6 grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
-                            <span class="text-xs font-semibold text-gray-500 uppercase tracking-wide block mb-1">Tipo de acciÃ³n</span>
+                            <span class="text-xs font-semibold text-gray-500 uppercase tracking-wide block mb-1">Tipo de acción</span>
                             <?php if (!empty($actionTypeLabel)): ?>
                                 <span class="text-gray-900 font-medium"><?php echo $actionTypeLabel; ?></span>
                             <?php else: ?>
@@ -238,7 +238,7 @@
                             <?php endif; ?>
                         </div>
                         <div class="md:col-span-2">
-                            <span class="text-xs font-semibold text-gray-500 uppercase tracking-wide block mb-1">Ãreas de mejora</span>
+                            <span class="text-xs font-semibold text-gray-500 uppercase tracking-wide block mb-1">Áreas de mejora</span>
                             <?php if (!empty($evaluation['improvement_areas'])): ?>
                                 <p class="text-sm text-gray-700 whitespace-pre-wrap"><?php echo htmlspecialchars($evaluation['improvement_areas']); ?></p>
                             <?php else: ?>
