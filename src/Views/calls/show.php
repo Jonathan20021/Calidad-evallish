@@ -102,6 +102,12 @@
                                     </span>
                                 </div>
                                 <div>
+                                    <span class="text-sm text-gray-500 block">Lead</span>
+                                    <span class="font-medium text-gray-900">
+                                        <?php echo htmlspecialchars($call['lead'] ?? ''); ?>
+                                    </span>
+                                </div>
+                                <div>
                                     <span class="text-sm text-gray-500 block">Notas de la llamada</span>
                                     <p
                                         class="text-sm text-gray-700 bg-gray-50 p-3 rounded-lg border border-gray-100 mt-1">

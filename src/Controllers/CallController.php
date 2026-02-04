@@ -64,6 +64,7 @@ class CallController
             'call_datetime' => $_GET['call_datetime'] ?? '',
             'duration_seconds' => $_GET['duration_seconds'] ?? '',
             'customer_phone' => $_GET['customer_phone'] ?? '',
+            'lead' => $_GET['lead'] ?? '',
             'notes' => $_GET['notes'] ?? ''
         ];
         if ($old['call_datetime'] === '') {
@@ -93,6 +94,7 @@ class CallController
             'call_datetime' => $_POST['call_datetime'] ?? '',
             'duration_seconds' => $_POST['duration_seconds'] ?? '',
             'customer_phone' => $_POST['customer_phone'] ?? '',
+            'lead' => $_POST['lead'] ?? '',
             'notes' => $_POST['notes'] ?? ''
         ];
 
@@ -167,6 +169,7 @@ class CallController
             'call_datetime' => $callDateTime,
             'duration_seconds' => $durationSeconds,
             'customer_phone' => $old['customer_phone'],
+            'lead' => $old['lead'] !== '' ? $old['lead'] : null,
             'notes' => $old['notes'],
             'recording_path' => $recordingPath
         ]);

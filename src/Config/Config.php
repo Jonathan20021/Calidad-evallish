@@ -43,13 +43,33 @@ class Config
 
     private static function loadEnv()
     {
-        $envFile = dirname(__DIR__, 2) . '/.env';
+        // Intentar múltiples rutas posibles para el archivo .env
+        $possiblePaths = [
+            dirname(__DIR__, 2) . '/.env',                    // Desde src/Config
+            dirname($_SERVER['DOCUMENT_ROOT']) . '/.env',      // Un nivel arriba de public
+            $_SERVER['DOCUMENT_ROOT'] . '/../.env',            // Alternativa
+            __DIR__ . '/../../.env',                           // Relativo a este archivo
+        ];
         
-        if (!file_exists($envFile)) {
+        $envFile = null;
+        foreach ($possiblePaths as $path) {
+            if (file_exists($path)) {
+                $envFile = $path;
+                break;
+            }
+        }
+        
+        if (!$envFile) {
+            // Log para debug (opcional)
+            error_log("Warning: .env file not found in any of the expected locations");
             return;
         }
 
         $lines = file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+        if ($lines === false) {
+            return;
+        }
+        
         foreach ($lines as $line) {
             // Ignorar comentarios
             if (strpos(trim($line), '#') === 0) {

@@ -112,6 +112,7 @@ CREATE TABLE IF NOT EXISTS calls (
     call_datetime DATETIME NOT NULL,
     duration_seconds INT COMMENT 'Duration in seconds',
     customer_phone VARCHAR(30),
+    lead VARCHAR(200) NULL,
     notes TEXT,
     recording_path VARCHAR(255),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

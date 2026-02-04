@@ -100,6 +100,16 @@
                                 placeholder="Ej: +1 555 000 0000">
                         </div>
                         <div>
+                            <label for="lead" class="block text-sm font-medium text-gray-700">Lead</label>
+                            <input type="text" name="lead" id="lead"
+                                value="<?php echo htmlspecialchars($old['lead']); ?>"
+                                class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-3 px-4 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                placeholder="Ej: Juan Pérez, Renovación Seguro">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 gap-6 mb-6">
+                        <div>
                             <label for="recording" class="block text-sm font-medium text-gray-700">Grabación (audio)</label>
                             <input type="file" name="recording" id="recording" accept="audio/*" required
                                 class="mt-1 block w-full text-sm text-gray-700">
