@@ -28,12 +28,18 @@
                             <?php echo $call['status'] === 'pending' ? 'Pendiente de Evaluación' : 'Evaluada'; ?>
                         </span>
                     </div>
-                    <?php if ($call['status'] === 'pending'): ?>
-                        <a href="<?php echo \App\Config\Config::BASE_URL; ?>evaluations/create?call_id=<?php echo $call['id']; ?>"
-                            class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-6 rounded-lg shadow transition duration-200">
-                            Evaluar Ahora
+                    <div class="flex gap-3">
+                        <a href="<?php echo \App\Config\Config::BASE_URL; ?>calls/edit?id=<?php echo $call['id']; ?>"
+                            class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-6 rounded-lg shadow transition duration-200">
+                            Editar
                         </a>
-                    <?php endif; ?>
+                        <?php if ($call['status'] === 'pending'): ?>
+                            <a href="<?php echo \App\Config\Config::BASE_URL; ?>evaluations/create?call_id=<?php echo $call['id']; ?>"
+                                class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-6 rounded-lg shadow transition duration-200">
+                                Evaluar Ahora
+                            </a>
+                        <?php endif; ?>
+                    </div>
                 </div>
 
                 <div class="p-8">

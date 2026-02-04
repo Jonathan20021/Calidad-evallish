@@ -83,6 +83,37 @@ class Call
         return $this->db->lastInsertId();
     }
 
+    public function update($id, $data)
+    {
+        $stmt = $this->db->prepare("
+            UPDATE calls 
+            SET agent_id = ?, 
+                project_id = ?, 
+                campaign_id = ?, 
+                call_type = ?, 
+                call_datetime = ?, 
+                duration_seconds = ?, 
+                customer_phone = ?, 
+                lead = ?, 
+                notes = ?,
+                recording_path = ?
+            WHERE id = ?
+        ");
+        return $stmt->execute([
+            $data['agent_id'],
+            $data['project_id'] ?? null,
+            $data['campaign_id'],
+            $data['call_type'] ?? null,
+            $data['call_datetime'],
+            $data['duration_seconds'],
+            $data['customer_phone'],
+            $data['lead'] ?? null,
+            $data['notes'],
+            $data['recording_path'],
+            $id
+        ]);
+    }
+
     public function deleteById($id): bool
     {
         $stmt = $this->db->prepare("DELETE FROM calls WHERE id = ?");

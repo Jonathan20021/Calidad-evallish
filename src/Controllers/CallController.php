@@ -237,6 +237,169 @@ class CallController
         header('Location: ' . \App\Config\Config::BASE_URL . 'calls');
     }
 
+    public function edit()
+    {
+        Auth::requireAuth();
+        $id = $_GET['id'] ?? null;
+        if (!$id) {
+            header('Location: ' . \App\Config\Config::BASE_URL . 'calls');
+            exit;
+        }
+
+        $callModel = new Call();
+        $call = $callModel->findById($id);
+
+        if (!$call) {
+            header('Location: ' . \App\Config\Config::BASE_URL . 'calls');
+            exit;
+        }
+
+        $campaignModel = new Campaign();
+        $userModel = new User();
+        $clientModel = new CorporateClient();
+
+        $campaigns = $campaignModel->getActive();
+        $agents = $userModel->getByRole('agent');
+        $projects = $clientModel->getAll();
+        $errors = [];
+        
+        $old = [
+            'agent_id' => $call['agent_id'],
+            'project_id' => $call['project_id'] ?? '',
+            'campaign_id' => $call['campaign_id'],
+            'call_type' => $call['call_type'] ?? '',
+            'call_datetime' => date('Y-m-d\TH:i', strtotime($call['call_datetime'])),
+            'duration_seconds' => $call['duration_seconds'] ?? '',
+            'customer_phone' => $call['customer_phone'] ?? '',
+            'lead' => $call['lead'] ?? '',
+            'notes' => $call['notes'] ?? '',
+            'recording_path' => $call['recording_path'] ?? ''
+        ];
+
+        require __DIR__ . '/../Views/calls/edit.php';
+    }
+
+    public function update()
+    {
+        Auth::requireAuth();
+
+        $id = $_POST['id'] ?? null;
+        if (!$id) {
+            header('Location: ' . \App\Config\Config::BASE_URL . 'calls');
+            exit;
+        }
+
+        $callModel = new Call();
+        $call = $callModel->findById($id);
+
+        if (!$call) {
+            header('Location: ' . \App\Config\Config::BASE_URL . 'calls');
+            exit;
+        }
+
+        $campaignModel = new Campaign();
+        $userModel = new User();
+        $clientModel = new CorporateClient();
+        $campaigns = $campaignModel->getActive();
+        $agents = $userModel->getByRole('agent');
+        $projects = $clientModel->getAll();
+
+        $errors = [];
+        $old = [
+            'agent_id' => $_POST['agent_id'] ?? '',
+            'project_id' => $_POST['project_id'] ?? '',
+            'campaign_id' => $_POST['campaign_id'] ?? '',
+            'call_type' => $_POST['call_type'] ?? '',
+            'call_datetime' => $_POST['call_datetime'] ?? '',
+            'duration_seconds' => $_POST['duration_seconds'] ?? '',
+            'customer_phone' => $_POST['customer_phone'] ?? '',
+            'lead' => $_POST['lead'] ?? '',
+            'notes' => $_POST['notes'] ?? ''
+        ];
+
+        if (empty($old['agent_id'])) {
+            $errors[] = 'Seleccione un agente.';
+        }
+        if (empty($old['campaign_id'])) {
+            $errors[] = 'Seleccione una campaña.';
+        }
+        if (empty($old['call_datetime'])) {
+            $errors[] = 'Indique la fecha y hora de la llamada.';
+        }
+
+        $recordingPath = $call['recording_path'];
+        if (isset($_FILES['recording']) && $_FILES['recording']['error'] !== UPLOAD_ERR_NO_FILE) {
+            if ($_FILES['recording']['error'] !== UPLOAD_ERR_OK) {
+                $uploadError = $_FILES['recording']['error'];
+                $errorMap = [
+                    UPLOAD_ERR_INI_SIZE => 'La grabación excede el límite del servidor.',
+                    UPLOAD_ERR_FORM_SIZE => 'La grabación excede el tamaño permitido.',
+                    UPLOAD_ERR_PARTIAL => 'La grabación se subió parcialmente.',
+                    UPLOAD_ERR_NO_TMP_DIR => 'Falta la carpeta temporal del servidor.',
+                    UPLOAD_ERR_CANT_WRITE => 'No se pudo escribir el archivo en el servidor.',
+                    UPLOAD_ERR_EXTENSION => 'Una extensión de PHP detuvo la subida.'
+                ];
+                $errors[] = $errorMap[$uploadError] ?? 'Error al subir la grabación.';
+            } else {
+                $file = $_FILES['recording'];
+                $maxBytes = 50 * 1024 * 1024;
+                if ($file['size'] > $maxBytes) {
+                    $errors[] = 'La grabación supera el tamaño permitido (50MB).';
+                } else {
+                    $extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+                    if ($extension === '') {
+                        $extension = 'audio';
+                    }
+                    $uploadDir = __DIR__ . '/../../public/uploads/calls';
+                    if (!is_dir($uploadDir)) {
+                        mkdir($uploadDir, 0755, true);
+                    }
+                    try {
+                        $random = bin2hex(random_bytes(6));
+                    } catch (\Exception $e) {
+                        $random = uniqid();
+                    }
+                    $filename = 'call_' . date('Ymd_His') . '_' . $random . '.' . $extension;
+                    $targetPath = $uploadDir . '/' . $filename;
+                    if (!move_uploaded_file($file['tmp_name'], $targetPath)) {
+                        $errors[] = 'No se pudo guardar la grabación.';
+                    } else {
+                        if (!empty($recordingPath)) {
+                            $oldFile = __DIR__ . '/../../public/' . $recordingPath;
+                            if (is_file($oldFile)) {
+                                @unlink($oldFile);
+                            }
+                        }
+                        $recordingPath = 'uploads/calls/' . $filename;
+                    }
+                }
+            }
+        }
+
+        if (!empty($errors)) {
+            require __DIR__ . '/../Views/calls/edit.php';
+            return;
+        }
+
+        $callDateTime = date('Y-m-d H:i:s', strtotime($old['call_datetime']));
+        $durationSeconds = $old['duration_seconds'] !== '' ? (int) $old['duration_seconds'] : null;
+
+        $callModel->update($id, [
+            'agent_id' => $old['agent_id'],
+            'project_id' => $old['project_id'] !== '' ? (int) $old['project_id'] : null,
+            'campaign_id' => $old['campaign_id'],
+            'call_type' => $old['call_type'] !== '' ? $old['call_type'] : null,
+            'call_datetime' => $callDateTime,
+            'duration_seconds' => $durationSeconds,
+            'customer_phone' => $old['customer_phone'],
+            'lead' => $old['lead'] !== '' ? $old['lead'] : null,
+            'notes' => $old['notes'],
+            'recording_path' => $recordingPath
+        ]);
+
+        header('Location: ' . \App\Config\Config::BASE_URL . 'calls/show?id=' . $id);
+    }
+
     public function analyze()
     {
         Auth::requireAuth();
