@@ -272,7 +272,7 @@ class CallController
         $aiAnalyticsError = null;
         if (!empty($call['recording_path'])) {
             $analyticsModel = new CallAnalytics();
-            $existing = $analyticsModel->findByCallId($call['id'], \App\Config\Config::GEMINI_MODEL);
+            $existing = $analyticsModel->findByCallId($call['id'], \App\Config\Config::$GEMINI_MODEL);
             if ($existing && !$forceAnalyze) {
                 if (!empty($existing['metrics_json'])) {
                     $decoded = json_decode($existing['metrics_json'], true);
@@ -319,7 +319,7 @@ class CallController
                     } else {
                         $analyticsModel->create([
                             'call_id' => $call['id'],
-                            'model' => \App\Config\Config::GEMINI_MODEL,
+                            'model' => \App\Config\Config::$GEMINI_MODEL,
                             'score' => $result['score'],
                             'summary' => $result['summary'],
                             'metrics_json' => $metricsJson,

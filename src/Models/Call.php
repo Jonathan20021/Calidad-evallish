@@ -111,7 +111,7 @@ class Call
             ORDER BY c.call_datetime DESC
             LIMIT ?
         ");
-        $params = array_merge([\App\Config\Config::GEMINI_MODEL], $campaignIds, [(int) $limit]);
+        $params = array_merge([\App\Config\Config::$GEMINI_MODEL], $campaignIds, [(int) $limit]);
         $index = 1;
         $lastIndex = count($params);
         foreach ($params as $value) {

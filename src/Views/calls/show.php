@@ -135,7 +135,7 @@
                             <div class="bg-gray-50 border border-gray-100 rounded-xl p-4 mb-4">
                                 <div class="text-sm text-gray-500">Modelo</div>
                                 <div class="text-sm font-medium text-gray-900">
-                                    <?php echo htmlspecialchars(\App\Config\Config::GEMINI_MODEL); ?>
+                                    <?php echo htmlspecialchars(\App\Config\Config::$GEMINI_MODEL); ?>
                                 </div>
                             </div>
 
@@ -169,9 +169,9 @@
                                     </div>
                                 </div>
                                 <div class="bg-white border border-gray-100 rounded-xl p-4">
-                                    <div class="text-sm text-gray-500 mb-2">Análisis</div>
+                                    <div class="text-sm text-gray-500 mb-2">Anï¿½lisis</div>
                                     <div class="text-sm text-gray-800">
-                                        <span id="ai-analytics-analysis"><?php echo htmlspecialchars($aiAnalytics['analisis'] ?? 'Sin análisis disponible.'); ?></span>
+                                        <span id="ai-analytics-analysis"><?php echo htmlspecialchars($aiAnalytics['analisis'] ?? 'Sin anï¿½lisis disponible.'); ?></span>
                                     </div>
                                 </div>
                             </div>
@@ -344,7 +344,7 @@
                     if (sentimentEl) sentimentEl.textContent = (data.sentiment ?? 'desconocido');
                     if (summaryEl) summaryEl.textContent = (data.summary ?? 'Sin resumen disponible.');
                     if (pointEl) pointEl.textContent = (data.punto_de_vista ?? 'Sin punto de vista disponible.');
-                    if (analysisEl) analysisEl.textContent = (data.analisis ?? 'Sin análisis disponible.');
+                    if (analysisEl) analysisEl.textContent = (data.analisis ?? 'Sin anï¿½lisis disponible.');
 
                     renderList('ai-analytics-strengths', 'ai-analytics-strengths-empty', data.agent_strengths);
                     renderList('ai-analytics-opportunities', 'ai-analytics-opportunities-empty', data.agent_opportunities);

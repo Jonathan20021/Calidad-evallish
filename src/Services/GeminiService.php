@@ -11,8 +11,8 @@ class GeminiService
 
     public function __construct()
     {
-        $this->apiKey = Config::GEMINI_API_KEY;
-        $this->model = Config::GEMINI_MODEL;
+        $this->apiKey = Config::$GEMINI_API_KEY;
+        $this->model = Config::$GEMINI_MODEL;
         if (trim($this->apiKey) === '') {
             throw new \RuntimeException('GEMINI_API_KEY no configurada.');
         }
@@ -624,8 +624,8 @@ class GeminiService
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
         curl_setopt($ch, CURLOPT_HEADER, true);
-        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, Config::GEMINI_CONNECT_TIMEOUT);
-        curl_setopt($ch, CURLOPT_TIMEOUT, Config::GEMINI_TIMEOUT);
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, Config::$GEMINI_CONNECT_TIMEOUT);
+        curl_setopt($ch, CURLOPT_TIMEOUT, Config::$GEMINI_TIMEOUT);
         $response = curl_exec($ch);
 
         if ($response === false) {
@@ -655,8 +655,8 @@ class GeminiService
         curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
         curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
         curl_setopt($ch, CURLOPT_HEADER, true);
-        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, Config::GEMINI_CONNECT_TIMEOUT);
-        curl_setopt($ch, CURLOPT_TIMEOUT, Config::GEMINI_TIMEOUT);
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, Config::$GEMINI_CONNECT_TIMEOUT);
+        curl_setopt($ch, CURLOPT_TIMEOUT, Config::$GEMINI_TIMEOUT);
 
         $response = curl_exec($ch);
         if ($response === false) {
