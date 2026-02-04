@@ -56,6 +56,8 @@ $router->get('/calls', [\App\Controllers\CallController::class, 'index']);
 $router->get('/calls/create', [\App\Controllers\CallController::class, 'create']);
 $router->post('/calls/store', [\App\Controllers\CallController::class, 'store']);
 $router->get('/calls/show', [\App\Controllers\CallController::class, 'show']);
+$router->get('/calls/edit', [\App\Controllers\CallController::class, 'edit']);
+$router->post('/calls/update', [\App\Controllers\CallController::class, 'update']);
 $router->get('/calls/analyze', [\App\Controllers\CallController::class, 'analyze']);
 $router->post('/calls/delete', [\App\Controllers\CallController::class, 'destroy']);
 
