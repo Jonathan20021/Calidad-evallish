@@ -3,11 +3,11 @@
         'name' => 'evallish/quality-system',
         'pretty_version' => 'dev-main',
         'version' => 'dev-main',
-        'reference' => '8318d49f146cc3b430eed025296914aaa1255922',
+        'reference' => '54016dee961f32ef46648837f75fa3a5510c7d79',
         'type' => 'project',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
-        'dev' => false,
+        'dev' => true,
     ),
     'versions' => array(
         'dompdf/dompdf' => array(
@@ -40,7 +40,7 @@
         'evallish/quality-system' => array(
             'pretty_version' => 'dev-main',
             'version' => 'dev-main',
-            'reference' => '8318d49f146cc3b430eed025296914aaa1255922',
+            'reference' => '54016dee961f32ef46648837f75fa3a5510c7d79',
             'type' => 'project',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
@@ -52,6 +52,15 @@
             'reference' => 'fcf91eb64359852f00d921887b219479b4f21251',
             'type' => 'library',
             'install_path' => __DIR__ . '/../masterminds/html5',
+            'aliases' => array(),
+            'dev_requirement' => false,
+        ),
+        'phpmailer/phpmailer' => array(
+            'pretty_version' => 'v6.12.0',
+            'version' => '6.12.0.0',
+            'reference' => 'd1ac35d784bf9f5e61b424901d5a014967f15b12',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../phpmailer/phpmailer',
             'aliases' => array(),
             'dev_requirement' => false,
         ),

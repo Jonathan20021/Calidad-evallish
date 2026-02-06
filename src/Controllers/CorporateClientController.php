@@ -9,6 +9,7 @@ use App\Models\ClientPortalSettings;
 use App\Models\Campaign;
 use App\Models\User;
 use App\Config\Config;
+use App\Services\EmailService;
 
 class CorporateClientController
 {
@@ -174,6 +175,23 @@ class CorporateClientController
             'metrics_json' => json_encode($metrics, JSON_UNESCAPED_UNICODE)
         ]));
 
+        // Enviar correo de bienvenida con credenciales
+        if (!empty($old['contact_email'])) {
+            $emailService = new EmailService();
+            $emailService->sendClientWelcomeEmail(
+                [
+                    'name' => $old['name'],
+                    'contact_name' => $old['contact_name'],
+                    'contact_email' => $old['contact_email']
+                ],
+                [
+                    'username' => $old['username'],
+                    'password' => $password,
+                    'full_name' => $old['user_full_name']
+                ]
+            );
+        }
+
         header('Location: ' . Config::BASE_URL . 'clients');
     }
 
@@ -322,6 +340,68 @@ class CorporateClientController
         $settingsModel->upsert($id, array_merge($settings, [
             'metrics_json' => json_encode($metrics, JSON_UNESCAPED_UNICODE)
         ]));
+
+        header('Location: ' . Config::BASE_URL . 'clients');
+    }
+
+    public function sendCredentials()
+    {
+        Auth::requirePermission('clients.manage');
+
+        $id = $_GET['id'] ?? null;
+        if (!$id) {
+            $_SESSION['error_message'] = 'Cliente no encontrado.';
+            header('Location: ' . Config::BASE_URL . 'clients');
+            exit;
+        }
+
+        $clientModel = new CorporateClient();
+        $client = $clientModel->findById($id);
+        if (!$client) {
+            $_SESSION['error_message'] = 'Cliente no encontrado.';
+            header('Location: ' . Config::BASE_URL . 'clients');
+            exit;
+        }
+
+        // Obtener usuario del portal
+        $userModel = new User();
+        $clientUsers = $userModel->getByClientId($id);
+        $portalUser = $clientUsers[0] ?? null;
+
+        if (!$portalUser) {
+            $_SESSION['error_message'] = 'El cliente no tiene un usuario de portal asignado.';
+            header('Location: ' . Config::BASE_URL . 'clients');
+            exit;
+        }
+
+        if (empty($client['contact_email'])) {
+            $_SESSION['error_message'] = 'El cliente no tiene un correo de contacto configurado.';
+            header('Location: ' . Config::BASE_URL . 'clients');
+            exit;
+        }
+
+        // Enviar correo con credenciales
+        // Nota: No podemos recuperar la contraseña actual porque está hasheada
+        // Se envía con una nota de que contacte al administrador si no la recuerda
+        $emailService = new EmailService();
+        $success = $emailService->sendClientWelcomeEmail(
+            [
+                'name' => $client['name'],
+                'contact_name' => $client['contact_name'],
+                'contact_email' => $client['contact_email']
+            ],
+            [
+                'username' => $portalUser['username'],
+                'password' => '********** (contacte al administrador si no recuerda su contraseña)',
+                'full_name' => $portalUser['full_name']
+            ]
+        );
+
+        if ($success) {
+            $_SESSION['success_message'] = 'Credenciales enviadas exitosamente a ' . htmlspecialchars($client['contact_email']);
+        } else {
+            $_SESSION['error_message'] = 'Hubo un error al enviar el correo. Verifique la configuración del servidor de correo.';
+        }
 
         header('Location: ' . Config::BASE_URL . 'clients');
     }

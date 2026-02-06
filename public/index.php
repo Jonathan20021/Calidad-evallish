@@ -108,6 +108,7 @@ $router->get('/clients/create', [CorporateClientController::class, 'create']);
 $router->post('/clients/store', [CorporateClientController::class, 'store']);
 $router->get('/clients/edit', [CorporateClientController::class, 'edit']);
 $router->post('/clients/update', [CorporateClientController::class, 'update']);
+$router->get('/clients/send-credentials', [CorporateClientController::class, 'sendCredentials']);
 
 // Client Portal
 $router->get('/client-portal', [ClientPortalController::class, 'index']);
