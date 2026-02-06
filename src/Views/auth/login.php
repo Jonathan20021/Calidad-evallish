@@ -14,11 +14,11 @@
         :root {
             --ink: #0f172a;
             --muted: #64748b;
-            --brand: #0f766e;
-            --brand-dark: #115e59;
-            --accent: #f59e0b;
+            --brand: #14b8a6;
+            --brand-dark: #0d9488;
+            --accent: #06b6d4;
             --card: #ffffff;
-            --shell: #f8f5f2;
+            --shell: #f0fdfa;
         }
 
         body {
@@ -28,9 +28,9 @@
 
         .page-bg {
             background:
-                radial-gradient(1200px 600px at 80% -10%, rgba(15, 118, 110, 0.18), transparent 60%),
-                radial-gradient(900px 600px at -10% 10%, rgba(245, 158, 11, 0.18), transparent 55%),
-                linear-gradient(135deg, #f8f5f2 0%, #eef3f4 100%);
+                radial-gradient(1200px 600px at 80% -10%, rgba(20, 184, 166, 0.15), transparent 60%),
+                radial-gradient(900px 600px at -10% 10%, rgba(6, 182, 212, 0.15), transparent 55%),
+                linear-gradient(135deg, #f0fdfa 0%, #ecfeff 100%);
         }
 
         .auth-card {
@@ -41,8 +41,8 @@
 
         .brand-panel {
             background:
-                linear-gradient(135deg, rgba(15, 118, 110, 0.95), rgba(17, 94, 89, 0.98)),
-                radial-gradient(260px 140px at 20% 20%, rgba(245, 158, 11, 0.25), transparent 70%);
+                linear-gradient(135deg, rgba(20, 184, 166, 0.95), rgba(13, 148, 136, 0.98)),
+                radial-gradient(260px 140px at 20% 20%, rgba(6, 182, 212, 0.25), transparent 70%);
         }
 
         .brand-title {
@@ -50,8 +50,21 @@
         }
 
         .input-soft {
-            background-color: #f8fafc;
-            border-color: #e2e8f0;
+            background-color: #f0fdfa;
+            border-color: #ccfbf1;
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 2rem;
+        }
+
+        .logo-container img {
+            max-width: 180px;
+            height: auto;
+            filter: brightness(0) invert(1);
         }
     </style>
 </head>
@@ -61,28 +74,28 @@
         <div class="auth-card w-full max-w-4xl overflow-hidden rounded-3xl bg-white/80 backdrop-blur-md border border-white/70">
             <div class="grid md:grid-cols-2">
                 <div class="brand-panel p-8 md:p-10 text-white flex flex-col justify-between">
-                    <div class="space-y-4">
-                        <span class="inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-xs font-semibold tracking-wide uppercase">
-                            Calidad Evallish
-                        </span>
-                        <h1 class="brand-title text-3xl md:text-4xl leading-tight">
+                    <div class="space-y-6">
+                        <div class="logo-container">
+                            <img src="<?php echo \App\Config\Config::BASE_URL; ?>logo.png" alt="Evallish BPO Logo" />
+                        </div>
+                        <h1 class="brand-title text-3xl md:text-4xl leading-tight text-center">
                             Plataforma de Calidad
                         </h1>
-                        <p class="text-white/80 text-sm md:text-base">
-                            Controla evaluaciones, auditorias y entrenamiento con una vista clara y profesional.
+                        <p class="text-white/90 text-sm md:text-base text-center">
+                            Controla evaluaciones, auditorías y entrenamiento con una vista clara y profesional.
                         </p>
                     </div>
-                    <div class="mt-8 space-y-3 text-xs text-white/75">
+                    <div class="mt-8 space-y-3 text-xs text-white/80">
                         <div class="flex items-center gap-3">
-                            <span class="h-2 w-2 rounded-full bg-amber-300"></span>
+                            <span class="h-2 w-2 rounded-full bg-cyan-300"></span>
                             <span>Reportes en tiempo real</span>
                         </div>
                         <div class="flex items-center gap-3">
-                            <span class="h-2 w-2 rounded-full bg-amber-300"></span>
-                            <span>Auditorias con evidencia y feedback</span>
+                            <span class="h-2 w-2 rounded-full bg-cyan-300"></span>
+                            <span>Auditorías con evidencia y feedback</span>
                         </div>
                         <div class="flex items-center gap-3">
-                            <span class="h-2 w-2 rounded-full bg-amber-300"></span>
+                            <span class="h-2 w-2 rounded-full bg-cyan-300"></span>
                             <span>Entrenamiento guiado por IA</span>
                         </div>
                     </div>
@@ -90,9 +103,12 @@
 
                 <div class="p-8 md:p-10 bg-white">
                     <div class="mb-8">
-                        <p class="text-sm font-semibold text-teal-700">Bienvenido</p>
-                        <h2 class="text-2xl md:text-3xl font-bold text-slate-900">Acceso al sistema</h2>
-                        <p class="text-sm text-slate-500 mt-2">
+                        <div class="flex justify-center mb-4">
+                            <img src="<?php echo \App\Config\Config::BASE_URL; ?>logo.png" alt="Evallish BPO" class="h-12" />
+                        </div>
+                        <p class="text-sm font-semibold text-teal-600 text-center">Bienvenido</p>
+                        <h2 class="text-2xl md:text-3xl font-bold text-slate-900 text-center">Acceso al sistema</h2>
+                        <p class="text-sm text-slate-500 mt-2 text-center">
                             Ingresa tus credenciales para continuar.
                         </p>
                     </div>
@@ -122,8 +138,8 @@
                         </div>
 
                         <button type="submit"
-                            class="w-full bg-teal-700 hover:bg-teal-800 text-white font-semibold py-3 px-4 rounded-xl transition duration-200 shadow-lg shadow-teal-700/20 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2">
-                            Iniciar sesion
+                            class="w-full bg-teal-600 hover:bg-teal-700 text-white font-semibold py-3 px-4 rounded-xl transition duration-200 shadow-lg shadow-teal-600/20 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2">
+                            Iniciar sesión
                         </button>
                     </form>
 

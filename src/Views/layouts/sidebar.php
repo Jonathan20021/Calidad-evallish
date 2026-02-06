@@ -2,12 +2,7 @@
 <aside class="w-64 bg-[#0B1120] text-white hidden md:flex flex-col flex-shrink-0 transition-all duration-300">
     <div class="h-16 flex items-center px-6 bg-[#0B1120] border-b border-gray-800">
         <div class="flex items-center gap-3">
-            <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center font-bold text-white text-lg">E
-            </div>
-            <div>
-                <h1 class="text-sm font-bold tracking-wider text-white leading-tight">evallish</h1>
-                <p class="text-[10px] text-gray-400">BPO Quality Control</p>
-            </div>
+            <img src="<?php echo \App\Config\Config::BASE_URL; ?>logo.png" alt="Evallish BPO" class="h-10 w-auto" />
         </div>
     </div>
 
