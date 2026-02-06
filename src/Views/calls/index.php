@@ -43,9 +43,9 @@
 
         <div class="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
             <div class="bg-white shadow-sm rounded-xl border border-gray-200 overflow-hidden">
-                <div class="overflow-x-auto">
+                <div class="overflow-x-auto overflow-y-auto" style="max-height: calc(100vh - 280px);">
                     <table class="min-w-full divide-y divide-gray-200">
-                        <thead class="bg-gray-50">
+                        <thead class="bg-gray-50 sticky top-0 z-10">
                             <tr>
                                 <th
                                     class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
