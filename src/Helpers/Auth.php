@@ -3,11 +3,13 @@
 namespace App\Helpers;
 
 use App\Models\QaPermission;
+use App\Models\UserPermission;
 use App\Models\User;
 
 class Auth
 {
     private static $qaPermissionsCache = null;
+    private static $userPermissionsCache = [];
 
     public static function check()
     {
@@ -58,9 +60,21 @@ class Auth
     {
         $user = self::user();
         $role = $user['role'] ?? '';
+        $source = $user['source'] ?? 'quality';
+        $userId = (int) ($user['id'] ?? 0);
 
         if ($role === 'admin') {
             return true;
+        }
+
+        // Para usuarios de ponche (excepto agents), verificar permisos individuales
+        if ($source === 'ponche' && $role !== 'agent') {
+            $userPermissions = self::getUserPermissions($userId);
+            if ($userPermissions !== null) {
+                return self::checkUserPermission($permission, $userPermissions);
+            }
+            // Si no tiene permisos configurados, denegar acceso por defecto
+            return false;
         }
 
         if ($role !== 'qa') {
@@ -80,6 +94,38 @@ class Auth
                 return $permissions['can_manage_clients'] === 1;
             default:
                 return true;
+        }
+    }
+
+    private static function checkUserPermission(string $permission, array $userPermissions): bool
+    {
+        switch ($permission) {
+            case 'users.view':
+                return $userPermissions['can_view_users'] === 1;
+            case 'users.create':
+                return $userPermissions['can_create_users'] === 1;
+            case 'clients.view':
+                return $userPermissions['can_view_clients'] === 1;
+            case 'clients.manage':
+                return $userPermissions['can_manage_clients'] === 1;
+            case 'campaigns.view':
+                return $userPermissions['can_view_campaigns'] === 1;
+            case 'campaigns.manage':
+                return $userPermissions['can_manage_campaigns'] === 1;
+            case 'evaluations.view':
+                return $userPermissions['can_view_evaluations'] === 1;
+            case 'evaluations.create':
+                return $userPermissions['can_create_evaluations'] === 1;
+            case 'reports.view':
+                return $userPermissions['can_view_reports'] === 1;
+            case 'settings.manage':
+                return $userPermissions['can_manage_settings'] === 1;
+            case 'training.view':
+                return $userPermissions['can_view_training'] === 1;
+            case 'training.manage':
+                return $userPermissions['can_manage_training'] === 1;
+            default:
+                return false;
         }
     }
 
@@ -113,6 +159,15 @@ class Auth
             self::$qaPermissionsCache = $model->get();
         }
         return self::$qaPermissionsCache;
+    }
+
+    private static function getUserPermissions(int $userId): ?array
+    {
+        if (!isset(self::$userPermissionsCache[$userId])) {
+            $model = new UserPermission();
+            self::$userPermissionsCache[$userId] = $model->getByUserId($userId);
+        }
+        return self::$userPermissionsCache[$userId];
     }
 
     private static function syncPoncheUsersIfNeeded(): void

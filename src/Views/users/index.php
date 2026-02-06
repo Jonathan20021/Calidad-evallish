@@ -157,6 +157,23 @@
                                             <?php endif; ?>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                            <?php 
+                                            $source = $user['source'] ?? 'quality';
+                                            $role = strtolower($user['role'] ?? '');
+                                            $isPoncheNonAgent = ($source === 'ponche' && $role !== 'agent');
+                                            ?>
+                                            
+                                            <?php if ($isPoncheNonAgent && \App\Helpers\Auth::hasPermission('users.create')): ?>
+                                                <a href="<?php echo \App\Config\Config::BASE_URL; ?>users/permissions/<?php echo $user['id']; ?>"
+                                                   class="text-purple-600 hover:text-purple-900 mr-4"
+                                                   title="Configurar permisos">
+                                                    <svg class="inline h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+                                                    </svg>
+                                                    Permisos
+                                                </a>
+                                            <?php endif; ?>
+                                            
                                             <?php if ($canManage && \App\Helpers\Auth::hasPermission('users.create')): ?>
                                                 <a href="<?php echo \App\Config\Config::BASE_URL; ?>users/edit?id=<?php echo $user['id']; ?>"
                                                     class="text-blue-600 hover:text-blue-900">Editar</a>
@@ -178,7 +195,7 @@
                                                         </button>
                                                     <?php endif; ?>
                                                 </form>
-                                            <?php else: ?>
+                                            <?php elseif (!$isPoncheNonAgent): ?>
                                                 <span class="text-gray-400">Solo lectura</span>
                                             <?php endif; ?>
                                         </td>

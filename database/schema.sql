@@ -40,6 +40,28 @@ CREATE TABLE IF NOT EXISTS qa_permissions (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- User permissions (individual permissions for ponche users)
+CREATE TABLE IF NOT EXISTS user_permissions (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    can_view_users TINYINT(1) DEFAULT 0,
+    can_create_users TINYINT(1) DEFAULT 0,
+    can_view_clients TINYINT(1) DEFAULT 0,
+    can_manage_clients TINYINT(1) DEFAULT 0,
+    can_view_campaigns TINYINT(1) DEFAULT 0,
+    can_manage_campaigns TINYINT(1) DEFAULT 0,
+    can_view_evaluations TINYINT(1) DEFAULT 0,
+    can_create_evaluations TINYINT(1) DEFAULT 0,
+    can_view_reports TINYINT(1) DEFAULT 0,
+    can_manage_settings TINYINT(1) DEFAULT 0,
+    can_view_training TINYINT(1) DEFAULT 0,
+    can_manage_training TINYINT(1) DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    UNIQUE KEY uidx_user_permissions (user_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- Campaigns table
 CREATE TABLE IF NOT EXISTS campaigns (
     id INT AUTO_INCREMENT PRIMARY KEY,

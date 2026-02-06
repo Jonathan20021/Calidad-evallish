@@ -91,6 +91,8 @@ $router->post('/users/store', [UserController::class, 'store']);
 $router->get('/users/edit', [UserController::class, 'edit']);
 $router->post('/users/update', [UserController::class, 'update']);
 $router->post('/users/toggle', [UserController::class, 'toggle']);
+$router->get('/users/permissions/{id}', [UserController::class, 'editPermissions']);
+$router->post('/users/permissions/{id}', [UserController::class, 'updatePermissions']);
 
 // Agents
 $router->get('/agents', [\App\Controllers\AgentController::class, 'index']);

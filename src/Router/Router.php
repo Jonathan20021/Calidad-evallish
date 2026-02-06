@@ -42,7 +42,7 @@ class Router
         if ($path === '')
             $path = '/';
 
-
+        // First, try exact match
         if (isset($this->routes[$method][$path])) {
             $callback = $this->routes[$method][$path];
 
@@ -52,6 +52,32 @@ class Router
             }
 
             return call_user_func($callback);
+        }
+
+        // Try matching routes with parameters (e.g., /users/permissions/{id})
+        foreach ($this->routes[$method] ?? [] as $route => $callback) {
+            $pattern = preg_replace('/\{[a-zA-Z0-9_]+\}/', '([^/]+)', $route);
+            $pattern = '#^' . $pattern . '$#';
+            
+            if (preg_match($pattern, $path, $matches)) {
+                array_shift($matches); // Remove full match
+                
+                // Extract parameter names from route
+                preg_match_all('/\{([a-zA-Z0-9_]+)\}/', $route, $paramNames);
+                $params = array_combine($paramNames[1], $matches);
+                
+                // Set parameters in $_GET for backwards compatibility
+                foreach ($params as $key => $value) {
+                    $_GET[$key] = $value;
+                }
+                
+                // If callback is array [Class, Method] and Class is string, instantiate it
+                if (is_array($callback) && isset($callback[0]) && is_string($callback[0])) {
+                    $callback[0] = new $callback[0]();
+                }
+
+                return call_user_func($callback);
+            }
         }
 
         // 404
