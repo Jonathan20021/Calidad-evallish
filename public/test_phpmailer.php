@@ -72,18 +72,22 @@ try {
     
     $subject = "🧪 Prueba de PHPMailer - " . Config::$APP_NAME;
     
+    $logoUrl = rtrim(Config::$BASE_URL, '/') . '/logo.png';
+    
     $htmlBody = "
     <html>
     <head>
         <style>
             body { font-family: Arial, sans-serif; line-height: 1.6; }
-            .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; text-align: center; }
-            .content { padding: 20px; }
-            .footer { background: #f3f4f6; padding: 15px; text-align: center; font-size: 12px; color: #6b7280; }
+            .header { background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); color: white; padding: 40px 20px; text-align: center; }
+            .logo { max-width: 180px; height: auto; margin-bottom: 20px; }
+            .content { padding: 30px 20px; }
+            .footer { background: #1e3a8a; color: #dbeafe; padding: 20px; text-align: center; font-size: 12px; }
         </style>
     </head>
     <body>
         <div class='header'>
+            <img src='" . $logoUrl . "' alt='Logo' class='logo'>
             <h1>✅ Prueba Exitosa de PHPMailer</h1>
         </div>
         <div class='content'>

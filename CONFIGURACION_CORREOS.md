@@ -33,10 +33,10 @@ Crea o edita el archivo `.env` en la raíz del proyecto y agrega:
 ```env
 # Configuración de correo - SMTP (Servidor cPanel Evallish BPO)
 MAIL_HOST=mail.evallishbpo.com
-MAIL_PORT=465
+MAIL_PORT=587
 MAIL_USERNAME=notificaciones@evallishbpo.com
 MAIL_PASSWORD=Admin#2025#
-MAIL_ENCRYPTION=ssl
+MAIL_ENCRYPTION=tls
 MAIL_FROM_ADDRESS=notificaciones@evallishbpo.com
 MAIL_FROM_NAME="Evallish BPO Control - Sistema de QA"
 
@@ -44,7 +44,12 @@ MAIL_FROM_NAME="Evallish BPO Control - Sistema de QA"
 MAIL_DEBUG=false
 ```
 
-**Nota:** La aplicación está configurada para usar `https://qa.evallishbpo.com/` como URL base, por lo que el enlace del portal de clientes en el correo será: `https://qa.evallishbpo.com/client-portal`
+**Nota:** 
+- La aplicación está configurada para usar `https://qa.evallishbpo.com/` como URL base
+- Los clientes acceden mediante el **login principal**: `https://qa.evallishbpo.com/`
+- Una vez autenticados con su rol de cliente, son redirigidos automáticamente a su portal
+- Se usa puerto **587 con TLS** por ser más compatible que 465/SSL
+- Si tienes problemas, prueba con puerto 465 y MAIL_ENCRYPTION=ssl
 
 ### Opciones de Configuración SMTP
 
@@ -52,10 +57,10 @@ MAIL_DEBUG=false
 
 ```env
 MAIL_HOST=mail.evallishbpo.com
-MAIL_PORT=465
+MAIL_PORT=587
 MAIL_USERNAME=notificaciones@evallishbpo.com
 MAIL_PASSWORD=Admin#2025#
-MAIL_ENCRYPTION=ssl
+MAIL_ENCRYPTION=tls
 MAIL_FROM_ADDRESS=notificaciones@evallishbpo.com
 MAIL_FROM_NAME="Evallish BPO Control - Sistema de QA"
 ```
@@ -67,9 +72,10 @@ MAIL_FROM_NAME="Evallish BPO Control - Sistema de QA"
 - ✅ Sin necesidad de configuraciones externas
 
 **Notas importantes:**
-- Usa puerto **465** con **SSL** (más seguro)
-- Si tienes problemas, prueba puerto **587** con **TLS**
-- Asegúrate que el firewall permita conexiones salientes al puerto 465
+- Usa puerto **587** con **TLS** (más compatible y recomendado)
+- Si tienes problemas con 587, prueba puerto **465** con **SSL** (MAIL_ENCRYPTION=ssl)
+- Asegúrate que el firewall permita conexiones salientes al puerto 587
+- Verifica que la cuenta de correo exista en cPanel y tenga la contraseña correcta
 
 #### Opción 2: Gmail (Alternativa para pruebas)
 
