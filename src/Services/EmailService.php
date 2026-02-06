@@ -187,7 +187,10 @@ class EmailService
                     <!-- Header con Logo -->
                     <tr>
                         <td style="background: linear-gradient(135deg, #1e40af 0%, #3b82f6 50%, #60a5fa 100%); padding: 50px 40px 40px; text-align: center;">
-                            <img src="$logoUrl" alt="$appName" style="max-width: 200px; height: auto; margin-bottom: 25px; display: block; margin-left: auto; margin-right: auto;">
+                            <img src="$logoUrl" alt="$appName" style="max-width: 200px; height: auto; margin-bottom: 15px; display: block; margin-left: auto; margin-right: auto;">
+                            <p style="margin: 0 0 25px; color: #ffffff; font-size: 13px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; opacity: 0.95;">
+                                Excelencia, Visión, Liderazgo y Servicio Humano
+                            </p>
                             <h1 style="margin: 0; color: #ffffff; font-size: 32px; font-weight: 700; text-shadow: 0 2px 4px rgba(0,0,0,0.1);">
                                 ¡Bienvenido!
                             </h1>
