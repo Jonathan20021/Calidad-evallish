@@ -28,8 +28,39 @@ class CallController
     {
         Auth::requireAuth();
 
+        // Capture filter parameters from GET request
+        $filters = [];
+
+        if (!empty($_GET['agent_id'])) {
+            $filters['agent_id'] = $_GET['agent_id'];
+        }
+
+        if (!empty($_GET['campaign_id'])) {
+            $filters['campaign_id'] = $_GET['campaign_id'];
+        }
+
+        if (!empty($_GET['project_id'])) {
+            $filters['project_id'] = $_GET['project_id'];
+        }
+
+        if (!empty($_GET['status'])) {
+            $filters['status'] = $_GET['status'];
+        }
+
+        if (!empty($_GET['date_from'])) {
+            $filters['date_from'] = $_GET['date_from'];
+        }
+
+        if (!empty($_GET['date_to'])) {
+            $filters['date_to'] = $_GET['date_to'];
+        }
+
+        if (!empty($_GET['call_type'])) {
+            $filters['call_type'] = $_GET['call_type'];
+        }
+
         $callModel = new Call();
-        $calls = $callModel->getAll(100);
+        $calls = $callModel->getAll(100, $filters);
 
         foreach ($calls as &$call) {
             $call['agent'] = $call['agent_name'];
@@ -40,6 +71,18 @@ class CallController
             $call['status'] = $call['evaluation_id'] ? 'evaluated' : 'pending';
         }
         unset($call);
+
+        // Load agents, campaigns, and projects for filter dropdowns
+        $userModel = new User();
+        $campaignModel = new Campaign();
+        $clientModel = new CorporateClient();
+
+        $agents = $userModel->getAll();
+        $campaigns = $campaignModel->getAll();
+        $projects = $clientModel->getAll();
+
+        // Pass active filters to the view
+        $activeFilters = $filters;
 
         require __DIR__ . '/../Views/calls/index.php';
     }
@@ -262,7 +305,7 @@ class CallController
         $agents = $userModel->getByRole('agent');
         $projects = $clientModel->getAll();
         $errors = [];
-        
+
         $old = [
             'agent_id' => $call['agent_id'],
             'project_id' => $call['project_id'] ?? '',

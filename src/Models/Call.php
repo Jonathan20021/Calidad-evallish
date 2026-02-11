@@ -16,9 +16,54 @@ class Call
         $this->ensureColumns();
     }
 
-    public function getAll($limit = 50)
+    public function getAll($limit = 50, $filters = [])
     {
-        $stmt = $this->db->prepare("
+        $where = [];
+        $params = [];
+
+        // Filter by agent
+        if (!empty($filters['agent_id'])) {
+            $where[] = "c.agent_id = :agent_id";
+            $params[':agent_id'] = (int) $filters['agent_id'];
+        }
+
+        // Filter by campaign
+        if (!empty($filters['campaign_id'])) {
+            $where[] = "c.campaign_id = :campaign_id";
+            $params[':campaign_id'] = (int) $filters['campaign_id'];
+        }
+
+        // Filter by project
+        if (!empty($filters['project_id'])) {
+            $where[] = "c.project_id = :project_id";
+            $params[':project_id'] = (int) $filters['project_id'];
+        }
+
+        // Filter by call type
+        if (!empty($filters['call_type'])) {
+            $where[] = "c.call_type = :call_type";
+            $params[':call_type'] = $filters['call_type'];
+        }
+
+        // Filter by date range
+        if (!empty($filters['date_from'])) {
+            $where[] = "DATE(c.call_datetime) >= :date_from";
+            $params[':date_from'] = $filters['date_from'];
+        }
+
+        if (!empty($filters['date_to'])) {
+            $where[] = "DATE(c.call_datetime) <= :date_to";
+            $params[':date_to'] = $filters['date_to'];
+        }
+
+        // Build WHERE clause
+        $whereClause = '';
+        if (!empty($where)) {
+            $whereClause = 'WHERE ' . implode(' AND ', $where);
+        }
+
+        // Build base query
+        $sql = "
             SELECT c.*,
                    cc.name as project_name,
                    camp.name as campaign_name,
@@ -27,9 +72,27 @@ class Call
             LEFT JOIN corporate_clients cc ON c.project_id = cc.id
             JOIN campaigns camp ON c.campaign_id = camp.id
             LEFT JOIN evaluations e ON e.call_id = c.id
-            ORDER BY c.call_datetime DESC
-            LIMIT :limit
-        ");
+            $whereClause
+        ";
+
+        // Filter by status (evaluated/pending) - needs to be done after the join
+        if (!empty($filters['status'])) {
+            if ($filters['status'] === 'evaluated') {
+                $sql .= empty($where) ? " WHERE e.id IS NOT NULL" : " AND e.id IS NOT NULL";
+            } elseif ($filters['status'] === 'pending') {
+                $sql .= empty($where) ? " WHERE e.id IS NULL" : " AND e.id IS NULL";
+            }
+        }
+
+        $sql .= " ORDER BY c.call_datetime DESC LIMIT :limit";
+
+        $stmt = $this->db->prepare($sql);
+
+        // Bind all parameters
+        foreach ($params as $key => $value) {
+            $stmt->bindValue($key, $value);
+        }
+
         $stmt->bindValue(':limit', (int) $limit, PDO::PARAM_INT);
         $stmt->execute();
         $rows = $stmt->fetchAll();
