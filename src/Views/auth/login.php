@@ -8,17 +8,18 @@
         <?php echo \App\Config\Config::APP_NAME; ?>
     </title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700&family=Manrope:wght@300;400;500;600;700&display=swap"
+    <link
+        href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700&family=Manrope:wght@300;400;500;600;700&display=swap"
         rel="stylesheet">
     <style>
         :root {
             --ink: #0f172a;
             --muted: #64748b;
-            --brand: #14b8a6;
-            --brand-dark: #0d9488;
-            --accent: #06b6d4;
+            --brand: #3B5998;
+            --brand-dark: #2E5C9A;
+            --accent: #4A90E2;
             --card: #ffffff;
-            --shell: #f0fdfa;
+            --shell: #EFF3F8;
         }
 
         body {
@@ -28,9 +29,9 @@
 
         .page-bg {
             background:
-                radial-gradient(1200px 600px at 80% -10%, rgba(20, 184, 166, 0.15), transparent 60%),
-                radial-gradient(900px 600px at -10% 10%, rgba(6, 182, 212, 0.15), transparent 55%),
-                linear-gradient(135deg, #f0fdfa 0%, #ecfeff 100%);
+                radial-gradient(1200px 600px at 80% -10%, rgba(59, 89, 152, 0.15), transparent 60%),
+                radial-gradient(900px 600px at -10% 10%, rgba(74, 144, 226, 0.15), transparent 55%),
+                linear-gradient(135deg, #EFF3F8 0%, #E0E7FF 100%);
         }
 
         .auth-card {
@@ -41,8 +42,8 @@
 
         .brand-panel {
             background:
-                linear-gradient(135deg, rgba(20, 184, 166, 0.95), rgba(13, 148, 136, 0.98)),
-                radial-gradient(260px 140px at 20% 20%, rgba(6, 182, 212, 0.25), transparent 70%);
+                linear-gradient(135deg, rgba(59, 89, 152, 0.95), rgba(46, 92, 154, 0.98)),
+                radial-gradient(260px 140px at 20% 20%, rgba(74, 144, 226, 0.25), transparent 70%);
         }
 
         .brand-title {
@@ -50,8 +51,8 @@
         }
 
         .input-soft {
-            background-color: #f0fdfa;
-            border-color: #ccfbf1;
+            background-color: #EFF6FF;
+            border-color: #DBEAFE;
         }
 
         .logo-container {
@@ -71,7 +72,8 @@
 
 <body class="page-bg min-h-screen">
     <div class="min-h-screen flex items-center justify-center p-6 lg:p-10">
-        <div class="auth-card w-full max-w-4xl overflow-hidden rounded-3xl bg-white/80 backdrop-blur-md border border-white/70">
+        <div
+            class="auth-card w-full max-w-4xl overflow-hidden rounded-3xl bg-white/80 backdrop-blur-md border border-white/70">
             <div class="grid md:grid-cols-2">
                 <div class="brand-panel p-8 md:p-10 text-white flex flex-col justify-between">
                     <div class="space-y-6">
@@ -104,9 +106,10 @@
                 <div class="p-8 md:p-10 bg-white">
                     <div class="mb-8">
                         <div class="flex justify-center mb-4">
-                            <img src="<?php echo \App\Config\Config::BASE_URL; ?>logo.png" alt="Evallish BPO" class="h-12" />
+                            <img src="<?php echo \App\Config\Config::BASE_URL; ?>logo.png" alt="Evallish BPO"
+                                class="h-12" />
                         </div>
-                        <p class="text-sm font-semibold text-teal-600 text-center">Bienvenido</p>
+                        <p class="text-sm font-semibold text-blue-600 text-center">Bienvenido</p>
                         <h2 class="text-2xl md:text-3xl font-bold text-slate-900 text-center">Acceso al sistema</h2>
                         <p class="text-sm text-slate-500 mt-2 text-center">
                             Ingresa tus credenciales para continuar.
@@ -126,19 +129,20 @@
                         <div>
                             <label for="username" class="block text-sm font-medium text-slate-700 mb-2">Usuario</label>
                             <input type="text" id="username" name="username" required
-                                class="input-soft w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition duration-200 ease-in-out outline-none"
+                                class="input-soft w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200 ease-in-out outline-none"
                                 placeholder="usuario@empresa">
                         </div>
 
                         <div>
-                            <label for="password" class="block text-sm font-medium text-slate-700 mb-2">Contrasena</label>
+                            <label for="password"
+                                class="block text-sm font-medium text-slate-700 mb-2">Contrasena</label>
                             <input type="password" id="password" name="password" required
-                                class="input-soft w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition duration-200 ease-in-out outline-none"
+                                class="input-soft w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200 ease-in-out outline-none"
                                 placeholder="********">
                         </div>
 
                         <button type="submit"
-                            class="w-full bg-teal-600 hover:bg-teal-700 text-white font-semibold py-3 px-4 rounded-xl transition duration-200 shadow-lg shadow-teal-600/20 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2">
+                            class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-xl transition duration-200 shadow-lg shadow-blue-600/20 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
                             Iniciar sesión
                         </button>
                     </form>
