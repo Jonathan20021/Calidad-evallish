@@ -78,6 +78,13 @@ class FormTemplate
         return $stmt->execute([$id]);
     }
 
+    public function hasEvaluations($id)
+    {
+        $stmt = $this->db->prepare("SELECT COUNT(*) FROM evaluations WHERE form_template_id = ?");
+        $stmt->execute([$id]);
+        return (int) $stmt->fetchColumn() > 0;
+    }
+
     public function assignCampaigns($templateId, $campaignIds)
     {
         // First, remove all existing campaign assignments
