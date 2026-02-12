@@ -20,7 +20,7 @@ class UserPermission
         $stmt = $this->db->prepare('SELECT * FROM user_permissions WHERE user_id = ?');
         $stmt->execute([$userId]);
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
-        
+
         if (!$row) {
             return null;
         }
@@ -39,17 +39,25 @@ class UserPermission
             'can_manage_settings' => (int) ($row['can_manage_settings'] ?? 0),
             'can_view_training' => (int) ($row['can_view_training'] ?? 0),
             'can_manage_training' => (int) ($row['can_manage_training'] ?? 0),
+            'can_view_agents' => (int) ($row['can_view_agents'] ?? 0),
+            'can_manage_agents' => (int) ($row['can_manage_agents'] ?? 0),
+            'can_view_forms' => (int) ($row['can_view_forms'] ?? 0),
+            'can_manage_forms' => (int) ($row['can_manage_forms'] ?? 0),
+            'can_view_ai_criteria' => (int) ($row['can_view_ai_criteria'] ?? 0),
+            'can_manage_ai_criteria' => (int) ($row['can_manage_ai_criteria'] ?? 0),
+            'can_view_calls' => (int) ($row['can_view_calls'] ?? 0),
+            'can_manage_calls' => (int) ($row['can_manage_calls'] ?? 0),
         ];
     }
 
     public function createOrUpdate(int $userId, array $permissions): bool
     {
         $existing = $this->getByUserId($userId);
-        
+
         if ($existing) {
             return $this->update($userId, $permissions);
         }
-        
+
         return $this->create($userId, $permissions);
     }
 
@@ -69,10 +77,18 @@ class UserPermission
                 can_view_reports,
                 can_manage_settings,
                 can_view_training,
-                can_manage_training
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                can_manage_training,
+                can_view_agents,
+                can_manage_agents,
+                can_view_forms,
+                can_manage_forms,
+                can_view_ai_criteria,
+                can_manage_ai_criteria,
+                can_view_calls,
+                can_manage_calls
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ');
-        
+
         return $stmt->execute([
             $userId,
             (int) ($permissions['can_view_users'] ?? 0),
@@ -87,6 +103,14 @@ class UserPermission
             (int) ($permissions['can_manage_settings'] ?? 0),
             (int) ($permissions['can_view_training'] ?? 0),
             (int) ($permissions['can_manage_training'] ?? 0),
+            (int) ($permissions['can_view_agents'] ?? 0),
+            (int) ($permissions['can_manage_agents'] ?? 0),
+            (int) ($permissions['can_view_forms'] ?? 0),
+            (int) ($permissions['can_manage_forms'] ?? 0),
+            (int) ($permissions['can_view_ai_criteria'] ?? 0),
+            (int) ($permissions['can_manage_ai_criteria'] ?? 0),
+            (int) ($permissions['can_view_calls'] ?? 0),
+            (int) ($permissions['can_manage_calls'] ?? 0),
         ]);
     }
 
@@ -105,10 +129,18 @@ class UserPermission
                 can_view_reports = ?,
                 can_manage_settings = ?,
                 can_view_training = ?,
-                can_manage_training = ?
+                can_manage_training = ?,
+                can_view_agents = ?,
+                can_manage_agents = ?,
+                can_view_forms = ?,
+                can_manage_forms = ?,
+                can_view_ai_criteria = ?,
+                can_manage_ai_criteria = ?,
+                can_view_calls = ?,
+                can_manage_calls = ?
             WHERE user_id = ?
         ');
-        
+
         return $stmt->execute([
             (int) ($permissions['can_view_users'] ?? 0),
             (int) ($permissions['can_create_users'] ?? 0),
@@ -122,6 +154,14 @@ class UserPermission
             (int) ($permissions['can_manage_settings'] ?? 0),
             (int) ($permissions['can_view_training'] ?? 0),
             (int) ($permissions['can_manage_training'] ?? 0),
+            (int) ($permissions['can_view_agents'] ?? 0),
+            (int) ($permissions['can_manage_agents'] ?? 0),
+            (int) ($permissions['can_view_forms'] ?? 0),
+            (int) ($permissions['can_manage_forms'] ?? 0),
+            (int) ($permissions['can_view_ai_criteria'] ?? 0),
+            (int) ($permissions['can_manage_ai_criteria'] ?? 0),
+            (int) ($permissions['can_view_calls'] ?? 0),
+            (int) ($permissions['can_manage_calls'] ?? 0),
             $userId
         ]);
     }
@@ -152,6 +192,14 @@ class UserPermission
                     can_manage_settings TINYINT(1) DEFAULT 0,
                     can_view_training TINYINT(1) DEFAULT 0,
                     can_manage_training TINYINT(1) DEFAULT 0,
+                    can_view_agents TINYINT(1) DEFAULT 0,
+                    can_manage_agents TINYINT(1) DEFAULT 0,
+                    can_view_forms TINYINT(1) DEFAULT 0,
+                    can_manage_forms TINYINT(1) DEFAULT 0,
+                    can_view_ai_criteria TINYINT(1) DEFAULT 0,
+                    can_manage_ai_criteria TINYINT(1) DEFAULT 0,
+                    can_view_calls TINYINT(1) DEFAULT 0,
+                    can_manage_calls TINYINT(1) DEFAULT 0,
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,

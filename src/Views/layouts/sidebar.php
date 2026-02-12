@@ -23,59 +23,77 @@
         ];
 
         if ($role === 'client') {
-            $menuItems = [[
-                'label' => 'Portal',
-                'url' => 'client-portal',
-                'icon' => '<path d="M3 3h7v7H3z"/><path d="M14 3h7v7h-7z"/><path d="M14 14h7v7h-7z"/><path d="M3 14h7v7H3z"/>'
-            ]];
+            $menuItems = [
+                [
+                    'label' => 'Portal',
+                    'url' => 'client-portal',
+                    'icon' => '<path d="M3 3h7v7H3z"/><path d="M14 3h7v7h-7z"/><path d="M14 14h7v7h-7z"/><path d="M3 14h7v7H3z"/>'
+                ]
+            ];
         } else {
-            if ($role !== 'admin') {
-                $menuItems = array_values(array_filter($menuItems, function ($item) {
-                    return $item['url'] !== 'settings';
-                }));
-            }
-
-            if ($role === 'admin') {
-            array_splice($menuItems, 4, 0, [[
-                'label' => 'Usuarios',
-                'url' => 'users',
-                'icon' => '<path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><path d="M20 8v6"/><path d="M23 11h-6"/>'
-            ]]);
-            array_splice($menuItems, 6, 0, [[
-                'label' => 'Clientes',
-                'url' => 'clients',
-                'icon' => '<path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>'
-            ]]);
-            array_splice($menuItems, 7, 0, [[
-                'label' => 'Criterios IA',
-                'url' => 'ai-criteria',
-                'icon' => '<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/><path d="M5 9h4"/><path d="M5 13h3"/>'
-            ]]);
-            } elseif ($role === 'qa') {
-                $canSeeUsers = \App\Helpers\Auth::hasPermission('users.view') || \App\Helpers\Auth::hasPermission('users.create');
-                $canSeeClients = \App\Helpers\Auth::hasPermission('clients.view') || \App\Helpers\Auth::hasPermission('clients.manage');
-
-                if ($canSeeUsers) {
-                    array_splice($menuItems, 4, 0, [[
+            // Add extra items for admin/privileged users
+            if ($role === 'admin' || \App\Helpers\Auth::hasPermission('users.view') || \App\Helpers\Auth::hasPermission('users.create')) {
+                array_splice($menuItems, 4, 0, [
+                    [
                         'label' => 'Usuarios',
                         'url' => 'users',
                         'icon' => '<path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><path d="M20 8v6"/><path d="M23 11h-6"/>'
-                    ]]);
-                }
-
-                if ($canSeeClients) {
-                    array_splice($menuItems, 6, 0, [[
+                    ]
+                ]);
+            }
+            if ($role === 'admin' || \App\Helpers\Auth::hasPermission('clients.view') || \App\Helpers\Auth::hasPermission('clients.manage')) {
+                $pos = count($menuItems) > 6 ? 6 : count($menuItems);
+                array_splice($menuItems, $pos, 0, [
+                    [
                         'label' => 'Clientes',
                         'url' => 'clients',
                         'icon' => '<path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>'
-                    ]]);
-                }
+                    ]
+                ]);
+            }
+            if ($role === 'admin' || \App\Helpers\Auth::hasPermission('ai_criteria.view') || \App\Helpers\Auth::hasPermission('ai_criteria.manage')) {
+                $pos = count($menuItems) > 7 ? 7 : count($menuItems);
+                array_splice($menuItems, $pos, 0, [
+                    [
+                        'label' => 'Criterios IA',
+                        'url' => 'ai-criteria',
+                        'icon' => '<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/><path d="M5 9h4"/><path d="M5 13h3"/>'
+                    ]
+                ]);
+            }
 
-                array_splice($menuItems, 7, 0, [[
-                    'label' => 'Criterios IA',
-                    'url' => 'ai-criteria',
-                    'icon' => '<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/><path d="M5 9h4"/><path d="M5 13h3"/>'
-                ]]);
+            // Filter all items by permission if not admin
+            if ($role !== 'admin') {
+                $menuItems = array_values(array_filter($menuItems, function ($item) {
+                    switch ($item['url']) {
+                        case 'dashboard':
+                            return true;
+                        case 'evaluations':
+                            return \App\Helpers\Auth::hasPermission('evaluations.view');
+                        case 'campaigns':
+                            return \App\Helpers\Auth::hasPermission('campaigns.view');
+                        case 'agents':
+                            return \App\Helpers\Auth::hasPermission('agents.view');
+                        case 'form-templates':
+                            return \App\Helpers\Auth::hasPermission('forms.view');
+                        case 'calls':
+                            return \App\Helpers\Auth::hasPermission('calls.view');
+                        case 'training':
+                            return \App\Helpers\Auth::hasPermission('training.view');
+                        case 'reports':
+                            return \App\Helpers\Auth::hasPermission('reports.view');
+                        case 'settings':
+                            return \App\Helpers\Auth::hasPermission('settings.manage');
+                        case 'users':
+                            return \App\Helpers\Auth::hasPermission('users.view') || \App\Helpers\Auth::hasPermission('users.create');
+                        case 'clients':
+                            return \App\Helpers\Auth::hasPermission('clients.view') || \App\Helpers\Auth::hasPermission('clients.manage');
+                        case 'ai-criteria':
+                            return \App\Helpers\Auth::hasPermission('ai_criteria.view') || \App\Helpers\Auth::hasPermission('ai_criteria.manage');
+                        default:
+                            return false;
+                    }
+                }));
             }
         }
 

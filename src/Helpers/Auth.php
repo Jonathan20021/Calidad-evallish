@@ -92,8 +92,25 @@ class Auth
                 return $permissions['can_view_clients'] === 1;
             case 'clients.manage':
                 return $permissions['can_manage_clients'] === 1;
-            default:
+            case 'campaigns.view':
+            case 'campaigns.manage':
+            case 'evaluations.view':
+            case 'evaluations.create':
+            case 'reports.view':
+            case 'settings.manage':
+            case 'training.view':
+            case 'training.manage':
+            case 'agents.view':
+            case 'agents.manage':
+            case 'forms.view':
+            case 'forms.manage':
+            case 'ai_criteria.view':
+            case 'ai_criteria.manage':
+            case 'calls.view':
+            case 'calls.manage':
                 return true;
+            default:
+                return false;
         }
     }
 
@@ -124,6 +141,22 @@ class Auth
                 return $userPermissions['can_view_training'] === 1;
             case 'training.manage':
                 return $userPermissions['can_manage_training'] === 1;
+            case 'agents.view':
+                return $userPermissions['can_view_agents'] === 1;
+            case 'agents.manage':
+                return $userPermissions['can_manage_agents'] === 1;
+            case 'forms.view':
+                return $userPermissions['can_view_forms'] === 1;
+            case 'forms.manage':
+                return $userPermissions['can_manage_forms'] === 1;
+            case 'ai_criteria.view':
+                return $userPermissions['can_view_ai_criteria'] === 1;
+            case 'ai_criteria.manage':
+                return $userPermissions['can_manage_ai_criteria'] === 1;
+            case 'calls.view':
+                return $userPermissions['can_view_calls'] === 1;
+            case 'calls.manage':
+                return $userPermissions['can_manage_calls'] === 1;
             default:
                 return false;
         }

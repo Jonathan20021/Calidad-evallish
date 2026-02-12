@@ -16,28 +16,28 @@ Los administradores pueden configurar permisos individuales para cada usuario de
 
 #### Permisos Disponibles:
 
-**Gestión de Usuarios:**
-- Ver usuarios
-- Crear y editar usuarios
+**Agentes:**
+- Ver agentes
+- Crear y editar agentes
 
-**Gestión de Clientes:**
-- Ver clientes
-- Crear y editar clientes
+**Formularios:**
+- Ver formularios
+- Gestionar formularios electrónicos
 
-**Campañas:**
-- Ver campañas
-- Crear y editar campañas
+**Llamadas:**
+- Ver llamadas
+- Gestionar carga y análisis de llamadas
 
-**Evaluaciones:**
-- Ver evaluaciones
-- Crear evaluaciones
+**Criterios IA:**
+- Ver criterios IA
+- Gestionar criterios de inteligencia artificial
+
+**Entrenamiento IA:**
+- Ver entrenamiento IA
+- Gestionar entrenamiento IA
 
 **Reportes:**
 - Ver reportes
-
-**Capacitación:**
-- Ver capacitación
-- Gestionar capacitación
 
 **Configuración:**
 - Gestionar configuración del sistema

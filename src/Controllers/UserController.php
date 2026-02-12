@@ -223,7 +223,7 @@ class UserController
 
         $userModel = new User();
         $user = $userModel->findById($id);
-        
+
         if (!$user) {
             header('Location: ' . \App\Config\Config::BASE_URL . 'users');
             exit;
@@ -232,7 +232,7 @@ class UserController
         // Solo usuarios de ponche (excepto agents) pueden tener permisos configurables
         $source = $user['source'] ?? 'quality';
         $role = strtolower($user['role'] ?? '');
-        
+
         if ($source !== 'ponche' || $role === 'agent') {
             header('Location: ' . \App\Config\Config::BASE_URL . 'users?error=invalid_user_permissions');
             exit;
@@ -240,7 +240,7 @@ class UserController
 
         $permissionModel = new UserPermission();
         $permissions = $permissionModel->getByUserId($id);
-        
+
         // Si no tiene permisos, inicializar con valores por defecto
         if ($permissions === null) {
             $permissions = [
@@ -256,6 +256,14 @@ class UserController
                 'can_manage_settings' => 0,
                 'can_view_training' => 0,
                 'can_manage_training' => 0,
+                'can_view_agents' => 0,
+                'can_manage_agents' => 0,
+                'can_view_forms' => 0,
+                'can_manage_forms' => 0,
+                'can_view_ai_criteria' => 0,
+                'can_manage_ai_criteria' => 0,
+                'can_view_calls' => 0,
+                'can_manage_calls' => 0,
             ];
         }
 
@@ -267,7 +275,7 @@ class UserController
         Auth::requirePermission('users.create');
 
         $id = $_POST['id'] ?? $_GET['id'] ?? null;
-        
+
         if (!$id) {
             header('Location: ' . \App\Config\Config::BASE_URL . 'users');
             exit;
@@ -275,7 +283,7 @@ class UserController
 
         $userModel = new User();
         $user = $userModel->findById($id);
-        
+
         if (!$user) {
             header('Location: ' . \App\Config\Config::BASE_URL . 'users');
             exit;
@@ -284,7 +292,7 @@ class UserController
         // Solo usuarios de ponche (excepto agents) pueden tener permisos configurables
         $source = $user['source'] ?? 'quality';
         $role = strtolower($user['role'] ?? '');
-        
+
         if ($source !== 'ponche' || $role === 'agent') {
             header('Location: ' . \App\Config\Config::BASE_URL . 'users?error=invalid_user_permissions');
             exit;
@@ -303,6 +311,14 @@ class UserController
             'can_manage_settings' => isset($_POST['can_manage_settings']) ? 1 : 0,
             'can_view_training' => isset($_POST['can_view_training']) ? 1 : 0,
             'can_manage_training' => isset($_POST['can_manage_training']) ? 1 : 0,
+            'can_view_agents' => isset($_POST['can_view_agents']) ? 1 : 0,
+            'can_manage_agents' => isset($_POST['can_manage_agents']) ? 1 : 0,
+            'can_view_forms' => isset($_POST['can_view_forms']) ? 1 : 0,
+            'can_manage_forms' => isset($_POST['can_manage_forms']) ? 1 : 0,
+            'can_view_ai_criteria' => isset($_POST['can_view_ai_criteria']) ? 1 : 0,
+            'can_manage_ai_criteria' => isset($_POST['can_manage_ai_criteria']) ? 1 : 0,
+            'can_view_calls' => isset($_POST['can_view_calls']) ? 1 : 0,
+            'can_manage_calls' => isset($_POST['can_manage_calls']) ? 1 : 0,
         ];
 
         $permissionModel = new UserPermission();

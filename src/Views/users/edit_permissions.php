@@ -56,6 +56,25 @@
                             </div>
                         </div>
 
+                        <!-- Agentes -->
+                        <div class="border-b border-gray-200 pb-6">
+                            <h4 class="text-md font-semibold text-gray-800 mb-4">Agentes</h4>
+                            <div class="space-y-3">
+                                <label class="flex items-center">
+                                    <input type="checkbox" name="can_view_agents" value="1" 
+                                           <?php echo ($permissions['can_view_agents'] ?? 0) === 1 ? 'checked' : ''; ?>
+                                           class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                                    <span class="ml-3 text-sm text-gray-700">Ver agentes</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="checkbox" name="can_manage_agents" value="1" 
+                                           <?php echo ($permissions['can_manage_agents'] ?? 0) === 1 ? 'checked' : ''; ?>
+                                           class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                                    <span class="ml-3 text-sm text-gray-700">Crear y editar agentes</span>
+                                </label>
+                            </div>
+                        </div>
+
                         <!-- Gestión de Clientes -->
                         <div class="border-b border-gray-200 pb-6">
                             <h4 class="text-md font-semibold text-gray-800 mb-4">Gestión de Clientes</h4>
@@ -94,6 +113,25 @@
                             </div>
                         </div>
 
+                        <!-- Formularios -->
+                        <div class="border-b border-gray-200 pb-6">
+                            <h4 class="text-md font-semibold text-gray-800 mb-4">Formularios</h4>
+                            <div class="space-y-3">
+                                <label class="flex items-center">
+                                    <input type="checkbox" name="can_view_forms" value="1" 
+                                           <?php echo ($permissions['can_view_forms'] ?? 0) === 1 ? 'checked' : ''; ?>
+                                           class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                                    <span class="ml-3 text-sm text-gray-700">Ver formularios</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="checkbox" name="can_manage_forms" value="1" 
+                                           <?php echo ($permissions['can_manage_forms'] ?? 0) === 1 ? 'checked' : ''; ?>
+                                           class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                                    <span class="ml-3 text-sm text-gray-700">Gestionar formularios electrónicos</span>
+                                </label>
+                            </div>
+                        </div>
+
                         <!-- Evaluaciones -->
                         <div class="border-b border-gray-200 pb-6">
                             <h4 class="text-md font-semibold text-gray-800 mb-4">Evaluaciones</h4>
@@ -113,6 +151,25 @@
                             </div>
                         </div>
 
+                        <!-- Llamadas -->
+                        <div class="border-b border-gray-200 pb-6">
+                            <h4 class="text-md font-semibold text-gray-800 mb-4">Llamadas</h4>
+                            <div class="space-y-3">
+                                <label class="flex items-center">
+                                    <input type="checkbox" name="can_view_calls" value="1" 
+                                           <?php echo ($permissions['can_view_calls'] ?? 0) === 1 ? 'checked' : ''; ?>
+                                           class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                                    <span class="ml-3 text-sm text-gray-700">Ver llamadas</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="checkbox" name="can_manage_calls" value="1" 
+                                           <?php echo ($permissions['can_manage_calls'] ?? 0) === 1 ? 'checked' : ''; ?>
+                                           class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                                    <span class="ml-3 text-sm text-gray-700">Gestionar carga y análisis de llamadas</span>
+                                </label>
+                            </div>
+                        </div>
+
                         <!-- Reportes -->
                         <div class="border-b border-gray-200 pb-6">
                             <h4 class="text-md font-semibold text-gray-800 mb-4">Reportes</h4>
@@ -126,21 +183,40 @@
                             </div>
                         </div>
 
-                        <!-- Capacitación -->
+                        <!-- Entrenamiento IA -->
                         <div class="border-b border-gray-200 pb-6">
-                            <h4 class="text-md font-semibold text-gray-800 mb-4">Capacitación</h4>
+                            <h4 class="text-md font-semibold text-gray-800 mb-4">Entrenamiento IA</h4>
                             <div class="space-y-3">
                                 <label class="flex items-center">
                                     <input type="checkbox" name="can_view_training" value="1" 
                                            <?php echo ($permissions['can_view_training'] ?? 0) === 1 ? 'checked' : ''; ?>
                                            class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
-                                    <span class="ml-3 text-sm text-gray-700">Ver capacitación</span>
+                                    <span class="ml-3 text-sm text-gray-700">Ver entrenamiento IA</span>
                                 </label>
                                 <label class="flex items-center">
                                     <input type="checkbox" name="can_manage_training" value="1" 
                                            <?php echo ($permissions['can_manage_training'] ?? 0) === 1 ? 'checked' : ''; ?>
                                            class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
-                                    <span class="ml-3 text-sm text-gray-700">Gestionar capacitación</span>
+                                    <span class="ml-3 text-sm text-gray-700">Gestionar entrenamiento IA</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Criterios IA -->
+                        <div class="border-b border-gray-200 pb-6">
+                            <h4 class="text-md font-semibold text-gray-800 mb-4">Criterios IA</h4>
+                            <div class="space-y-3">
+                                <label class="flex items-center">
+                                    <input type="checkbox" name="can_view_ai_criteria" value="1" 
+                                           <?php echo ($permissions['can_view_ai_criteria'] ?? 0) === 1 ? 'checked' : ''; ?>
+                                           class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                                    <span class="ml-3 text-sm text-gray-700">Ver criterios IA</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="checkbox" name="can_manage_ai_criteria" value="1" 
+                                           <?php echo ($permissions['can_manage_ai_criteria'] ?? 0) === 1 ? 'checked' : ''; ?>
+                                           class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                                    <span class="ml-3 text-sm text-gray-700">Gestionar criterios de inteligencia artificial</span>
                                 </label>
                             </div>
                         </div>
