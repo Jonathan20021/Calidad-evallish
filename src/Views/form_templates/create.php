@@ -137,7 +137,7 @@
     </main>
 </div>
 
-<?php if (!empty($campaign)): ?>
+<?php if (!empty($selectedCampaignIds) || !empty($isEditing)): ?>
     <template id="fieldTemplate">
         <div
             class="field-item bg-gray-50 p-6 rounded-xl border border-gray-200 shadow-sm relative group transition duration-200 hover:shadow-md">
