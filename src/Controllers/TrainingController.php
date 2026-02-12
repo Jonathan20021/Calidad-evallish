@@ -26,7 +26,7 @@ class TrainingController
 {
     public function index()
     {
-        Auth::requireAnyRole(['admin', 'qa', 'agent']);
+        Auth::requirePermission('training.view');
 
         $role = Auth::user()['role'] ?? '';
         $scriptModel = new TrainingScript();
@@ -63,7 +63,7 @@ class TrainingController
 
     public function uploadScript()
     {
-        Auth::requireAnyRole(['admin', 'qa']);
+        Auth::requirePermission('training.manage');
 
         $title = trim($_POST['title'] ?? '');
         $campaignId = $_POST['campaign_id'] ?? null;
@@ -143,7 +143,7 @@ class TrainingController
 
     public function createScriptFromBestCall()
     {
-        Auth::requireAnyRole(['admin', 'qa']);
+        Auth::requirePermission('training.manage');
 
         $callId = $_POST['call_id'] ?? null;
         if (!$callId) {
@@ -203,7 +203,7 @@ class TrainingController
 
     public function startRoleplay()
     {
-        Auth::requireAnyRole(['admin', 'qa', 'agent']);
+        Auth::requirePermission('training.view');
 
         $scriptId = $_GET['script_id'] ?? null;
         if (!$scriptId) {
@@ -248,7 +248,7 @@ class TrainingController
 
     public function showRoleplay()
     {
-        Auth::requireAnyRole(['admin', 'qa', 'agent']);
+        Auth::requirePermission('training.view');
 
         $roleplayId = $_GET['session_id'] ?? null;
         if (!$roleplayId) {
@@ -291,7 +291,7 @@ class TrainingController
 
     public function sendRoleplayMessage()
     {
-        Auth::requireAnyRole(['admin', 'qa', 'agent']);
+        Auth::requirePermission('training.view');
 
         $roleplayId = $_POST['session_id'] ?? null;
         $message = trim($_POST['message'] ?? '');
@@ -380,7 +380,7 @@ class TrainingController
 
     public function endRoleplay()
     {
-        Auth::requireAnyRole(['admin', 'qa', 'agent']);
+        Auth::requirePermission('training.view');
 
         $roleplayId = $_POST['session_id'] ?? null;
         if (!$roleplayId) {
@@ -447,7 +447,7 @@ class TrainingController
 
     public function addCoachNote()
     {
-        Auth::requireAnyRole(['admin', 'qa']);
+        Auth::requirePermission('training.manage');
 
         $roleplayId = $_POST['session_id'] ?? null;
         $note = trim($_POST['note_text'] ?? '');
@@ -468,7 +468,7 @@ class TrainingController
 
     public function updateFeedback()
     {
-        Auth::requireAnyRole(['admin', 'qa']);
+        Auth::requirePermission('training.manage');
 
         $feedbackId = $_POST['feedback_id'] ?? null;
         $roleplayId = $_POST['session_id'] ?? null;
@@ -498,7 +498,7 @@ class TrainingController
 
     public function savePlan()
     {
-        Auth::requireAnyRole(['admin', 'qa']);
+        Auth::requirePermission('training.manage');
 
         $roleplayId = $_POST['session_id'] ?? null;
         $planText = trim($_POST['qa_plan_text'] ?? '');
@@ -517,7 +517,7 @@ class TrainingController
 
     public function createRubric()
     {
-        Auth::requireAnyRole(['admin', 'qa']);
+        Auth::requirePermission('training.manage');
 
         $title = trim($_POST['title'] ?? '');
         $campaignId = $_POST['campaign_id'] ?? null;
@@ -554,7 +554,7 @@ class TrainingController
 
     public function generateExam()
     {
-        Auth::requireAnyRole(['admin', 'qa']);
+        Auth::requirePermission('training.manage');
 
         $agentId = $_POST['agent_id'] ?? null;
         $campaignId = $_POST['campaign_id'] ?? null;
@@ -655,7 +655,7 @@ class TrainingController
 
     public function enablePublicExam()
     {
-        Auth::requireAnyRole(['admin', 'qa']);
+        Auth::requirePermission('training.manage');
 
         $examId = $_POST['exam_id'] ?? null;
         if (!$examId) {
@@ -681,7 +681,7 @@ class TrainingController
 
     public function disablePublicExam()
     {
-        Auth::requireAnyRole(['admin', 'qa']);
+        Auth::requirePermission('training.manage');
 
         $examId = $_POST['exam_id'] ?? null;
         if (!$examId) {
@@ -705,7 +705,7 @@ class TrainingController
 
     public function viewExam()
     {
-        Auth::requireAnyRole(['admin', 'qa', 'agent']);
+        Auth::requirePermission('training.view');
 
         $examId = $_GET['exam_id'] ?? null;
         if (!$examId) {
@@ -734,7 +734,7 @@ class TrainingController
 
     public function takeExam()
     {
-        Auth::requireAnyRole(['admin', 'qa', 'agent']);
+        Auth::requirePermission('training.view');
 
         $examId = $_GET['exam_id'] ?? null;
         if (!$examId) {

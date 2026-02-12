@@ -11,7 +11,7 @@ class SettingsController
 {
     public function index()
     {
-        Auth::requireRole('admin');
+        Auth::requirePermission('settings.manage');
 
         $db = Database::getInstance()->getConnection();
         $poncheDb = PoncheDatabase::getInstance()->getConnection();
@@ -32,7 +32,7 @@ class SettingsController
 
     public function updateQaPermissions()
     {
-        Auth::requireRole('admin');
+        Auth::requirePermission('settings.manage');
 
         $permissions = [
             'can_view_users' => isset($_POST['can_view_users']) ? 1 : 0,

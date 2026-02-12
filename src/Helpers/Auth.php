@@ -77,6 +77,11 @@ class Auth
             return false;
         }
 
+        if ($role === 'agent') {
+            // Agents can only view their own training and evaluations (enforced in controllers/views)
+            return in_array($permission, ['training.view', 'evaluations.view'], true);
+        }
+
         if ($role !== 'qa') {
             return false;
         }

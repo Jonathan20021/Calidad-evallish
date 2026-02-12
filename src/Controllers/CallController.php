@@ -26,7 +26,7 @@ class CallController
 
     public function index()
     {
-        Auth::requireAuth();
+        Auth::requirePermission('calls.view');
 
         // Capture filter parameters from GET request
         $filters = [];
@@ -89,7 +89,7 @@ class CallController
 
     public function create()
     {
-        Auth::requireAuth();
+        Auth::requirePermission('calls.manage');
 
         $campaignModel = new Campaign();
         $userModel = new User();
@@ -119,7 +119,7 @@ class CallController
 
     public function store()
     {
-        Auth::requireAuth();
+        Auth::requirePermission('calls.manage');
 
         $campaignModel = new Campaign();
         $userModel = new User();
@@ -222,7 +222,7 @@ class CallController
 
     public function show()
     {
-        Auth::requireAuth();
+        Auth::requirePermission('calls.view');
         $id = $_GET['id'] ?? null;
         if (!$id) {
             header('Location: ' . \App\Config\Config::BASE_URL . 'calls');
@@ -253,7 +253,7 @@ class CallController
 
     public function destroy()
     {
-        Auth::requireAuth();
+        Auth::requirePermission('calls.manage');
 
         $id = $_POST['id'] ?? null;
         if (!$id) {
@@ -282,7 +282,7 @@ class CallController
 
     public function edit()
     {
-        Auth::requireAuth();
+        Auth::requirePermission('calls.manage');
         $id = $_GET['id'] ?? null;
         if (!$id) {
             header('Location: ' . \App\Config\Config::BASE_URL . 'calls');
@@ -324,7 +324,7 @@ class CallController
 
     public function update()
     {
-        Auth::requireAuth();
+        Auth::requirePermission('calls.manage');
 
         $id = $_POST['id'] ?? null;
         if (!$id) {
@@ -445,7 +445,7 @@ class CallController
 
     public function analyze()
     {
-        Auth::requireAuth();
+        Auth::requirePermission('calls.view');
         $id = $_GET['id'] ?? null;
         if (!$id) {
             $this->jsonResponse(['success' => false, 'error' => 'ID requerido.'], 400);

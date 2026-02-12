@@ -13,7 +13,7 @@ class ReportController
 
     public function index()
     {
-        Auth::requireAuth();
+        Auth::requirePermission('reports.view');
 
         $db = Database::getInstance()->getConnection();
         $passThreshold = 80;
@@ -133,7 +133,7 @@ class ReportController
 
     public function exportPdf()
     {
-        Auth::requireAuth();
+        Auth::requirePermission('reports.view');
 
         $db = Database::getInstance()->getConnection();
         $passThreshold = 80;

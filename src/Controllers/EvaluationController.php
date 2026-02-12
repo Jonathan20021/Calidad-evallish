@@ -30,7 +30,7 @@ class EvaluationController
 
     public function show()
     {
-        Auth::requireAuth();
+        Auth::requirePermission('evaluations.view');
 
         $id = $_GET['id'] ?? null;
         if (!$id) {
@@ -59,7 +59,7 @@ class EvaluationController
 
     public function exportPdf()
     {
-        Auth::requireAuth();
+        Auth::requirePermission('evaluations.view');
 
         $id = $_GET['id'] ?? null;
         if (!$id) {
@@ -99,7 +99,7 @@ class EvaluationController
 
     public function index()
     {
-        Auth::requireAuth();
+        Auth::requirePermission('evaluations.view');
 
         $evaluationModel = new Evaluation();
         $evaluations = $evaluationModel->getAll();
@@ -109,7 +109,7 @@ class EvaluationController
 
     public function create()
     {
-        Auth::requireAuth();
+        Auth::requirePermission('evaluations.create');
 
         $campaignModel = new Campaign();
         $userModel = new User();
@@ -174,7 +174,7 @@ class EvaluationController
 
     public function edit()
     {
-        Auth::requireAuth();
+        Auth::requirePermission('evaluations.create');
 
         $id = $_GET['id'] ?? null;
         if (!$id) {
@@ -258,7 +258,7 @@ class EvaluationController
 
     public function store()
     {
-        Auth::requireAuth();
+        Auth::requirePermission('evaluations.create');
 
         $callId = $_POST['call_id'] ?? null;
         $agentId = $_POST['agent_id'];
@@ -487,7 +487,7 @@ class EvaluationController
 
     public function update()
     {
-        Auth::requireAuth();
+        Auth::requirePermission('evaluations.create');
 
         $evaluationId = $_POST['evaluation_id'] ?? null;
         if (!$evaluationId) {
@@ -708,7 +708,7 @@ class EvaluationController
 
     public function updateFeedback()
     {
-        Auth::requireAuth();
+        Auth::requirePermission('evaluations.view');
 
         $evaluationId = $_POST['evaluation_id'] ?? null;
         if (!$evaluationId) {

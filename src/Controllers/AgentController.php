@@ -11,7 +11,7 @@ class AgentController
 {
     public function index()
     {
-        Auth::requireAuth();
+        Auth::requirePermission('agents.view');
 
         $userModel = new PoncheUser();
         $agents = $userModel->getByRoles(['AGENT', 'QA'], false);
@@ -26,7 +26,7 @@ class AgentController
 
     public function create()
     {
-        Auth::requireAnyRole(['admin', 'qa']);
+        Auth::requirePermission('agents.manage');
 
         $campaignModel = new Campaign();
         $campaigns = $campaignModel->getActive();
@@ -36,7 +36,7 @@ class AgentController
 
     public function store()
     {
-        Auth::requireAnyRole(['admin', 'qa']);
+        Auth::requirePermission('agents.manage');
 
         $username = trim($_POST['username'] ?? '');
         $fullName = trim($_POST['full_name'] ?? '');
@@ -83,7 +83,7 @@ class AgentController
 
     public function edit()
     {
-        Auth::requireAnyRole(['admin', 'qa']);
+        Auth::requirePermission('agents.manage');
         $id = $_GET['id'] ?? null;
         if (!$id) {
             header('Location: ' . \App\Config\Config::BASE_URL . 'agents');
@@ -107,7 +107,7 @@ class AgentController
 
     public function update()
     {
-        Auth::requireAnyRole(['admin', 'qa']);
+        Auth::requirePermission('agents.manage');
         $id = (int) ($_POST['id'] ?? 0);
         $fullName = trim($_POST['full_name'] ?? '');
         $password = $_POST['password'] ?? '';
@@ -145,7 +145,7 @@ class AgentController
 
     public function toggle()
     {
-        Auth::requireAnyRole(['admin', 'qa']);
+        Auth::requirePermission('agents.manage');
 
         $id = isset($_POST['id']) ? (int) $_POST['id'] : 0;
         $active = isset($_POST['active']) ? (int) $_POST['active'] : null;
