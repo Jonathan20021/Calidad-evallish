@@ -95,6 +95,12 @@
                             <?php echo htmlspecialchars($evaluation['call_duration_formatted'] ?? '--:--'); ?>
                         </span>
                     </div>
+                    <div>
+                        <span class="text-xs font-semibold text-gray-500 uppercase tracking-wide block mb-1">Tipo de Evaluación</span>
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 capitalize">
+                            <?php echo htmlspecialchars($evaluation['evaluation_type'] ?? 'No especificado'); ?>
+                        </span>
+                    </div>
                 </div>
             
             <?php if (!empty($evaluation['feedback_confirmed']) || !empty($evaluation['feedback_evidence_path']) || !empty($evaluation['feedback_evidence_note'])): ?>

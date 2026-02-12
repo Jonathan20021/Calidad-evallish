@@ -271,6 +271,7 @@ class EvaluationController
         $improvementAreas = $_POST['improvement_areas'] ?? '';
         $improvementPlan = $_POST['improvement_plan'] ?? '';
         $tasksCommitments = $_POST['tasks_commitments'] ?? '';
+        $evaluationType = $_POST['evaluation_type'] ?? null;
         $feedbackConfirmed = isset($_POST['feedback_confirmed']) ? 1 : 0;
         $feedbackEvidenceNote = $_POST['feedback_evidence_note'] ?? '';
         $errors = [];
@@ -440,6 +441,7 @@ class EvaluationController
             'qa_id' => Auth::user()['id'],
             'campaign_id' => $campaignId,
             'form_template_id' => $formTemplateId,
+            'evaluation_type' => $evaluationType,
             'call_date' => $callDate,
             'call_duration' => $callDuration,
             'total_score' => $totalScore,
@@ -519,6 +521,7 @@ class EvaluationController
         $improvementAreas = $_POST['improvement_areas'] ?? '';
         $improvementPlan = $_POST['improvement_plan'] ?? '';
         $tasksCommitments = $_POST['tasks_commitments'] ?? '';
+        $evaluationType = $_POST['evaluation_type'] ?? null;
         $feedbackConfirmed = isset($_POST['feedback_confirmed']) ? 1 : 0;
         $feedbackEvidenceNote = $_POST['feedback_evidence_note'] ?? '';
 
@@ -662,6 +665,7 @@ class EvaluationController
             'qa_id' => $evaluation['qa_id'],
             'campaign_id' => $campaignId,
             'form_template_id' => $formTemplateId,
+            'evaluation_type' => $evaluationType,
             'call_date' => $callDate,
             'call_duration' => $callDuration,
             'total_score' => $totalScore,

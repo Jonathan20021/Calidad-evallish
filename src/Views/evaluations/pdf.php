@@ -214,25 +214,31 @@
                             <?php echo htmlspecialchars($evaluation['call_duration_formatted'] ?? '--:--'); ?>
                         </td>
                     </tr>
+                    <tr>
+                        <td class="meta-label">Tipo de Evaluación</td>
+                        <td class="meta-value">
+                            <?php echo ucfirst(htmlspecialchars($evaluation['evaluation_type'] ?? 'No especificado')); ?>
+                        </td>
+                    </tr>
                     <?php if (!empty($evaluation['feedback_confirmed']) || !empty($evaluation['feedback_evidence_path']) || !empty($evaluation['feedback_evidence_note'])): ?>
-                    <tr>
-                        <td class="meta-label">Feedback</td>
-                        <td class="meta-value">
-                            <?php echo !empty($evaluation['feedback_confirmed']) ? 'Realizado' : 'Pendiente'; ?>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="meta-label">Evidencia</td>
-                        <td class="meta-value">
-                            <?php echo !empty($evaluation['feedback_evidence_name']) ? htmlspecialchars($evaluation['feedback_evidence_name']) : 'No adjunta'; ?>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="meta-label">Nota</td>
-                        <td class="meta-value">
-                            <?php echo !empty($evaluation['feedback_evidence_note']) ? htmlspecialchars($evaluation['feedback_evidence_note']) : 'Sin nota'; ?>
-                        </td>
-                    </tr>
+                        <tr>
+                            <td class="meta-label">Feedback</td>
+                            <td class="meta-value">
+                                <?php echo !empty($evaluation['feedback_confirmed']) ? 'Realizado' : 'Pendiente'; ?>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="meta-label">Evidencia</td>
+                            <td class="meta-value">
+                                <?php echo !empty($evaluation['feedback_evidence_name']) ? htmlspecialchars($evaluation['feedback_evidence_name']) : 'No adjunta'; ?>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="meta-label">Nota</td>
+                            <td class="meta-value">
+                                <?php echo !empty($evaluation['feedback_evidence_note']) ? htmlspecialchars($evaluation['feedback_evidence_note']) : 'Sin nota'; ?>
+                            </td>
+                        </tr>
                     <?php endif; ?>
                 </table>
             </td>
@@ -346,11 +352,3 @@
 </body>
 
 </html>
-
-
-
-
-
-
-
-

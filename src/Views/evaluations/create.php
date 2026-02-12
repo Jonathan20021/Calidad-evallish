@@ -63,6 +63,18 @@
                                 <p class="mt-2 text-xs text-gray-500">Seleccione una campaña para cargar el formulario.</p>
                             <?php endif; ?>
                         </div>
+
+                        <div>
+                            <label for="evaluation_type" class="block text-sm font-medium text-gray-700">Tipo de Evaluación</label>
+                            <select name="evaluation_type" id="evaluation_type" required
+                                class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-3 px-4 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                                <option value="">Seleccione Tipo...</option>
+                                <option value="remota" <?php echo (($formValues['evaluation_type'] ?? '') === 'remota') ? 'selected' : ''; ?>>Remota</option>
+                                <option value="presencial" <?php echo (($formValues['evaluation_type'] ?? '') === 'presencial') ? 'selected' : ''; ?>>Presencial</option>
+                                <option value="llamada" <?php echo (($formValues['evaluation_type'] ?? '') === 'llamada') ? 'selected' : ''; ?>>Llamada</option>
+                                <option value="chat" <?php echo (($formValues['evaluation_type'] ?? '') === 'chat') ? 'selected' : ''; ?>>Chat</option>
+                            </select>
+                        </div>
                     </div>
 
                     <?php if (!empty($templates)): ?>
