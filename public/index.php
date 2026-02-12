@@ -69,6 +69,7 @@ $router->get('/form-templates/edit', [\App\Controllers\FormTemplateController::c
 $router->post('/form-templates/update', [\App\Controllers\FormTemplateController::class, 'update']);
 $router->post('/form-templates/toggle', [\App\Controllers\FormTemplateController::class, 'toggle']);
 $router->post('/form-templates/duplicate', [\App\Controllers\FormTemplateController::class, 'duplicate']);
+$router->post('/form-templates/delete', [\App\Controllers\FormTemplateController::class, 'delete']);
 
 // Reports
 $router->get('/reports', [\App\Controllers\ReportController::class, 'index']);

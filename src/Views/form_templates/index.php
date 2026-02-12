@@ -48,7 +48,18 @@
                                 <?php echo htmlspecialchars($template['title']); ?>
                             </h3>
                             <p class="text-sm text-gray-500 mb-4">
-                                <?php echo htmlspecialchars($template['campaign_name']); ?>
+                                <?php
+                                if (!empty($template['campaign_names'])) {
+                                    $campaigns = explode(', ', $template['campaign_names']);
+                                    if (count($campaigns) > 2) {
+                                        echo htmlspecialchars(implode(', ', array_slice($campaigns, 0, 2))) . ' +' . (count($campaigns) - 2);
+                                    } else {
+                                        echo htmlspecialchars($template['campaign_names']);
+                                    }
+                                } else {
+                                    echo 'Sin campañas asignadas';
+                                }
+                                ?>
                             </p>
 
                             <div class="border-t border-gray-100 pt-4 mt-2">
@@ -78,11 +89,11 @@
                                 Editar
                             </a>
                             <div class="flex space-x-2">
-                                <form action="<?php echo \App\Config\Config::BASE_URL; ?>form-templates/toggle" method="POST">
+                                <form action="<?php echo \App\Config\Config::BASE_URL; ?>form-templates/toggle"
+                                    method="POST">
                                     <input type="hidden" name="id" value="<?php echo $template['id']; ?>">
                                     <input type="hidden" name="active" value="<?php echo $template['active'] ? 0 : 1; ?>">
-                                    <button type="submit"
-                                        class="text-gray-400 hover:text-gray-600"
+                                    <button type="submit" class="text-gray-400 hover:text-gray-600"
                                         title="<?php echo $template['active'] ? 'Inactivar' : 'Activar'; ?>">
                                         <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -90,12 +101,24 @@
                                         </svg>
                                     </button>
                                 </form>
-                                <form action="<?php echo \App\Config\Config::BASE_URL; ?>form-templates/duplicate" method="POST">
+                                <form action="<?php echo \App\Config\Config::BASE_URL; ?>form-templates/duplicate"
+                                    method="POST">
                                     <input type="hidden" name="id" value="<?php echo $template['id']; ?>">
                                     <button type="submit" class="text-gray-400 hover:text-gray-600" title="Duplicar">
                                         <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                 d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                        </svg>
+                                    </button>
+                                </form>
+                                <form action="<?php echo \App\Config\Config::BASE_URL; ?>form-templates/delete"
+                                    method="POST"
+                                    onsubmit="return confirm('¿Estás seguro de que deseas eliminar este formulario? Esta acción no se puede deshacer.');">
+                                    <input type="hidden" name="id" value="<?php echo $template['id']; ?>">
+                                    <button type="submit" class="text-red-400 hover:text-red-600" title="Eliminar">
+                                        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                         </svg>
                                     </button>
                                 </form>

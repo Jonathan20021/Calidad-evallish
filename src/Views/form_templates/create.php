@@ -36,29 +36,39 @@
                         <h2 class="text-2xl font-bold text-gray-900">
                             <?php echo !empty($isEditing) ? 'Editar Formulario' : 'Diseñador de Formulario'; ?>
                         </h2>
-                        <?php if (!empty($campaign)): ?>
-                            <p class="mt-1 text-sm text-gray-500">Campaña: <span class="font-semibold text-indigo-600">
-                                    <?php echo htmlspecialchars($campaign['name']); ?>
-                                </span></p>
+                        <?php if (!empty($selectedCampaignIds)): ?>
+                            <p class="mt-1 text-sm text-gray-500">Campañas seleccionadas:
+                                <span class="font-semibold text-indigo-600">
+                                    <?php
+                                    $selectedNames = array_filter($campaigns, function ($c) use ($selectedCampaignIds) {
+                                        return in_array($c['id'], $selectedCampaignIds);
+                                    });
+                                    echo htmlspecialchars(implode(', ', array_column($selectedNames, 'name')));
+                                    ?>
+                                </span>
+                            </p>
                         <?php else: ?>
-                            <p class="mt-1 text-sm text-gray-500">Seleccione una campaña para comenzar.</p>
+                            <p class="mt-1 text-sm text-gray-500">Seleccione campañas para comenzar.</p>
                         <?php endif; ?>
                     </div>
                 </div>
 
-                <?php if (empty($campaign)): ?>
-                    <form action="<?php echo \App\Config\Config::BASE_URL; ?>form-templates/create" method="GET" class="p-8">
+                <?php if (empty($selectedCampaignIds) && !$isEditing): ?>
+                    <form action="<?php echo \App\Config\Config::BASE_URL; ?>form-templates/create" method="GET"
+                        class="p-8">
                         <div class="mb-6">
-                            <label for="campaign_id" class="block text-sm font-medium text-gray-700">Campaña</label>
-                            <select name="campaign_id" id="campaign_id" required
-                                class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-3 px-4 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-                                <option value="">Seleccione una campaña...</option>
+                            <label class="block text-sm font-medium text-gray-700 mb-3">Seleccione Campañas</label>
+                            <div class="space-y-2 max-h-64 overflow-y-auto border border-gray-200 rounded-lg p-4">
                                 <?php foreach ($campaigns as $item): ?>
-                                    <option value="<?php echo $item['id']; ?>">
-                                        <?php echo htmlspecialchars($item['name']); ?>
-                                    </option>
+                                    <label class="flex items-center p-2 hover:bg-gray-50 rounded cursor-pointer">
+                                        <input type="checkbox" name="campaign_id[]" value="<?php echo $item['id']; ?>"
+                                            class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
+                                        <span
+                                            class="ml-3 text-sm text-gray-700"><?php echo htmlspecialchars($item['name']); ?></span>
+                                    </label>
                                 <?php endforeach; ?>
-                            </select>
+                            </div>
+                            <p class="mt-2 text-xs text-gray-500">Seleccione al menos una campaña para continuar</p>
                         </div>
                         <div class="mt-8 flex justify-end">
                             <button type="submit"
@@ -68,13 +78,29 @@
                         </div>
                     </form>
                 <?php else: ?>
-                    <form action="<?php echo \App\Config\Config::BASE_URL; ?><?php echo !empty($isEditing) ? 'form-templates/update' : 'form-templates/store'; ?>" method="POST"
-                        id="builderForm" class="p-8">
-                        <input type="hidden" name="campaign_id" value="<?php echo $campaign['id']; ?>">
+                    <form
+                        action="<?php echo \App\Config\Config::BASE_URL; ?><?php echo !empty($isEditing) ? 'form-templates/update' : 'form-templates/store'; ?>"
+                        method="POST" id="builderForm" class="p-8">
                         <?php if (!empty($isEditing) && !empty($template)): ?>
                             <input type="hidden" name="template_id" value="<?php echo $template['id']; ?>">
                         <?php endif; ?>
                         <input type="hidden" name="items_json" id="itemsJson">
+
+                        <!-- Campaign Selection -->
+                        <div class="mb-6">
+                            <label class="block text-sm font-medium text-gray-700 mb-3">Campañas Asignadas</label>
+                            <div class="space-y-2 max-h-48 overflow-y-auto border border-gray-200 rounded-lg p-4 bg-gray-50">
+                                <?php foreach ($campaigns as $item): ?>
+                                    <label class="flex items-center p-2 hover:bg-white rounded cursor-pointer">
+                                        <input type="checkbox" name="campaign_ids[]" value="<?php echo $item['id']; ?>"
+                                            <?php echo in_array($item['id'], $selectedCampaignIds) ? 'checked' : ''; ?>
+                                            class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
+                                        <span class="ml-3 text-sm text-gray-700"><?php echo htmlspecialchars($item['name']); ?></span>
+                                    </label>
+                                <?php endforeach; ?>
+                            </div>
+                            <p class="mt-2 text-xs text-gray-500">Seleccione las campañas donde se usará este formulario</p>
+                        </div>
 
                         <div class="mb-6">
                             <label for="title" class="block text-sm font-medium text-gray-700">Título del Formulario</label>
@@ -143,7 +169,8 @@
                     </select>
                 </div>
                 <div class="col-span-2 options-container" style="display: none;">
-                    <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Opciones (Separadas por coma)</label>
+                    <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Opciones
+                        (Separadas por coma)</label>
                     <input type="text"
                         class="field-options block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                         placeholder="Opción 1, Opción 2, Opción 3">
@@ -155,7 +182,8 @@
                         value="1" min="0" step="0.1">
                 </div>
                 <div class="max-score-container">
-                    <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Puntaje máximo</label>
+                    <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Puntaje
+                        máximo</label>
                     <input type="number"
                         class="field-max-score block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                         value="100" min="1" step="1">

@@ -24,10 +24,9 @@ class FormTemplateController
     {
         Auth::requireAnyRole(['admin', 'qa']);
 
-        $campaignId = $_GET['campaign_id'] ?? null;
+        $selectedCampaignIds = isset($_GET['campaign_id']) ? [$_GET['campaign_id']] : [];
         $campaignModel = new Campaign();
         $campaigns = $campaignModel->getAll();
-        $campaign = $campaignId ? $campaignModel->findById($campaignId) : null;
 
         $template = null;
         $fields = [];
@@ -54,8 +53,11 @@ class FormTemplateController
         }
 
         $campaignModel = new Campaign();
-        $campaign = $campaignModel->findById($template['campaign_id']);
         $campaigns = $campaignModel->getAll();
+
+        // Get assigned campaigns for this template
+        $assignedCampaigns = $templateModel->getCampaignsByTemplate($templateId);
+        $selectedCampaignIds = array_column($assignedCampaigns, 'id');
 
         $fieldModel = new FormField();
         $fields = $fieldModel->getByTemplate($template['id']);
@@ -68,7 +70,7 @@ class FormTemplateController
     {
         Auth::requireAnyRole(['admin', 'qa']);
 
-        $campaignId = $_POST['campaign_id'];
+        $campaignIds = $_POST['campaign_ids'] ?? [];
         $title = $_POST['title'];
         $items = json_decode($_POST['items_json'] ?? '[]', true);
 
@@ -77,14 +79,18 @@ class FormTemplateController
 
         // 1. Create New Template
         $templateModel->create([
-            'campaign_id' => $campaignId,
             'title' => $title,
             'active' => 1
         ]);
 
         $templateId = $templateModel->getLastInsertId();
 
-        // 2. Create Fields
+        // 2. Assign campaigns
+        if (!empty($campaignIds) && is_array($campaignIds)) {
+            $templateModel->assignCampaigns($templateId, $campaignIds);
+        }
+
+        // 3. Create Fields
         if ($items && is_array($items)) {
             foreach ($items as $index => $item) {
                 $fieldModel->create([
@@ -113,6 +119,7 @@ class FormTemplateController
             exit;
         }
 
+        $campaignIds = $_POST['campaign_ids'] ?? [];
         $title = $_POST['title'];
         $items = json_decode($_POST['items_json'] ?? '[]', true);
 
@@ -120,6 +127,11 @@ class FormTemplateController
         $fieldModel = new FormField();
 
         $templateModel->updateTitle($templateId, $title);
+
+        // Update campaign assignments
+        if (is_array($campaignIds)) {
+            $templateModel->assignCampaigns($templateId, $campaignIds);
+        }
 
         $keepIds = [];
         if ($items && is_array($items)) {
@@ -167,6 +179,22 @@ class FormTemplateController
         header('Location: ' . \App\Config\Config::BASE_URL . 'form-templates');
     }
 
+    public function delete()
+    {
+        Auth::requireAnyRole(['admin', 'qa']);
+
+        $templateId = $_POST['id'] ?? null;
+        if (!$templateId) {
+            header('Location: ' . \App\Config\Config::BASE_URL . 'form-templates');
+            exit;
+        }
+
+        $templateModel = new FormTemplate();
+        $templateModel->delete($templateId);
+
+        header('Location: ' . \App\Config\Config::BASE_URL . 'form-templates');
+    }
+
     public function duplicate()
     {
         Auth::requireAnyRole(['admin', 'qa']);
@@ -186,14 +214,23 @@ class FormTemplateController
             exit;
         }
 
+        // Get assigned campaigns
+        $assignedCampaigns = $templateModel->getCampaignsByTemplate($templateId);
+        $campaignIds = array_column($assignedCampaigns, 'id');
+
         $templateModel->create([
-            'campaign_id' => $template['campaign_id'],
             'title' => $template['title'] . ' (Copia)',
             'description' => $template['description'] ?? '',
             'active' => 0
         ]);
 
         $newTemplateId = $templateModel->getLastInsertId();
+
+        // Assign same campaigns to duplicated template
+        if (!empty($campaignIds)) {
+            $templateModel->assignCampaigns($newTemplateId, $campaignIds);
+        }
+
         $fields = $fieldModel->getByTemplate($templateId);
         foreach ($fields as $index => $field) {
             $fieldModel->create([
