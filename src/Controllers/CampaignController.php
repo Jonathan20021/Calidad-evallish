@@ -13,7 +13,7 @@ class CampaignController
         Auth::requireAnyRole(['admin', 'qa']);
 
         $campaignModel = new Campaign();
-        $campaigns = $campaignModel->getAll();
+        $campaigns = $campaignModel->getAllWithForms();
 
         require __DIR__ . '/../Views/campaigns/index.php';
     }

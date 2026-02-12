@@ -26,6 +26,43 @@ class Campaign
         return $stmt->fetchAll();
     }
 
+    public function getAllWithForms()
+    {
+        // First ensure we have local campaigns if they come from Ponche
+        $this->getPoncheCampaigns(false);
+
+        $stmt = $this->db->query("
+            SELECT 
+                c.*,
+                GROUP_CONCAT(t.title ORDER BY t.title SEPARATOR '||') as form_titles,
+                GROUP_CONCAT(t.id ORDER BY t.title SEPARATOR ',') as form_ids
+            FROM campaigns c
+            LEFT JOIN form_template_campaigns ftc ON c.id = ftc.campaign_id
+            LEFT JOIN form_templates t ON ftc.template_id = t.id AND t.active = 1
+            GROUP BY c.id
+            ORDER BY c.name ASC
+        ");
+
+        $results = $stmt->fetchAll();
+
+        // Process the grouped forms
+        foreach ($results as &$row) {
+            $row['forms'] = [];
+            if (!empty($row['form_ids'])) {
+                $ids = explode(',', $row['form_ids']);
+                $titles = explode('||', $row['form_titles']);
+                foreach ($ids as $index => $id) {
+                    $row['forms'][] = [
+                        'id' => $id,
+                        'title' => $titles[$index]
+                    ];
+                }
+            }
+        }
+
+        return $results;
+    }
+
     public function getActive()
     {
         $poncheRows = $this->getPoncheCampaigns(true);
