@@ -51,4 +51,10 @@ class EvaluationFeedback
         $stmt->execute([(int) $evaluationId]);
         return $stmt->fetchAll();
     }
+
+    public function deleteByEvaluationId($evaluationId): bool
+    {
+        $stmt = $this->db->prepare("DELETE FROM evaluation_feedback_history WHERE evaluation_id = ?");
+        return $stmt->execute([(int) $evaluationId]);
+    }
 }

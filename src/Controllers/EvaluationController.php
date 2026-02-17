@@ -793,5 +793,37 @@ class EvaluationController
 
         header('Location: ' . \App\Config\Config::BASE_URL . 'evaluations/show?id=' . $evaluationId);
     }
+
+    public function delete()
+    {
+        Auth::requirePermission('evaluations.create');
+
+        $id = $_POST['id'] ?? null;
+        if (!$id) {
+            header('Location: ' . \App\Config\Config::BASE_URL . 'evaluations');
+            exit;
+        }
+
+        $evaluationModel = new Evaluation();
+        $answerModel = new EvaluationAnswer();
+        $feedbackModel = new EvaluationFeedback();
+
+        $evaluation = $evaluationModel->findById($id);
+        if (!$evaluation) {
+            header('Location: ' . \App\Config\Config::BASE_URL . 'evaluations');
+            exit;
+        }
+
+        // Delete answers
+        $answerModel->deleteByEvaluationId($id);
+
+        // Delete feedback history
+        $feedbackModel->deleteByEvaluationId($id);
+
+        // Delete evaluations
+        $evaluationModel->deleteById($id);
+
+        header('Location: ' . \App\Config\Config::BASE_URL . 'evaluations');
+    }
 }
 

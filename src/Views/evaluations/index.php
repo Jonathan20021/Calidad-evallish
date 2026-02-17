@@ -89,9 +89,18 @@
                                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                                     <?php echo htmlspecialchars($eval['qa_name']); ?>
                                                 </td>
-                                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                                <td
+                                                    class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium flex justify-end space-x-3">
                                                     <a href="<?php echo \App\Config\Config::BASE_URL; ?>evaluations/show?id=<?php echo $eval['id']; ?>"
-                                                        class="text-indigo-600 hover:text-indigo-900">Ver Detalles</a>
+                                                        class="text-indigo-600 hover:text-indigo-900">Ver</a>
+                                                    <form
+                                                        action="<?php echo \App\Config\Config::BASE_URL; ?>evaluations/delete"
+                                                        method="POST" class="inline"
+                                                        onsubmit="return confirm('¿Estás seguro de que deseas borrar esta evaluación? Esta acción no se puede deshacer.');">
+                                                        <input type="hidden" name="id" value="<?php echo $eval['id']; ?>">
+                                                        <button type="submit"
+                                                            class="text-red-600 hover:text-red-900">Borrar</button>
+                                                    </form>
                                                 </td>
                                             </tr>
                                         <?php endforeach; ?>

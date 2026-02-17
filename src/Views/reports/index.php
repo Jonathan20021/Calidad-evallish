@@ -38,7 +38,8 @@ $bucket0 = (int) ($scoreDistribution['bucket_0'] ?? 0);
 $distributionTotal = $bucket95 + $bucket90 + $bucket80 + $bucket70 + $bucket0;
 ?>
 
-<div class="min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-indigo-50 via-white to-sky-50 flex">
+<div
+    class="min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-indigo-50 via-white to-sky-50 flex">
     <?php require __DIR__ . '/../layouts/sidebar.php'; ?>
 
     <main class="flex-1">
@@ -58,7 +59,8 @@ $distributionTotal = $bucket95 + $bucket90 + $bucket80 + $bucket70 + $bucket0;
                             <span>Exportar PDF</span>
                             <span class="text-lg">↗</span>
                         </a>
-                        <div class="rounded-full bg-white/10 px-5 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-indigo-100">
+                        <div
+                            class="rounded-full bg-white/10 px-5 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-indigo-100">
                             Última actualización: <?php echo date('d/m/Y H:i'); ?>
                         </div>
                     </div>
@@ -112,7 +114,8 @@ $distributionTotal = $bucket95 + $bucket90 + $bucket80 + $bucket70 + $bucket0;
                                         <div class="w-10 rounded-full bg-gradient-to-t from-indigo-500 to-sky-400"
                                             style="height: <?php echo $height; ?>%;"></div>
                                     </div>
-                                    <p class="text-xs font-semibold text-gray-600"><?php echo htmlspecialchars($trend['period']); ?></p>
+                                    <p class="text-xs font-semibold text-gray-600">
+                                        <?php echo htmlspecialchars($trend['period']); ?></p>
                                     <p class="text-xs text-gray-500"><?php echo number_format($trend['avg_score'], 1); ?>%</p>
                                     <p class="text-xs text-gray-400"><?php echo (int) $trend['total_evaluations']; ?> eval.</p>
                                 </div>
@@ -143,7 +146,8 @@ $distributionTotal = $bucket95 + $bucket90 + $bucket80 + $bucket70 + $bucket0;
                             <div>
                                 <div class="flex items-center justify-between text-xs font-semibold text-gray-600">
                                     <span><?php echo $bucket['label']; ?></span>
-                                    <span><?php echo $bucket['value']; ?> (<?php echo number_format($percent, 1); ?>%)</span>
+                                    <span><?php echo $bucket['value']; ?>
+                                        (<?php echo number_format($percent, 1); ?>%)</span>
                                 </div>
                                 <div class="mt-2 h-2 w-full rounded-full bg-gray-100">
                                     <div class="h-2 rounded-full bg-gradient-to-r <?php echo $bucket['color']; ?>"
@@ -156,7 +160,8 @@ $distributionTotal = $bucket95 + $bucket90 + $bucket80 + $bucket70 + $bucket0;
             </div>
 
             <div class="grid gap-6 xl:grid-cols-3">
-                <div class="rounded-2xl bg-white p-6 shadow-lg shadow-indigo-100 border border-indigo-100 xl:col-span-2">
+                <div
+                    class="rounded-2xl bg-white p-6 shadow-lg shadow-indigo-100 border border-indigo-100 xl:col-span-2">
                     <div class="flex items-center justify-between">
                         <div>
                             <h2 class="text-lg font-semibold text-gray-900">Rendimiento por campaña</h2>
@@ -167,11 +172,21 @@ $distributionTotal = $bucket95 + $bucket90 + $bucket80 + $bucket70 + $bucket0;
                         <table class="min-w-full divide-y divide-gray-200">
                             <thead class="bg-gray-50">
                                 <tr>
-                                    <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-widest text-gray-500">Campaña</th>
-                                    <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-widest text-gray-500">Evaluaciones</th>
-                                    <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-widest text-gray-500">Promedio</th>
-                                    <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-widest text-gray-500">Mín</th>
-                                    <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-widest text-gray-500">Máx</th>
+                                    <th
+                                        class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-widest text-gray-500">
+                                        Campaña</th>
+                                    <th
+                                        class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-widest text-gray-500">
+                                        Evaluaciones</th>
+                                    <th
+                                        class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-widest text-gray-500">
+                                        Promedio</th>
+                                    <th
+                                        class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-widest text-gray-500">
+                                        Mín</th>
+                                    <th
+                                        class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-widest text-gray-500">
+                                        Máx</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-100">
@@ -181,10 +196,14 @@ $distributionTotal = $bucket95 + $bucket90 + $bucket80 + $bucket70 + $bucket0;
                                             <td class="px-4 py-3 text-sm font-semibold text-gray-900">
                                                 <?php echo htmlspecialchars($stat['campaign_name']); ?>
                                             </td>
-                                            <td class="px-4 py-3 text-sm text-gray-600"><?php echo (int) $stat['total_evaluations']; ?></td>
-                                            <td class="px-4 py-3 text-sm font-semibold text-gray-900"><?php echo number_format($stat['avg_score'], 1); ?>%</td>
-                                            <td class="px-4 py-3 text-sm text-rose-600"><?php echo number_format($stat['min_score'], 1); ?>%</td>
-                                            <td class="px-4 py-3 text-sm text-emerald-600"><?php echo number_format($stat['max_score'], 1); ?>%</td>
+                                            <td class="px-4 py-3 text-sm text-gray-600">
+                                                <?php echo (int) $stat['total_evaluations']; ?></td>
+                                            <td class="px-4 py-3 text-sm font-semibold text-gray-900">
+                                                <?php echo number_format($stat['avg_score'], 1); ?>%</td>
+                                            <td class="px-4 py-3 text-sm text-rose-600">
+                                                <?php echo number_format($stat['min_score'], 1); ?>%</td>
+                                            <td class="px-4 py-3 text-sm text-emerald-600">
+                                                <?php echo number_format($stat['max_score'], 1); ?>%</td>
                                         </tr>
                                     <?php endforeach; ?>
                                 <?php else: ?>
@@ -206,10 +225,12 @@ $distributionTotal = $bucket95 + $bucket90 + $bucket80 + $bucket70 + $bucket0;
                         <?php if (!empty($qaStats)): ?>
                             <?php foreach ($qaStats as $qa): ?>
                                 <div class="rounded-xl border border-gray-100 p-4">
-                                    <p class="text-sm font-semibold text-gray-900"><?php echo htmlspecialchars($qa['qa_name']); ?></p>
+                                    <p class="text-sm font-semibold text-gray-900">
+                                        <?php echo htmlspecialchars($qa['qa_name']); ?></p>
                                     <div class="mt-2 flex items-center justify-between text-xs text-gray-500">
                                         <span><?php echo (int) $qa['total_evaluations']; ?> evaluaciones</span>
-                                        <span class="font-semibold text-indigo-600"><?php echo number_format($qa['avg_score'], 1); ?>%</span>
+                                        <span
+                                            class="font-semibold text-indigo-600"><?php echo number_format($qa['avg_score'], 1); ?>%</span>
                                     </div>
                                     <div class="mt-2 h-2 w-full rounded-full bg-gray-100">
                                         <div class="h-2 rounded-full bg-gradient-to-r from-indigo-500 to-sky-400"
@@ -224,7 +245,39 @@ $distributionTotal = $bucket95 + $bucket90 + $bucket80 + $bucket70 + $bucket0;
                 </div>
             </div>
 
-            <div class="grid gap-6 lg:grid-cols-2">
+            <div class="grid gap-6 lg:grid-cols-3">
+                <div class="rounded-2xl bg-white p-6 shadow-lg shadow-indigo-100 border border-indigo-100">
+                    <h2 class="text-lg font-semibold text-gray-900">Top 5 campañas</h2>
+                    <p class="text-sm text-gray-500">Mejor desempeño promedio</p>
+                    <div class="mt-6 space-y-4">
+                        <?php if (!empty($topCampaigns)): ?>
+                            <?php foreach ($topCampaigns as $index => $camp): ?>
+                                <div class="flex items-center justify-between rounded-xl border border-gray-100 p-4">
+                                    <div class="flex items-center gap-3">
+                                        <span
+                                            class="flex h-9 w-9 items-center justify-center rounded-full bg-indigo-100 text-sm font-bold text-indigo-700">
+                                            <?php echo $index + 1; ?>
+                                        </span>
+                                        <div>
+                                            <p class="text-sm font-semibold text-gray-900 text-ellipsis overflow-hidden whitespace-nowrap max-w-[120px]"
+                                                title="<?php echo htmlspecialchars($camp['campaign_name']); ?>">
+                                                <?php echo htmlspecialchars($camp['campaign_name']); ?>
+                                            </p>
+                                            <p class="text-xs text-gray-500"><?php echo (int) $camp['total_evaluations']; ?>
+                                                evaluaciones</p>
+                                        </div>
+                                    </div>
+                                    <div class="text-sm font-semibold text-indigo-600">
+                                        <?php echo number_format($camp['avg_score'], 1); ?>%
+                                    </div>
+                                </div>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <div class="rounded-xl bg-gray-50 p-4 text-sm text-gray-500">Sin datos suficientes.</div>
+                        <?php endif; ?>
+                    </div>
+                </div>
+
                 <div class="rounded-2xl bg-white p-6 shadow-lg shadow-indigo-100 border border-indigo-100">
                     <h2 class="text-lg font-semibold text-gray-900">Top 5 agentes</h2>
                     <p class="text-sm text-gray-500">Mejor desempeño promedio</p>
@@ -233,12 +286,16 @@ $distributionTotal = $bucket95 + $bucket90 + $bucket80 + $bucket70 + $bucket0;
                             <?php foreach ($topAgents as $index => $agent): ?>
                                 <div class="flex items-center justify-between rounded-xl border border-gray-100 p-4">
                                     <div class="flex items-center gap-3">
-                                        <span class="flex h-9 w-9 items-center justify-center rounded-full bg-emerald-100 text-sm font-bold text-emerald-700">
+                                        <span
+                                            class="flex h-9 w-9 items-center justify-center rounded-full bg-emerald-100 text-sm font-bold text-emerald-700">
                                             <?php echo $index + 1; ?>
                                         </span>
                                         <div>
-                                            <p class="text-sm font-semibold text-gray-900"><?php echo htmlspecialchars($agent['agent_name']); ?></p>
-                                            <p class="text-xs text-gray-500"><?php echo (int) $agent['total_evaluations']; ?> evaluaciones</p>
+                                            <p class="text-sm font-semibold text-gray-900 text-ellipsis overflow-hidden whitespace-nowrap max-w-[120px]"
+                                                title="<?php echo htmlspecialchars($agent['agent_name']); ?>">
+                                                <?php echo htmlspecialchars($agent['agent_name']); ?></p>
+                                            <p class="text-xs text-gray-500"><?php echo (int) $agent['total_evaluations']; ?>
+                                                evaluaciones</p>
                                         </div>
                                     </div>
                                     <div class="text-sm font-semibold text-emerald-600">
@@ -260,12 +317,16 @@ $distributionTotal = $bucket95 + $bucket90 + $bucket80 + $bucket70 + $bucket0;
                             <?php foreach ($bottomAgents as $index => $agent): ?>
                                 <div class="flex items-center justify-between rounded-xl border border-gray-100 p-4">
                                     <div class="flex items-center gap-3">
-                                        <span class="flex h-9 w-9 items-center justify-center rounded-full bg-rose-100 text-sm font-bold text-rose-700">
+                                        <span
+                                            class="flex h-9 w-9 items-center justify-center rounded-full bg-rose-100 text-sm font-bold text-rose-700">
                                             <?php echo $index + 1; ?>
                                         </span>
                                         <div>
-                                            <p class="text-sm font-semibold text-gray-900"><?php echo htmlspecialchars($agent['agent_name']); ?></p>
-                                            <p class="text-xs text-gray-500"><?php echo (int) $agent['total_evaluations']; ?> evaluaciones</p>
+                                            <p class="text-sm font-semibold text-gray-900 text-ellipsis overflow-hidden whitespace-nowrap max-w-[120px]"
+                                                title="<?php echo htmlspecialchars($agent['agent_name']); ?>">
+                                                <?php echo htmlspecialchars($agent['agent_name']); ?></p>
+                                            <p class="text-xs text-gray-500"><?php echo (int) $agent['total_evaluations']; ?>
+                                                evaluaciones</p>
                                         </div>
                                     </div>
                                     <div class="text-sm font-semibold text-rose-600">
@@ -295,23 +356,40 @@ $distributionTotal = $bucket95 + $bucket90 + $bucket80 + $bucket70 + $bucket0;
                     <table class="min-w-full divide-y divide-gray-200">
                         <thead class="bg-gray-50">
                             <tr>
-                                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-widest text-gray-500">ID</th>
-                                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-widest text-gray-500">Agente</th>
-                                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-widest text-gray-500">Campaña</th>
-                                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-widest text-gray-500">QA</th>
-                                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-widest text-gray-500">Puntuación</th>
-                                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-widest text-gray-500">Fecha</th>
+                                <th
+                                    class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-widest text-gray-500">
+                                    ID</th>
+                                <th
+                                    class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-widest text-gray-500">
+                                    Agente</th>
+                                <th
+                                    class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-widest text-gray-500">
+                                    Campaña</th>
+                                <th
+                                    class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-widest text-gray-500">
+                                    QA</th>
+                                <th
+                                    class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-widest text-gray-500">
+                                    Puntuación</th>
+                                <th
+                                    class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-widest text-gray-500">
+                                    Fecha</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-100">
                             <?php if (!empty($recentEvaluations)): ?>
                                 <?php foreach ($recentEvaluations as $evaluation): ?>
                                     <tr class="hover:bg-indigo-50/40">
-                                        <td class="px-4 py-3 text-sm font-semibold text-gray-900">#<?php echo (int) $evaluation['id']; ?></td>
-                                        <td class="px-4 py-3 text-sm text-gray-600"><?php echo htmlspecialchars($evaluation['agent_name']); ?></td>
-                                        <td class="px-4 py-3 text-sm text-gray-600"><?php echo htmlspecialchars($evaluation['campaign_name']); ?></td>
-                                        <td class="px-4 py-3 text-sm text-gray-600"><?php echo htmlspecialchars($evaluation['qa_name']); ?></td>
-                                        <td class="px-4 py-3 text-sm font-semibold text-indigo-600"><?php echo number_format($evaluation['percentage'], 1); ?>%</td>
+                                        <td class="px-4 py-3 text-sm font-semibold text-gray-900">
+                                            #<?php echo (int) $evaluation['id']; ?></td>
+                                        <td class="px-4 py-3 text-sm text-gray-600">
+                                            <?php echo htmlspecialchars($evaluation['agent_name']); ?></td>
+                                        <td class="px-4 py-3 text-sm text-gray-600">
+                                            <?php echo htmlspecialchars($evaluation['campaign_name']); ?></td>
+                                        <td class="px-4 py-3 text-sm text-gray-600">
+                                            <?php echo htmlspecialchars($evaluation['qa_name']); ?></td>
+                                        <td class="px-4 py-3 text-sm font-semibold text-indigo-600">
+                                            <?php echo number_format($evaluation['percentage'], 1); ?>%</td>
                                         <td class="px-4 py-3 text-sm text-gray-500">
                                             <?php echo date('d/m/Y H:i', strtotime($evaluation['created_at'])); ?>
                                         </td>

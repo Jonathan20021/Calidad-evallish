@@ -429,6 +429,12 @@ class Evaluation
         return $stmt->fetch();
     }
 
+    public function deleteById($id): bool
+    {
+        $stmt = $this->db->prepare("DELETE FROM evaluations WHERE id = ?");
+        return $stmt->execute([(int) $id]);
+    }
+
     private function attachUserNames(array $rows): array
     {
         if (empty($rows)) {

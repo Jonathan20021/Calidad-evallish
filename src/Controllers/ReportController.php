@@ -76,6 +76,20 @@ class ReportController
         ");
         $campaignStats = $stmt->fetchAll();
 
+        // Stats by Campaign (Top 5)
+        $stmt = $db->query("
+            SELECT 
+                c.name as campaign_name,
+                COUNT(e.id) as total_evaluations,
+                AVG(e.percentage) as avg_score
+            FROM campaigns c
+            JOIN evaluations e ON c.id = e.campaign_id
+            GROUP BY c.id, c.name
+            ORDER BY avg_score DESC
+            LIMIT 5
+        ");
+        $topCampaigns = $stmt->fetchAll();
+
         // Stats by Agent (Top 5)
         $stmt = $db->query("
             SELECT 
