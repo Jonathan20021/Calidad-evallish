@@ -15,9 +15,9 @@ class Evaluation
         $this->db = Database::getInstance()->getConnection();
     }
 
-    public function getAll($limit = 50)
+    public function getAll($limit = 50, $userId = null, $role = null)
     {
-        $stmt = $this->db->prepare("
+        $query = "
             SELECT e.*, 
                    c.name as campaign_name,
                    ft.title as form_title
@@ -25,10 +25,21 @@ class Evaluation
             JOIN campaigns c ON e.campaign_id = c.id
             JOIN form_templates ft ON e.form_template_id = ft.id
             WHERE e.deleted_at IS NULL
-            ORDER BY e.created_at DESC
-            LIMIT :limit
-        ");
+        ";
+
+        if ($role === 'qa') {
+            $query .= " AND e.qa_id = :userId";
+        } elseif ($role === 'agent') {
+            $query .= " AND e.agent_id = :userId";
+        }
+
+        $query .= " ORDER BY e.created_at DESC LIMIT :limit";
+
+        $stmt = $this->db->prepare($query);
         $stmt->bindValue(':limit', (int) $limit, PDO::PARAM_INT);
+        if ($role === 'qa' || $role === 'agent') {
+            $stmt->bindValue(':userId', (int) $userId, PDO::PARAM_INT);
+        }
         $stmt->execute();
         $rows = $stmt->fetchAll();
         return $this->attachUserNames($rows);
@@ -463,9 +474,9 @@ class Evaluation
         return $stmt->execute([(int) $id]);
     }
 
-    public function getDeleted($limit = 50)
+    public function getDeleted($limit = 50, $userId = null, $role = null)
     {
-        $stmt = $this->db->prepare("
+        $query = "
             SELECT e.*, 
                    c.name as campaign_name,
                    ft.title as form_title
@@ -473,10 +484,21 @@ class Evaluation
             JOIN campaigns c ON e.campaign_id = c.id
             JOIN form_templates ft ON e.form_template_id = ft.id
             WHERE e.deleted_at IS NOT NULL
-            ORDER BY e.deleted_at DESC
-            LIMIT :limit
-        ");
+        ";
+
+        if ($role === 'qa') {
+            $query .= " AND e.qa_id = :userId";
+        } elseif ($role === 'agent') {
+            $query .= " AND e.agent_id = :userId";
+        }
+
+        $query .= " ORDER BY e.deleted_at DESC LIMIT :limit";
+
+        $stmt = $this->db->prepare($query);
         $stmt->bindValue(':limit', (int) $limit, PDO::PARAM_INT);
+        if ($role === 'qa' || $role === 'agent') {
+            $stmt->bindValue(':userId', (int) $userId, PDO::PARAM_INT);
+        }
         $stmt->execute();
         $rows = $stmt->fetchAll();
         return $this->attachUserNames($rows);

@@ -18,7 +18,8 @@ class RecycleBinController
         $templateModel = new FormTemplate();
         $campaignModel = new Campaign();
 
-        $deletedEvaluations = $evaluationModel->getDeleted();
+        $user = Auth::user();
+        $deletedEvaluations = $evaluationModel->getDeleted(50, $user['id'], $user['role']);
         $deletedTemplates = $templateModel->getDeleted();
         $deletedCampaigns = $campaignModel->getDeleted();
 

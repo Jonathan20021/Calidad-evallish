@@ -28,6 +28,28 @@ class EvaluationController
         return str_pad((string) $minutes, 2, '0', STR_PAD_LEFT) . ':' . str_pad((string) $remaining, 2, '0', STR_PAD_LEFT);
     }
 
+    private function checkEvaluationOwnership($evaluation)
+    {
+        if (!$evaluation) {
+            return false;
+        }
+
+        $user = Auth::user();
+        if ($user['role'] === 'admin') {
+            return true;
+        }
+
+        if ($user['role'] === 'qa' && (int) $evaluation['qa_id'] === (int) $user['id']) {
+            return true;
+        }
+
+        if ($user['role'] === 'agent' && (int) $evaluation['agent_id'] === (int) $user['id']) {
+            return true;
+        }
+
+        return false;
+    }
+
     public function show()
     {
         Auth::requirePermission('evaluations.view');
@@ -43,6 +65,11 @@ class EvaluationController
         $feedbackModel = new EvaluationFeedback();
 
         $evaluation = $evaluationModel->findById($id);
+        if (!$this->checkEvaluationOwnership($evaluation)) {
+            http_response_code(403);
+            die('Access denied');
+        }
+
         if ($evaluation) {
             $evaluation['call_duration_formatted'] = $this->formatDuration($evaluation['call_duration'] ?? null);
             if (!empty($evaluation['feedback_evidence_path'])) {
@@ -77,6 +104,11 @@ class EvaluationController
         $answerModel = new EvaluationAnswer();
 
         $evaluation = $evaluationModel->findById($id);
+        if (!$this->checkEvaluationOwnership($evaluation)) {
+            http_response_code(403);
+            die('Access denied');
+        }
+
         if ($evaluation) {
             $evaluation['call_duration_formatted'] = $this->formatDuration($evaluation['call_duration'] ?? null);
             if (!empty($evaluation['feedback_evidence_path'])) {
@@ -107,8 +139,9 @@ class EvaluationController
     {
         Auth::requirePermission('evaluations.view');
 
+        $user = Auth::user();
         $evaluationModel = new Evaluation();
-        $evaluations = $evaluationModel->getAll();
+        $evaluations = $evaluationModel->getAll(50, $user['id'], $user['role']);
 
         require __DIR__ . '/../Views/evaluations/index.php';
     }
