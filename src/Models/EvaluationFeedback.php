@@ -18,15 +18,16 @@ class EvaluationFeedback
     {
         $stmt = $this->db->prepare("
             INSERT INTO evaluation_feedback_history
-                (evaluation_id, qa_id, general_comments, action_type, improvement_areas, improvement_plan, tasks_commitments,
+                (evaluation_id, qa_id, general_comments, strengths, action_type, improvement_areas, improvement_plan, tasks_commitments,
                  feedback_confirmed, feedback_confirmed_at, feedback_evidence_path, feedback_evidence_name, feedback_evidence_note)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ");
 
         return $stmt->execute([
             $data['evaluation_id'],
             $data['qa_id'],
             $data['general_comments'] ?? '',
+            $data['strengths'] ?? null,
             $data['action_type'] ?? null,
             $data['improvement_areas'] ?? null,
             $data['improvement_plan'] ?? null,

@@ -236,6 +236,11 @@
                                     </select>
                                 </div>
                                 <div class="md:col-span-2">
+                                    <label for="strengths" class="block text-sm font-medium text-gray-700">Fortalezas identificadas</label>
+                                    <textarea name="strengths" id="strengths" rows="3"
+                                        class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-3 px-4 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"><?php echo htmlspecialchars($formValues['strengths'] ?? ''); ?></textarea>
+                                </div>
+                                <div class="md:col-span-2">
                                     <label for="improvement_areas" class="block text-sm font-medium text-gray-700">Áreas de mejora identificadas</label>
                                     <textarea name="improvement_areas" id="improvement_areas" rows="3"
                                         class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-3 px-4 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"><?php echo htmlspecialchars($formValues['improvement_areas'] ?? ''); ?></textarea>

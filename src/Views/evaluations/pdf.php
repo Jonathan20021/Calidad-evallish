@@ -327,6 +327,9 @@
             <p><strong>Tipo de acción:</strong>
                 <?php echo !empty($actionTypeLabel) ? $actionTypeLabel : 'No registrado'; ?>
             </p>
+            <p><strong>Fortalezas:</strong><br>
+                <?php echo !empty($evaluation['strengths']) ? nl2br(htmlspecialchars($evaluation['strengths'])) : 'No registrado'; ?>
+            </p>
             <p><strong>Áreas de mejora:</strong><br>
                 <?php echo !empty($evaluation['improvement_areas']) ? nl2br(htmlspecialchars($evaluation['improvement_areas'])) : 'No registrado'; ?>
             </p>

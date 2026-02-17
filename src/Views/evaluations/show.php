@@ -244,6 +244,14 @@
                             <?php endif; ?>
                         </div>
                         <div class="md:col-span-2">
+                            <span class="text-xs font-semibold text-gray-500 uppercase tracking-wide block mb-1">Fortalezas identificadas</span>
+                            <?php if (!empty($evaluation['strengths'])): ?>
+                                <p class="text-sm text-gray-700 whitespace-pre-wrap"><?php echo htmlspecialchars($evaluation['strengths']); ?></p>
+                            <?php else: ?>
+                                <span class="text-gray-500 text-sm">No registrado</span>
+                            <?php endif; ?>
+                        </div>
+                        <div class="md:col-span-2">
                             <span class="text-xs font-semibold text-gray-500 uppercase tracking-wide block mb-1">Áreas de mejora</span>
                             <?php if (!empty($evaluation['improvement_areas'])): ?>
                                 <p class="text-sm text-gray-700 whitespace-pre-wrap"><?php echo htmlspecialchars($evaluation['improvement_areas']); ?></p>
@@ -294,6 +302,11 @@
                                 <option value="feedback" <?php echo (($evaluation['action_type'] ?? '') === 'feedback') ? 'selected' : ''; ?>>Feedback</option>
                                 <option value="call_evaluation" <?php echo (($evaluation['action_type'] ?? '') === 'call_evaluation') ? 'selected' : ''; ?>>Evaluación de llamada</option>
                             </select>
+                        </div>
+                        <div class="md:col-span-2">
+                            <label for="strengths" class="block text-sm font-medium text-gray-700">Fortalezas</label>
+                            <textarea name="strengths" id="strengths" rows="3"
+                                class="mt-2 block w-full border border-gray-300 rounded-md shadow-sm py-3 px-4 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"><?php echo htmlspecialchars($evaluation['strengths'] ?? ''); ?></textarea>
                         </div>
                         <div class="md:col-span-2">
                             <label for="improvement_areas" class="block text-sm font-medium text-gray-700">Áreas de mejora</label>
@@ -381,7 +394,7 @@
                                     </div>
                                 <?php endif; ?>
 
-                                <?php if (!empty($item['action_type']) || !empty($item['improvement_areas']) || !empty($item['improvement_plan']) || !empty($item['tasks_commitments'])): ?>
+                                <?php if (!empty($item['action_type']) || !empty($item['strengths']) || !empty($item['improvement_areas']) || !empty($item['improvement_plan']) || !empty($item['tasks_commitments'])): ?>
                                     <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                                         <div>
                                             <span class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Tipo de acción</span>
@@ -394,6 +407,10 @@
                                                 }
                                                 ?>
                                             </p>
+                                        </div>
+                                        <div>
+                                            <span class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Fortalezas</span>
+                                            <p class="text-gray-700 mt-1 whitespace-pre-wrap"><?php echo htmlspecialchars($item['strengths'] ?? 'No registrado'); ?></p>
                                         </div>
                                         <div>
                                             <span class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Áreas de mejora</span>

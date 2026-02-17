@@ -267,6 +267,7 @@ class EvaluationController
         $answers = $_POST['answers'] ?? [];
         $fieldComments = $_POST['field_comments'] ?? [];
         $generalComments = $_POST['general_comments'] ?? '';
+        $strengths = $_POST['strengths'] ?? '';
         $actionType = $_POST['action_type'] ?? null;
         $improvementAreas = $_POST['improvement_areas'] ?? '';
         $improvementPlan = $_POST['improvement_plan'] ?? '';
@@ -448,6 +449,7 @@ class EvaluationController
             'max_possible_score' => $maxPossibleScore,
             'percentage' => $percentage,
             'general_comments' => $generalComments,
+            'strengths' => $strengths,
             'action_type' => $actionType,
             'improvement_areas' => $improvementAreas,
             'improvement_plan' => $improvementPlan,
@@ -517,6 +519,7 @@ class EvaluationController
         $answers = $_POST['answers'] ?? [];
         $fieldComments = $_POST['field_comments'] ?? [];
         $generalComments = $_POST['general_comments'] ?? '';
+        $strengths = $_POST['strengths'] ?? '';
         $actionType = $_POST['action_type'] ?? null;
         $improvementAreas = $_POST['improvement_areas'] ?? '';
         $improvementPlan = $_POST['improvement_plan'] ?? '';
@@ -672,6 +675,7 @@ class EvaluationController
             'max_possible_score' => $maxPossibleScore,
             'percentage' => $percentage,
             'general_comments' => $generalComments,
+            'strengths' => $strengths,
             'action_type' => $actionType,
             'improvement_areas' => $improvementAreas,
             'improvement_plan' => $improvementPlan,
@@ -725,6 +729,7 @@ class EvaluationController
         }
 
         $generalComments = $_POST['general_comments'] ?? '';
+        $strengths = $_POST['strengths'] ?? '';
         $actionType = $_POST['action_type'] ?? null;
         $improvementAreas = $_POST['improvement_areas'] ?? '';
         $improvementPlan = $_POST['improvement_plan'] ?? '';
@@ -765,6 +770,7 @@ class EvaluationController
 
         $evaluationModel->updateFeedback($evaluationId, [
             'general_comments' => $generalComments,
+            'strengths' => $strengths,
             'action_type' => $actionType,
             'improvement_areas' => $improvementAreas,
             'improvement_plan' => $improvementPlan,
@@ -780,6 +786,7 @@ class EvaluationController
             'evaluation_id' => $evaluationId,
             'qa_id' => Auth::user()['id'],
             'general_comments' => $generalComments,
+            'strengths' => $strengths,
             'action_type' => $actionType,
             'improvement_areas' => $improvementAreas,
             'improvement_plan' => $improvementPlan,

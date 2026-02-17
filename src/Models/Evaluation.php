@@ -56,8 +56,8 @@ class Evaluation
     public function create($data)
     {
         $stmt = $this->db->prepare("
-            INSERT INTO evaluations (call_id, agent_id, qa_id, campaign_id, form_template_id, evaluation_type, call_date, call_duration, total_score, max_possible_score, percentage, general_comments, action_type, improvement_areas, improvement_plan, tasks_commitments, feedback_confirmed, feedback_confirmed_at, feedback_evidence_path, feedback_evidence_name, feedback_evidence_note) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO evaluations (call_id, agent_id, qa_id, campaign_id, form_template_id, evaluation_type, call_date, call_duration, total_score, max_possible_score, percentage, general_comments, strengths, action_type, improvement_areas, improvement_plan, tasks_commitments, feedback_confirmed, feedback_confirmed_at, feedback_evidence_path, feedback_evidence_name, feedback_evidence_note) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ");
         return $stmt->execute([
             $data['call_id'] ?? null,
@@ -72,6 +72,7 @@ class Evaluation
             $data['max_possible_score'],
             $data['percentage'],
             $data['general_comments'] ?? '',
+            $data['strengths'] ?? null,
             $data['action_type'] ?? null,
             $data['improvement_areas'] ?? null,
             $data['improvement_plan'] ?? null,
@@ -100,6 +101,7 @@ class Evaluation
                 max_possible_score = ?,
                 percentage = ?,
                 general_comments = ?,
+                strengths = ?,
                 action_type = ?,
                 improvement_areas = ?,
                 improvement_plan = ?,
@@ -125,6 +127,7 @@ class Evaluation
             $data['max_possible_score'],
             $data['percentage'],
             $data['general_comments'] ?? '',
+            $data['strengths'] ?? null,
             $data['action_type'] ?? null,
             $data['improvement_areas'] ?? null,
             $data['improvement_plan'] ?? null,
@@ -143,6 +146,7 @@ class Evaluation
         $stmt = $this->db->prepare("
             UPDATE evaluations
             SET general_comments = ?,
+                strengths = ?,
                 action_type = ?,
                 improvement_areas = ?,
                 improvement_plan = ?,
@@ -157,6 +161,7 @@ class Evaluation
 
         return $stmt->execute([
             $data['general_comments'] ?? '',
+            $data['strengths'] ?? null,
             $data['action_type'] ?? null,
             $data['improvement_areas'] ?? null,
             $data['improvement_plan'] ?? null,
