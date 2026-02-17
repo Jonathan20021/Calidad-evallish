@@ -305,7 +305,13 @@
                                 <?php echo number_format($answer['score_given'], 0); ?>
                             </span>
                         <?php elseif ($answer['field_type'] === 'select' || $answer['field_type'] === 'text'): ?>
-                            <?php $displayValue = $answer['text_answer'] ?? $answer['score_given']; ?>
+                            <?php
+                            $displayValue = $answer['text_answer'] ?? $answer['score_given'];
+                            if ($answer['field_type'] === 'select' && strpos($displayValue, '|') !== false) {
+                                $parts = explode('|', $displayValue);
+                                $displayValue = trim($parts[0]);
+                            }
+                            ?>
                             <?php echo nl2br(htmlspecialchars($displayValue)); ?>
                         <?php endif; ?>
                     </td>

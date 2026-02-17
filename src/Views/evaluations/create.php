@@ -235,9 +235,17 @@
                                                 <?php
                                                 $options = explode(',', $field['options']);
                                                 foreach ($options as $opt):
+                                                    $opt = trim($opt);
+                                                    $displayLabel = $opt;
+                                                    $optionValue = $opt;
+                                                    if (strpos($opt, '|') !== false) {
+                                                        $parts = explode('|', $opt);
+                                                        $displayLabel = trim($parts[0]);
+                                                    }
                                                     ?>
-                                                    <?php $optionValue = trim($opt); ?>
-                                                    <option value="<?php echo $optionValue; ?>" <?php echo ($currentText !== null && $currentText === $optionValue) ? 'selected' : ''; ?>><?php echo $optionValue; ?></option>
+                                                    <option value="<?php echo htmlspecialchars($optionValue); ?>" <?php echo ($currentText !== null && $currentText === $optionValue) ? 'selected' : ''; ?>>
+                                                        <?php echo htmlspecialchars($displayLabel); ?>
+                                                    </option>
                                                 <?php endforeach; ?>
                                             </select>
                                         <?php endif; ?>

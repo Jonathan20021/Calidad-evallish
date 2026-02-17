@@ -360,32 +360,36 @@ class EvaluationController
             if (isset($fieldsMap[$fieldId])) {
                 $field = $fieldsMap[$fieldId];
 
-                // If it's a select field, we don't have a numeric score, so we skip it for score calc
-                // Or we could assign scores to options? For now, we assume only 'score' and 'yes_no' types have numeric impact
-                if ($field['field_type'] === 'select' || $field['field_type'] === 'text') {
+                // Text fields remain excluded from quantitative scoring
+                if ($field['field_type'] === 'text') {
                     continue;
                 }
-                // For simplicity: We sum up weighted scores.
-                // Assuming Score is 0-100.
-                // We normalize everything to percentage.
-
-                // Let's assume Max Score for the form is Sum of Weights * 100?
-                // Or simply: Calculate Total Percentage directly.
-                // Formula: specific_score * (weight / total_weight)
-
-                // But fieldsMap has 'weight'.
 
                 $weight = (float) $field['weight'];
                 $maxScore = isset($field['max_score']) ? (float) $field['max_score'] : 100.0;
                 if ($maxScore <= 0) {
                     $maxScore = 100.0;
                 }
-                $scoreValue = (float) $score;
+
+                $scoreValue = 0.0;
+                if ($field['field_type'] === 'select') {
+                    // Try to parse Label|Score
+                    if (strpos($score, '|') !== false) {
+                        $parts = explode('|', $score);
+                        $scoreValue = (float) trim(end($parts));
+                    } elseif (is_numeric($score)) {
+                        $scoreValue = (float) $score;
+                    }
+                } else {
+                    $scoreValue = (float) $score;
+                }
+
                 if ($scoreValue < 0) {
                     $scoreValue = 0.0;
                 } elseif ($scoreValue > $maxScore) {
                     $scoreValue = $maxScore;
                 }
+
                 $totalScore += ($scoreValue * $weight);
                 $maxPossibleScore += ($maxScore * $weight);
             }
@@ -604,20 +608,34 @@ class EvaluationController
         foreach ($answers as $fieldId => $score) {
             if (isset($fieldsMap[$fieldId])) {
                 $field = $fieldsMap[$fieldId];
-                if ($field['field_type'] === 'select' || $field['field_type'] === 'text') {
+                if ($field['field_type'] === 'text') {
                     continue;
                 }
+
                 $weight = (float) $field['weight'];
                 $maxScore = isset($field['max_score']) ? (float) $field['max_score'] : 100.0;
                 if ($maxScore <= 0) {
                     $maxScore = 100.0;
                 }
-                $scoreValue = (float) $score;
+
+                $scoreValue = 0.0;
+                if ($field['field_type'] === 'select') {
+                    if (strpos($score, '|') !== false) {
+                        $parts = explode('|', $score);
+                        $scoreValue = (float) trim(end($parts));
+                    } elseif (is_numeric($score)) {
+                        $scoreValue = (float) $score;
+                    }
+                } else {
+                    $scoreValue = (float) $score;
+                }
+
                 if ($scoreValue < 0) {
                     $scoreValue = 0.0;
                 } elseif ($scoreValue > $maxScore) {
                     $scoreValue = $maxScore;
                 }
+
                 $totalScore += ($scoreValue * $weight);
                 $maxPossibleScore += ($maxScore * $weight);
             }

@@ -216,11 +216,11 @@
                     optionsInput.value = '';
                 }
 
-                if (type === 'score' || type === 'yes_no') {
+                if (type === 'score' || type === 'yes_no' || type === 'select') {
                     maxScoreContainer.style.display = 'block';
                     maxScoreInput.disabled = false;
                     if (!maxScoreInput.value || maxScoreInput.value === '0') {
-                        maxScoreInput.value = '100';
+                        maxScoreInput.value = (type === 'select') ? '100' : '100';
                     }
                 } else {
                     maxScoreContainer.style.display = 'none';
