@@ -715,6 +715,7 @@ class EvaluationController
         Auth::requirePermission('evaluations.view');
 
         $evaluationId = $_POST['evaluation_id'] ?? null;
+        $feedbackHistoryId = $_POST['feedback_history_id'] ?? null;
         if (!$evaluationId) {
             header('Location: ' . \App\Config\Config::BASE_URL . 'evaluations');
             exit;
@@ -782,7 +783,7 @@ class EvaluationController
             'feedback_evidence_note' => $feedbackEvidenceNote
         ]);
 
-        $feedbackHistoryModel->create([
+        $feedbackData = [
             'evaluation_id' => $evaluationId,
             'qa_id' => Auth::user()['id'],
             'general_comments' => $generalComments,
@@ -796,7 +797,13 @@ class EvaluationController
             'feedback_evidence_path' => $feedbackEvidencePath,
             'feedback_evidence_name' => $feedbackEvidenceName,
             'feedback_evidence_note' => $feedbackEvidenceNote
-        ]);
+        ];
+
+        if ($feedbackHistoryId) {
+            $feedbackHistoryModel->update($feedbackHistoryId, $feedbackData);
+        } else {
+            $feedbackHistoryModel->create($feedbackData);
+        }
 
         header('Location: ' . \App\Config\Config::BASE_URL . 'evaluations/show?id=' . $evaluationId);
     }

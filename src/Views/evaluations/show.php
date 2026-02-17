@@ -286,6 +286,7 @@
                 </div>
                 <form action="<?php echo \App\Config\Config::BASE_URL; ?>evaluations/update-feedback" method="POST" enctype="multipart/form-data" class="px-8 py-6">
                     <input type="hidden" name="evaluation_id" value="<?php echo (int) $evaluation['id']; ?>">
+                    <input type="hidden" name="feedback_history_id" id="feedback_history_id" value="">
 
                     <div class="mb-6">
                         <label for="general_comments" class="block text-sm font-medium text-gray-700">Comentarios generales / Feedback</label>
@@ -383,6 +384,11 @@
                                             <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800">Feedback confirmado</span>
                                         <?php else: ?>
                                             <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-800">Pendiente</span>
+                                            <button type="button" 
+                                                onclick='editFeedback(<?php echo json_encode($item, JSON_HEX_APOS | JSON_HEX_QUOT); ?>)'
+                                                class="ml-2 text-indigo-600 hover:text-indigo-800 text-xs font-bold underline">
+                                                Editar
+                                            </button>
                                         <?php endif; ?>
                                     </div>
                                 </div>
@@ -470,5 +476,22 @@
         </div>
     </main>
 </div>
+<script>
+function editFeedback(data) {
+    document.getElementById('feedback_history_id').value = data.id;
+    document.getElementById('general_comments').value = data.general_comments || '';
+    document.getElementById('action_type').value = data.action_type || '';
+    document.getElementById('strengths').value = data.strengths || '';
+    document.getElementById('improvement_areas').value = data.improvement_areas || '';
+    document.getElementById('improvement_plan').value = data.improvement_plan || '';
+    document.getElementById('tasks_commitments').value = data.tasks_commitments || '';
+    document.getElementById('feedback_confirmed').checked = data.feedback_confirmed == 1;
+    document.getElementById('feedback_evidence_note').value = data.feedback_evidence_note || '';
+    
+    // Scroll to the form
+    document.getElementById('general_comments').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    document.getElementById('general_comments').focus();
+}
+</script>
 <?php require __DIR__ . '/../layouts/footer.php'; ?>
 
