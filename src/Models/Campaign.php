@@ -22,7 +22,7 @@ class Campaign
             return $poncheRows;
         }
 
-        $stmt = $this->db->query("SELECT * FROM campaigns ORDER BY created_at DESC");
+        $stmt = $this->db->query("SELECT * FROM campaigns WHERE deleted_at IS NULL ORDER BY created_at DESC");
         return $stmt->fetchAll();
     }
 
@@ -38,7 +38,8 @@ class Campaign
                 GROUP_CONCAT(t.id ORDER BY t.title SEPARATOR ',') as form_ids
             FROM campaigns c
             LEFT JOIN form_template_campaigns ftc ON c.id = ftc.campaign_id
-            LEFT JOIN form_templates t ON ftc.template_id = t.id AND t.active = 1
+            LEFT JOIN form_templates t ON ftc.template_id = t.id AND t.active = 1 AND t.deleted_at IS NULL
+            WHERE c.deleted_at IS NULL
             GROUP BY c.id
             ORDER BY c.name ASC
         ");
@@ -70,7 +71,7 @@ class Campaign
             return $poncheRows;
         }
 
-        $stmt = $this->db->query("SELECT * FROM campaigns WHERE active = 1 ORDER BY name");
+        $stmt = $this->db->query("SELECT * FROM campaigns WHERE active = 1 AND deleted_at IS NULL ORDER BY name");
         return $stmt->fetchAll();
     }
 
@@ -81,7 +82,7 @@ class Campaign
             return $poncheCampaign;
         }
 
-        $stmt = $this->db->prepare("SELECT * FROM campaigns WHERE id = ?");
+        $stmt = $this->db->prepare("SELECT * FROM campaigns WHERE id = ? AND deleted_at IS NULL");
         $stmt->execute([$id]);
         return $stmt->fetch();
     }
@@ -98,7 +99,7 @@ class Campaign
         }
 
         $placeholders = implode(',', array_fill(0, count($ids), '?'));
-        $stmt = $this->db->prepare("SELECT * FROM campaigns WHERE id IN ($placeholders) ORDER BY name ASC");
+        $stmt = $this->db->prepare("SELECT * FROM campaigns WHERE id IN ($placeholders) AND deleted_at IS NULL ORDER BY name ASC");
         $stmt->execute($ids);
         return $stmt->fetchAll();
     }
@@ -131,8 +132,28 @@ class Campaign
 
     public function delete($id)
     {
+        $stmt = $this->db->prepare("UPDATE campaigns SET deleted_at = CURRENT_TIMESTAMP WHERE id = ?");
+        return $stmt->execute([$id]);
+    }
+
+    public function restore($id)
+    {
+        $stmt = $this->db->prepare("UPDATE campaigns SET deleted_at = NULL WHERE id = ?");
+        return $stmt->execute([$id]);
+    }
+
+    public function permanentlyDelete($id)
+    {
         $stmt = $this->db->prepare("DELETE FROM campaigns WHERE id = ?");
         return $stmt->execute([$id]);
+    }
+
+    public function getDeleted($limit = 50)
+    {
+        $stmt = $this->db->prepare("SELECT * FROM campaigns WHERE deleted_at IS NOT NULL ORDER BY deleted_at DESC LIMIT :limit");
+        $stmt->bindValue(':limit', (int) $limit, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll();
     }
 
     private function getPoncheCampaigns(bool $activeOnly): array

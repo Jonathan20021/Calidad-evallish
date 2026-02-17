@@ -190,28 +190,9 @@ class FormTemplateController
         }
 
         $templateModel = new FormTemplate();
+        $templateModel->delete($templateId);
 
-        try {
-            // Check if there are evaluations using this template
-            if ($templateModel->hasEvaluations($templateId)) {
-                // If evaluations exist, we can't delete (integrity constraint),
-                // so we deactivate it instead (soft delete)
-                $templateModel->setActive($templateId, 0);
-                header('Location: ' . \App\Config\Config::BASE_URL . 'form-templates?warning=has_evaluations');
-                exit;
-            }
-
-            $templateModel->delete($templateId);
-            header('Location: ' . \App\Config\Config::BASE_URL . 'form-templates?success=deleted');
-        } catch (\PDOException $e) {
-            // Fallback for any other database constraint issues
-            if ($e->getCode() == '23000') {
-                $templateModel->setActive($templateId, 0);
-                header('Location: ' . \App\Config\Config::BASE_URL . 'form-templates?warning=has_evaluations');
-            } else {
-                header('Location: ' . \App\Config\Config::BASE_URL . 'form-templates?error=delete_failed');
-            }
-        }
+        header('Location: ' . \App\Config\Config::BASE_URL . 'form-templates?success=deleted');
         exit;
     }
 

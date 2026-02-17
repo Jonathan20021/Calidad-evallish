@@ -22,6 +22,7 @@ use App\Controllers\UserController;
 use App\Controllers\TrainingController;
 use App\Controllers\AiCriteriaController;
 use App\Controllers\ChatController;
+use App\Controllers\RecycleBinController;
 
 Config::init();
 
@@ -87,6 +88,11 @@ $router->get('/reports/export-pdf', [\App\Controllers\ReportController::class, '
 // Settings
 $router->get('/settings', [\App\Controllers\SettingsController::class, 'index']);
 $router->post('/settings/qa-permissions', [\App\Controllers\SettingsController::class, 'updateQaPermissions']);
+
+// Recycle Bin
+$router->get('/recycle-bin', [RecycleBinController::class, 'index']);
+$router->get('/recycle-bin/restore', [RecycleBinController::class, 'restore']);
+$router->get('/recycle-bin/delete-permanently', [RecycleBinController::class, 'deletePermanently']);
 
 // AI Criteria (Admin)
 $router->get('/ai-criteria', [AiCriteriaController::class, 'index']);

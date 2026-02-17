@@ -840,25 +840,16 @@ class EvaluationController
         }
 
         $evaluationModel = new Evaluation();
-        $answerModel = new EvaluationAnswer();
-        $feedbackModel = new EvaluationFeedback();
-
         $evaluation = $evaluationModel->findById($id);
         if (!$evaluation) {
             header('Location: ' . \App\Config\Config::BASE_URL . 'evaluations');
             exit;
         }
 
-        // Delete answers
-        $answerModel->deleteByEvaluationId($id);
-
-        // Delete feedback history
-        $feedbackModel->deleteByEvaluationId($id);
-
-        // Delete evaluations
+        // Only soft delete the evaluation. Answers and feedback will be hidden as a result.
         $evaluationModel->deleteById($id);
 
-        header('Location: ' . \App\Config\Config::BASE_URL . 'evaluations');
+        header('Location: ' . \App\Config\Config::BASE_URL . 'evaluations?deleted=1');
     }
 }
 

@@ -16,6 +16,13 @@
         </header>
 
         <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+            <?php if (isset($_GET['deleted'])): ?>
+                <div class="mb-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative"
+                    role="alert">
+                    <span class="block sm:inline">La evaluación ha sido movida a la papelera exitosamente.</span>
+                </div>
+            <?php endif; ?>
+
             <div class="flex flex-col">
                 <div class="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
                     <div class="py-2 align-middle inline-block min-w-full sm:px-6 lg:px-8">
@@ -96,7 +103,7 @@
                                                     <form
                                                         action="<?php echo \App\Config\Config::BASE_URL; ?>evaluations/delete"
                                                         method="POST" class="inline"
-                                                        onsubmit="return confirm('¿Estás seguro de que deseas borrar esta evaluación? Esta acción no se puede deshacer.');">
+                                                        onsubmit="return confirm('¿Estás seguro de que deseas mover esta evaluación a la papelera? Podrás restaurarla desde la papelera de reciclaje.');">
                                                         <input type="hidden" name="id" value="<?php echo $eval['id']; ?>">
                                                         <button type="submit"
                                                             class="text-red-600 hover:text-red-900">Borrar</button>

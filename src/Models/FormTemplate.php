@@ -20,7 +20,7 @@ class FormTemplate
             SELECT DISTINCT t.* 
             FROM form_templates t
             JOIN form_template_campaigns ftc ON t.id = ftc.template_id
-            WHERE ftc.campaign_id = ? AND t.active = 1 
+            WHERE ftc.campaign_id = ? AND t.active = 1 AND t.deleted_at IS NULL
             ORDER BY t.id DESC
         ");
         $stmt->execute([$campaignId]);
@@ -37,6 +37,7 @@ class FormTemplate
             FROM form_templates t
             LEFT JOIN form_template_campaigns ftc ON t.id = ftc.template_id
             LEFT JOIN campaigns c ON ftc.campaign_id = c.id
+            WHERE t.deleted_at IS NULL
             GROUP BY t.id
             ORDER BY t.created_at DESC
         ");
@@ -45,9 +46,28 @@ class FormTemplate
 
     public function findById($id)
     {
-        $stmt = $this->db->prepare("SELECT * FROM form_templates WHERE id = ?");
+        $stmt = $this->db->prepare("SELECT * FROM form_templates WHERE id = ? AND deleted_at IS NULL");
         $stmt->execute([$id]);
         return $stmt->fetch();
+    }
+
+    public function getDeleted($limit = 50)
+    {
+        $stmt = $this->db->prepare("
+            SELECT 
+                t.*,
+                GROUP_CONCAT(c.name ORDER BY c.name SEPARATOR ', ') as campaign_names
+            FROM form_templates t
+            LEFT JOIN form_template_campaigns ftc ON t.id = ftc.template_id
+            LEFT JOIN campaigns c ON ftc.campaign_id = c.id
+            WHERE t.deleted_at IS NOT NULL
+            GROUP BY t.id
+            ORDER BY t.deleted_at DESC
+            LIMIT :limit
+        ");
+        $stmt->bindValue(':limit', (int) $limit, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll();
     }
 
     public function create($data)
@@ -73,6 +93,18 @@ class FormTemplate
     }
 
     public function delete($id)
+    {
+        $stmt = $this->db->prepare("UPDATE form_templates SET deleted_at = CURRENT_TIMESTAMP WHERE id = ?");
+        return $stmt->execute([$id]);
+    }
+
+    public function restore($id)
+    {
+        $stmt = $this->db->prepare("UPDATE form_templates SET deleted_at = NULL WHERE id = ?");
+        return $stmt->execute([$id]);
+    }
+
+    public function permanentlyDelete($id)
     {
         $stmt = $this->db->prepare("DELETE FROM form_templates WHERE id = ?");
         return $stmt->execute([$id]);

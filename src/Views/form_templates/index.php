@@ -179,7 +179,7 @@
                                 </form>
                                 <form action="<?php echo \App\Config\Config::BASE_URL; ?>form-templates/delete"
                                     method="POST"
-                                    onsubmit="return confirm('¿Estás seguro de que deseas eliminar este formulario? Esta acción no se puede deshacer.');">
+                                    onsubmit="return confirm('¿Estás seguro de que deseas mover este formulario a la papelera? Podrás restaurarlo desde la papelera de reciclaje.');">
                                     <input type="hidden" name="id" value="<?php echo $template['id']; ?>">
                                     <button type="submit" class="text-red-400 hover:text-red-600" title="Eliminar">
                                         <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">

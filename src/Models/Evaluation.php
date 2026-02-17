@@ -24,6 +24,7 @@ class Evaluation
             FROM evaluations e
             JOIN campaigns c ON e.campaign_id = c.id
             JOIN form_templates ft ON e.form_template_id = ft.id
+            WHERE e.deleted_at IS NULL
             ORDER BY e.created_at DESC
             LIMIT :limit
         ");
@@ -42,7 +43,7 @@ class Evaluation
             FROM evaluations e
             JOIN campaigns c ON e.campaign_id = c.id
             JOIN form_templates ft ON e.form_template_id = ft.id
-            WHERE e.id = ?
+            WHERE e.id = ? AND e.deleted_at IS NULL
         ");
         $stmt->execute([$id]);
         $row = $stmt->fetch();
@@ -192,17 +193,18 @@ class Evaluation
                 MAX(percentage) as max_percentage,
                 MIN(percentage) as min_percentage
             FROM evaluations
+            WHERE deleted_at IS NULL
         ");
         return $stmt->fetch();
     }
 
     public function getComplianceRate($threshold = 85)
     {
-        $stmt = $this->db->prepare("SELECT COUNT(*) as passed FROM evaluations WHERE percentage >= ?");
+        $stmt = $this->db->prepare("SELECT COUNT(*) as passed FROM evaluations WHERE percentage >= ? AND deleted_at IS NULL");
         $stmt->execute([$threshold]);
         $passed = $stmt->fetchColumn();
 
-        $stmt = $this->db->query("SELECT COUNT(*) FROM evaluations");
+        $stmt = $this->db->query("SELECT COUNT(*) FROM evaluations WHERE deleted_at IS NULL");
         $total = $stmt->fetchColumn();
 
         return ($total > 0) ? ($passed / $total) * 100 : 0;
@@ -213,6 +215,7 @@ class Evaluation
         $stmt = $this->db->query("
             SELECT e.agent_id, AVG(e.percentage) as avg_score
             FROM evaluations e
+            WHERE e.deleted_at IS NULL
             GROUP BY e.agent_id
             ORDER BY avg_score DESC
             LIMIT 1
@@ -228,7 +231,7 @@ class Evaluation
 
     public function getCriticalFailsCount($threshold = 70)
     {
-        $stmt = $this->db->prepare("SELECT COUNT(*) FROM evaluations WHERE percentage < ?");
+        $stmt = $this->db->prepare("SELECT COUNT(*) FROM evaluations WHERE percentage < ? AND deleted_at IS NULL");
         $stmt->execute([$threshold]);
         return $stmt->fetchColumn();
     }
@@ -252,7 +255,7 @@ class Evaluation
                 MAX(percentage) as max_percentage,
                 MIN(percentage) as min_percentage
             FROM evaluations
-            WHERE campaign_id IN ($placeholders)
+            WHERE campaign_id IN ($placeholders) AND deleted_at IS NULL
         ");
         $stmt->execute($campaignIds);
         return $stmt->fetch();
@@ -265,11 +268,11 @@ class Evaluation
         }
 
         $placeholders = implode(',', array_fill(0, count($campaignIds), '?'));
-        $passedStmt = $this->db->prepare("SELECT COUNT(*) FROM evaluations WHERE percentage >= ? AND campaign_id IN ($placeholders)");
+        $passedStmt = $this->db->prepare("SELECT COUNT(*) FROM evaluations WHERE percentage >= ? AND campaign_id IN ($placeholders) AND deleted_at IS NULL");
         $passedStmt->execute(array_merge([$threshold], $campaignIds));
         $passed = (int) $passedStmt->fetchColumn();
 
-        $totalStmt = $this->db->prepare("SELECT COUNT(*) FROM evaluations WHERE campaign_id IN ($placeholders)");
+        $totalStmt = $this->db->prepare("SELECT COUNT(*) FROM evaluations WHERE campaign_id IN ($placeholders) AND deleted_at IS NULL");
         $totalStmt->execute($campaignIds);
         $total = (int) $totalStmt->fetchColumn();
 
@@ -283,7 +286,7 @@ class Evaluation
         }
 
         $placeholders = implode(',', array_fill(0, count($campaignIds), '?'));
-        $stmt = $this->db->prepare("SELECT COUNT(*) FROM evaluations WHERE percentage < ? AND campaign_id IN ($placeholders)");
+        $stmt = $this->db->prepare("SELECT COUNT(*) FROM evaluations WHERE percentage < ? AND campaign_id IN ($placeholders) AND deleted_at IS NULL");
         $stmt->execute(array_merge([$threshold], $campaignIds));
         return (int) $stmt->fetchColumn();
     }
@@ -360,7 +363,7 @@ class Evaluation
             SELECT c.id, c.name, AVG(e.percentage) as avg_percentage, COUNT(*) as total_evaluations
             FROM evaluations e
             JOIN campaigns c ON e.campaign_id = c.id
-            WHERE e.campaign_id IN ($placeholders)
+            WHERE e.campaign_id IN ($placeholders) AND e.deleted_at IS NULL
             GROUP BY c.id, c.name
             ORDER BY avg_percentage DESC
         ");
@@ -375,7 +378,7 @@ class Evaluation
                    c.name as campaign_name
             FROM evaluations e
             JOIN campaigns c ON e.campaign_id = c.id
-            WHERE e.agent_id = ?
+            WHERE e.agent_id = ? AND e.deleted_at IS NULL
             ORDER BY e.created_at DESC
             LIMIT ?
         ");
@@ -399,7 +402,7 @@ class Evaluation
             FROM evaluations e
             JOIN calls c ON e.call_id = c.id
             JOIN campaigns camp ON e.campaign_id = camp.id
-            WHERE c.recording_path IS NOT NULL
+            WHERE c.recording_path IS NOT NULL AND e.deleted_at IS NULL
         ";
         $params = [];
         if ($campaignId) {
@@ -432,15 +435,51 @@ class Evaluation
 
     public function findByCallId($callId)
     {
-        $stmt = $this->db->prepare("SELECT * FROM evaluations WHERE call_id = ? ORDER BY created_at DESC LIMIT 1");
+        $stmt = $this->db->prepare("SELECT * FROM evaluations WHERE call_id = ? AND deleted_at IS NULL ORDER BY created_at DESC LIMIT 1");
         $stmt->execute([$callId]);
         return $stmt->fetch();
     }
 
     public function deleteById($id): bool
     {
+        $stmt = $this->db->prepare("UPDATE evaluations SET deleted_at = CURRENT_TIMESTAMP WHERE id = ?");
+        return $stmt->execute([(int) $id]);
+    }
+
+    public function restoreById($id): bool
+    {
+        $stmt = $this->db->prepare("UPDATE evaluations SET deleted_at = NULL WHERE id = ?");
+        return $stmt->execute([(int) $id]);
+    }
+
+    public function permanentlyDeleteById($id): bool
+    {
+        // First, delete sub-items
+        $this->db->prepare("DELETE FROM evaluation_answers WHERE evaluation_id = ?")->execute([(int) $id]);
+        $this->db->prepare("DELETE FROM evaluation_feedback WHERE evaluation_id = ?")->execute([(int) $id]);
+
+        // Then delete the evaluation itself
         $stmt = $this->db->prepare("DELETE FROM evaluations WHERE id = ?");
         return $stmt->execute([(int) $id]);
+    }
+
+    public function getDeleted($limit = 50)
+    {
+        $stmt = $this->db->prepare("
+            SELECT e.*, 
+                   c.name as campaign_name,
+                   ft.title as form_title
+            FROM evaluations e
+            JOIN campaigns c ON e.campaign_id = c.id
+            JOIN form_templates ft ON e.form_template_id = ft.id
+            WHERE e.deleted_at IS NOT NULL
+            ORDER BY e.deleted_at DESC
+            LIMIT :limit
+        ");
+        $stmt->bindValue(':limit', (int) $limit, PDO::PARAM_INT);
+        $stmt->execute();
+        $rows = $stmt->fetchAll();
+        return $this->attachUserNames($rows);
     }
 
     private function attachUserNames(array $rows): array
