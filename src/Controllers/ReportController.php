@@ -145,6 +145,26 @@ class ReportController
         require __DIR__ . '/../Views/reports/index.php';
     }
 
+    public function topEvaluators()
+    {
+        Auth::requirePermission('reports.top_evaluators');
+
+        $evaluationModel = new \App\Models\Evaluation();
+        $qaRanking = $evaluationModel->getQaRanking();
+
+        $selectedQaId = $_GET['qa_id'] ?? null;
+        $qaEvaluations = [];
+        $selectedQa = null;
+
+        if ($selectedQaId) {
+            $qaEvaluations = $evaluationModel->getByQaId($selectedQaId);
+            $userModel = new \App\Models\User();
+            $selectedQa = $userModel->findById($selectedQaId);
+        }
+
+        require __DIR__ . '/../Views/reports/top_evaluators.php';
+    }
+
     public function exportPdf()
     {
         Auth::requirePermission('reports.view');

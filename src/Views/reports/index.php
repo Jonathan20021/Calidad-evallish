@@ -115,7 +115,8 @@ $distributionTotal = $bucket95 + $bucket90 + $bucket80 + $bucket70 + $bucket0;
                                             style="height: <?php echo $height; ?>%;"></div>
                                     </div>
                                     <p class="text-xs font-semibold text-gray-600">
-                                        <?php echo htmlspecialchars($trend['period']); ?></p>
+                                        <?php echo htmlspecialchars($trend['period']); ?>
+                                    </p>
                                     <p class="text-xs text-gray-500"><?php echo number_format($trend['avg_score'], 1); ?>%</p>
                                     <p class="text-xs text-gray-400"><?php echo (int) $trend['total_evaluations']; ?> eval.</p>
                                 </div>
@@ -197,13 +198,17 @@ $distributionTotal = $bucket95 + $bucket90 + $bucket80 + $bucket70 + $bucket0;
                                                 <?php echo htmlspecialchars($stat['campaign_name']); ?>
                                             </td>
                                             <td class="px-4 py-3 text-sm text-gray-600">
-                                                <?php echo (int) $stat['total_evaluations']; ?></td>
+                                                <?php echo (int) $stat['total_evaluations']; ?>
+                                            </td>
                                             <td class="px-4 py-3 text-sm font-semibold text-gray-900">
-                                                <?php echo number_format($stat['avg_score'], 1); ?>%</td>
+                                                <?php echo number_format($stat['avg_score'], 1); ?>%
+                                            </td>
                                             <td class="px-4 py-3 text-sm text-rose-600">
-                                                <?php echo number_format($stat['min_score'], 1); ?>%</td>
+                                                <?php echo number_format($stat['min_score'], 1); ?>%
+                                            </td>
                                             <td class="px-4 py-3 text-sm text-emerald-600">
-                                                <?php echo number_format($stat['max_score'], 1); ?>%</td>
+                                                <?php echo number_format($stat['max_score'], 1); ?>%
+                                            </td>
                                         </tr>
                                     <?php endforeach; ?>
                                 <?php else: ?>
@@ -219,14 +224,22 @@ $distributionTotal = $bucket95 + $bucket90 + $bucket80 + $bucket70 + $bucket0;
                 </div>
 
                 <div class="rounded-2xl bg-white p-6 shadow-lg shadow-indigo-100 border border-indigo-100">
-                    <h2 class="text-lg font-semibold text-gray-900">QA destacados</h2>
-                    <p class="text-sm text-gray-500">Consistencia de evaluaciones</p>
+                    <div class="flex items-center justify-between">
+                        <h2 class="text-lg font-semibold text-gray-900">QA destacados</h2>
+                        <?php if (\App\Helpers\Auth::hasPermission('reports.top_evaluators')): ?>
+                            <a href="<?php echo \App\Config\Config::BASE_URL; ?>reports/top-evaluators"
+                                class="text-sm font-semibold text-indigo-600 hover:text-indigo-700">
+                                Ver Ranking Detallado →
+                            </a>
+                        <?php endif; ?>
+                    </div>
                     <div class="mt-6 space-y-4">
                         <?php if (!empty($qaStats)): ?>
                             <?php foreach ($qaStats as $qa): ?>
                                 <div class="rounded-xl border border-gray-100 p-4">
                                     <p class="text-sm font-semibold text-gray-900">
-                                        <?php echo htmlspecialchars($qa['qa_name']); ?></p>
+                                        <?php echo htmlspecialchars($qa['qa_name']); ?>
+                                    </p>
                                     <div class="mt-2 flex items-center justify-between text-xs text-gray-500">
                                         <span><?php echo (int) $qa['total_evaluations']; ?> evaluaciones</span>
                                         <span
@@ -293,7 +306,8 @@ $distributionTotal = $bucket95 + $bucket90 + $bucket80 + $bucket70 + $bucket0;
                                         <div>
                                             <p class="text-sm font-semibold text-gray-900 text-ellipsis overflow-hidden whitespace-nowrap max-w-[120px]"
                                                 title="<?php echo htmlspecialchars($agent['agent_name']); ?>">
-                                                <?php echo htmlspecialchars($agent['agent_name']); ?></p>
+                                                <?php echo htmlspecialchars($agent['agent_name']); ?>
+                                            </p>
                                             <p class="text-xs text-gray-500"><?php echo (int) $agent['total_evaluations']; ?>
                                                 evaluaciones</p>
                                         </div>
@@ -324,7 +338,8 @@ $distributionTotal = $bucket95 + $bucket90 + $bucket80 + $bucket70 + $bucket0;
                                         <div>
                                             <p class="text-sm font-semibold text-gray-900 text-ellipsis overflow-hidden whitespace-nowrap max-w-[120px]"
                                                 title="<?php echo htmlspecialchars($agent['agent_name']); ?>">
-                                                <?php echo htmlspecialchars($agent['agent_name']); ?></p>
+                                                <?php echo htmlspecialchars($agent['agent_name']); ?>
+                                            </p>
                                             <p class="text-xs text-gray-500"><?php echo (int) $agent['total_evaluations']; ?>
                                                 evaluaciones</p>
                                         </div>
@@ -383,13 +398,17 @@ $distributionTotal = $bucket95 + $bucket90 + $bucket80 + $bucket70 + $bucket0;
                                         <td class="px-4 py-3 text-sm font-semibold text-gray-900">
                                             #<?php echo (int) $evaluation['id']; ?></td>
                                         <td class="px-4 py-3 text-sm text-gray-600">
-                                            <?php echo htmlspecialchars($evaluation['agent_name']); ?></td>
+                                            <?php echo htmlspecialchars($evaluation['agent_name']); ?>
+                                        </td>
                                         <td class="px-4 py-3 text-sm text-gray-600">
-                                            <?php echo htmlspecialchars($evaluation['campaign_name']); ?></td>
+                                            <?php echo htmlspecialchars($evaluation['campaign_name']); ?>
+                                        </td>
                                         <td class="px-4 py-3 text-sm text-gray-600">
-                                            <?php echo htmlspecialchars($evaluation['qa_name']); ?></td>
+                                            <?php echo htmlspecialchars($evaluation['qa_name']); ?>
+                                        </td>
                                         <td class="px-4 py-3 text-sm font-semibold text-indigo-600">
-                                            <?php echo number_format($evaluation['percentage'], 1); ?>%</td>
+                                            <?php echo number_format($evaluation['percentage'], 1); ?>%
+                                        </td>
                                         <td class="px-4 py-3 text-sm text-gray-500">
                                             <?php echo date('d/m/Y H:i', strtotime($evaluation['created_at'])); ?>
                                         </td>

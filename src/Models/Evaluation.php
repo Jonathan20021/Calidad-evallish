@@ -535,4 +535,71 @@ class Evaluation
 
         return $rows;
     }
+
+    public function getByQaId(int $qaId, int $limit = 100): array
+    {
+        $stmt = $this->db->prepare("
+            SELECT e.*, 
+                   c.name as campaign_name,
+                   ft.title as form_title
+            FROM evaluations e
+            JOIN campaigns c ON e.campaign_id = c.id
+            JOIN form_templates ft ON e.form_template_id = ft.id
+            WHERE e.qa_id = ? AND e.deleted_at IS NULL
+            ORDER BY e.created_at DESC
+            LIMIT ?
+        ");
+        $stmt->bindValue(1, $qaId, PDO::PARAM_INT);
+        $stmt->bindValue(2, $limit, PDO::PARAM_INT);
+        $stmt->execute();
+        $rows = $stmt->fetchAll();
+        return $this->attachUserNames($rows);
+    }
+
+    public function getQaRanking(): array
+    {
+        $stmt = $this->db->query("
+            SELECT 
+                qa_id,
+                COUNT(*) as total_evaluations,
+                AVG(percentage) as avg_score,
+                MIN(percentage) as min_score,
+                MAX(percentage) as max_score,
+                STDDEV(percentage) as consistency
+            FROM evaluations
+            WHERE deleted_at IS NULL
+            GROUP BY qa_id
+            ORDER BY total_evaluations DESC
+        ");
+        $rows = $stmt->fetchAll();
+
+        if (empty($rows)) {
+            return [];
+        }
+
+        $qaIds = array_column($rows, 'qa_id');
+        $userModel = new User();
+        $qaMap = $userModel->getMapByIds($qaIds);
+
+        foreach ($rows as &$row) {
+            $qaId = (int) $row['qa_id'];
+            $row['qa_name'] = $qaMap[$qaId]['full_name'] ?? ('QA #' . $qaId);
+            $row['avg_score'] = (float) $row['avg_score'];
+            $row['consistency_label'] = $this->getConsistencyLabel((float) $row['consistency']);
+        }
+        unset($row);
+
+        return $rows;
+    }
+
+    private function getConsistencyLabel(float $stdDev): string
+    {
+        if ($stdDev < 5)
+            return 'Excelente';
+        if ($stdDev < 10)
+            return 'Buena';
+        if ($stdDev < 15)
+            return 'Regular';
+        return 'Variable';
+    }
 }

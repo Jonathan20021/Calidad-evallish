@@ -47,6 +47,7 @@ class UserPermission
             'can_manage_ai_criteria' => (int) ($row['can_manage_ai_criteria'] ?? 0),
             'can_view_calls' => (int) ($row['can_view_calls'] ?? 0),
             'can_manage_calls' => (int) ($row['can_manage_calls'] ?? 0),
+            'can_view_top_evaluators' => (int) ($row['can_view_top_evaluators'] ?? 0),
         ];
     }
 
@@ -85,8 +86,9 @@ class UserPermission
                 can_view_ai_criteria,
                 can_manage_ai_criteria,
                 can_view_calls,
-                can_manage_calls
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                can_manage_calls,
+                can_view_top_evaluators
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ');
 
         return $stmt->execute([
@@ -111,6 +113,7 @@ class UserPermission
             (int) ($permissions['can_manage_ai_criteria'] ?? 0),
             (int) ($permissions['can_view_calls'] ?? 0),
             (int) ($permissions['can_manage_calls'] ?? 0),
+            (int) ($permissions['can_view_top_evaluators'] ?? 0),
         ]);
     }
 
@@ -137,7 +140,8 @@ class UserPermission
                 can_view_ai_criteria = ?,
                 can_manage_ai_criteria = ?,
                 can_view_calls = ?,
-                can_manage_calls = ?
+                can_manage_calls = ?,
+                can_view_top_evaluators = ?
             WHERE user_id = ?
         ');
 
@@ -162,6 +166,7 @@ class UserPermission
             (int) ($permissions['can_manage_ai_criteria'] ?? 0),
             (int) ($permissions['can_view_calls'] ?? 0),
             (int) ($permissions['can_manage_calls'] ?? 0),
+            (int) ($permissions['can_view_top_evaluators'] ?? 0),
             $userId
         ]);
     }
@@ -200,12 +205,19 @@ class UserPermission
                     can_manage_ai_criteria TINYINT(1) DEFAULT 0,
                     can_view_calls TINYINT(1) DEFAULT 0,
                     can_manage_calls TINYINT(1) DEFAULT 0,
+                    can_view_top_evaluators TINYINT(1) DEFAULT 0,
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
                     UNIQUE KEY uidx_user_permissions (user_id)
                 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
             ");
+        } else {
+            // Check if column exists
+            $stmt = $this->db->query("SHOW COLUMNS FROM user_permissions LIKE 'can_view_top_evaluators'");
+            if (!$stmt->fetch()) {
+                $this->db->exec("ALTER TABLE user_permissions ADD COLUMN can_view_top_evaluators TINYINT(1) DEFAULT 0 AFTER can_manage_calls");
+            }
         }
     }
 }

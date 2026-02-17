@@ -85,7 +85,7 @@
                         case 'training':
                             return \App\Helpers\Auth::hasPermission('training.view');
                         case 'reports':
-                            return \App\Helpers\Auth::hasPermission('reports.view');
+                            return \App\Helpers\Auth::hasPermission('reports.view') || \App\Helpers\Auth::hasPermission('reports.top_evaluators');
                         case 'settings':
                             return \App\Helpers\Auth::hasPermission('settings.manage');
                         case 'recycle-bin':

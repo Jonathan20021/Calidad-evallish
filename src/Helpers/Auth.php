@@ -162,6 +162,8 @@ class Auth
                 return $userPermissions['can_view_calls'] === 1;
             case 'calls.manage':
                 return $userPermissions['can_manage_calls'] === 1;
+            case 'reports.top_evaluators':
+                return $userPermissions['can_view_top_evaluators'] === 1;
             default:
                 return false;
         }

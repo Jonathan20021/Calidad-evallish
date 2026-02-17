@@ -83,6 +83,7 @@ $router->post('/form-templates/delete', [\App\Controllers\FormTemplateController
 
 // Reports
 $router->get('/reports', [\App\Controllers\ReportController::class, 'index']);
+$router->get('/reports/top-evaluators', [\App\Controllers\ReportController::class, 'topEvaluators']);
 $router->get('/reports/export-pdf', [\App\Controllers\ReportController::class, 'exportPdf']);
 
 // Settings

@@ -180,6 +180,12 @@
                                            class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
                                     <span class="ml-3 text-sm text-gray-700">Ver reportes</span>
                                 </label>
+                                <label class="flex items-center">
+                                    <input type="checkbox" name="can_view_top_evaluators" value="1" 
+                                           <?php echo ($permissions['can_view_top_evaluators'] ?? 0) === 1 ? 'checked' : ''; ?>
+                                           class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                                    <span class="ml-3 text-sm text-gray-700">Ver Top Evaluadores y dar feedback</span>
+                                </label>
                             </div>
                         </div>
 

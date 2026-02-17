@@ -264,6 +264,7 @@ class UserController
                 'can_manage_ai_criteria' => 0,
                 'can_view_calls' => 0,
                 'can_manage_calls' => 0,
+                'can_view_top_evaluators' => 0,
             ];
         }
 
@@ -319,6 +320,7 @@ class UserController
             'can_manage_ai_criteria' => isset($_POST['can_manage_ai_criteria']) ? 1 : 0,
             'can_view_calls' => isset($_POST['can_view_calls']) ? 1 : 0,
             'can_manage_calls' => isset($_POST['can_manage_calls']) ? 1 : 0,
+            'can_view_top_evaluators' => isset($_POST['can_view_top_evaluators']) ? 1 : 0,
         ];
 
         $permissionModel = new UserPermission();
