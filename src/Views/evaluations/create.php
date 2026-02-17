@@ -24,15 +24,18 @@
                     <?php if (isset($callId) && $callId): ?>
                         <input type="hidden" name="call_id" value="<?php echo htmlspecialchars($callId); ?>">
                     <?php endif; ?>
+                    <?php if (isset($chatId) && $chatId): ?>
+                        <input type="hidden" name="chat_id" value="<?php echo htmlspecialchars($chatId); ?>">
+                    <?php endif; ?>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                         <div>
                             <label for="agent_id" class="block text-sm font-medium text-gray-700">Agente</label>
-                            <?php if (!empty($isEdit) || (isset($lockedCall) && $lockedCall)): ?>
+                            <?php if (!empty($isEdit) || (isset($lockedCall) && $lockedCall) || (isset($lockedChat) && $lockedChat)): ?>
                                 <input type="hidden" name="agent_id"
                                     value="<?php echo htmlspecialchars($selectedAgentId); ?>">
                             <?php endif; ?>
-                            <select name="agent_id" id="agent_id" required <?php echo (!empty($isEdit) || (isset($lockedCall) && $lockedCall)) ? 'disabled' : ''; ?>
+                            <select name="agent_id" id="agent_id" required <?php echo (!empty($isEdit) || (isset($lockedCall) && $lockedCall) || (isset($lockedChat) && $lockedChat)) ? 'disabled' : ''; ?>
                                 class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-3 px-4 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                                 <option value="">Seleccione un Agente...</option>
                                 <?php foreach ($agents as $agent): ?>
@@ -45,12 +48,12 @@
 
                         <div>
                             <label for="campaign_id" class="block text-sm font-medium text-gray-700">Campaña</label>
-                            <?php if (!empty($isEdit) || (isset($lockedCall) && $lockedCall)): ?>
+                             <?php if (!empty($isEdit) || (isset($lockedCall) && $lockedCall) || (isset($lockedChat) && $lockedChat)): ?>
                                 <input type="hidden" name="campaign_id"
                                     value="<?php echo htmlspecialchars($selectedCampaignId); ?>">
                             <?php endif; ?>
                             <select name="campaign_id" id="campaign_id"
-                                onchange="<?php echo !empty($isEdit) ? '' : 'submitEvaluationSelection(this.form)'; ?>" required <?php echo (!empty($isEdit) || (isset($lockedCall) && $lockedCall)) ? 'disabled' : ''; ?>
+                                onchange="<?php echo !empty($isEdit) ? '' : 'submitEvaluationSelection(this.form)'; ?>" required <?php echo (!empty($isEdit) || (isset($lockedCall) && $lockedCall) || (isset($lockedChat) && $lockedChat)) ? 'disabled' : ''; ?>
                                 class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-3 px-4 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                                 <option value="">Seleccione una Campaña...</option>
                                 <?php foreach ($campaigns as $campaign): ?>
@@ -129,6 +132,40 @@
                                     <source src="<?php echo htmlspecialchars($recordingUrl); ?>">
                                     Tu navegador no soporta audio HTML5.
                                 </audio>
+                            </div>
+                        </div>
+                    <?php endif; ?>
+
+                    <?php if (!empty($lockedChat)): ?>
+                        <div class="mb-6">
+                            <div class="rounded-2xl border border-indigo-100 bg-indigo-50/50 p-6 shadow-sm">
+                                <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                                    <div class="flex-1">
+                                        <div class="flex items-center gap-2 mb-3">
+                                            <span class="bg-indigo-600 text-white text-[10px] font-bold uppercase px-3 py-1 rounded-full shadow-sm">Auditoría de Chat</span>
+                                            <p class="text-xs text-indigo-700 font-bold"><?php echo date('d/m/Y H:i', strtotime($lockedChat['chat_date'])); ?></p>
+                                        </div>
+                                        <div class="space-y-1">
+                                            <p class="text-xs text-indigo-400 font-bold uppercase tracking-wider">Identificador del Cliente</p>
+                                            <p class="text-lg font-extrabold text-indigo-900"><?php echo htmlspecialchars($lockedChat['customer_identifier']); ?></p>
+                                        </div>
+                                        <?php if ($lockedChat['notes']): ?>
+                                            <div class="mt-4 p-3 bg-white/60 rounded-xl border border-indigo-100/50 italic">
+                                                <p class="text-xs text-indigo-600 leading-relaxed">"<?php echo htmlspecialchars($lockedChat['notes']); ?>"</p>
+                                            </div>
+                                        <?php endif; ?>
+                                    </div>
+                                    <?php if ($lockedChat['screenshot_path']): ?>
+                                        <div class="flex-shrink-0 relative group">
+                                            <img src="<?php echo \App\Config\Config::BASE_URL . $lockedChat['screenshot_path']; ?>" 
+                                                 class="h-32 w-auto rounded-2xl border-4 border-white shadow-2xl cursor-zoom-in transform group-hover:scale-105 transition duration-300 mx-auto" 
+                                                 onclick="window.open(this.src, '_blank')">
+                                            <div class="absolute inset-0 bg-indigo-900/10 opacity-0 group-hover:opacity-100 rounded-2xl transition-opacity pointer-events-none flex items-center justify-center">
+                                                <svg class="w-8 h-8 text-white drop-shadow-lg" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" /></svg>
+                                            </div>
+                                        </div>
+                                    <?php endif; ?>
+                                </div>
                             </div>
                         </div>
                     <?php endif; ?>

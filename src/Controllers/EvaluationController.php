@@ -54,6 +54,12 @@ class EvaluationController
         $answers = $answerModel->getByEvaluationId($id);
         $feedbackHistory = $feedbackModel->getByEvaluationId($id);
 
+        $chat = null;
+        if (!empty($evaluation['chat_id'])) {
+            $chatModel = new \App\Models\Chat();
+            $chat = $chatModel->findById($evaluation['chat_id']);
+        }
+
         require __DIR__ . '/../Views/evaluations/show.php';
     }
 
@@ -123,7 +129,9 @@ class EvaluationController
         $selectedAgentId = $_GET['agent_id'] ?? null;
         $selectedTemplateId = $_GET['form_template_id'] ?? null;
         $callId = $_GET['call_id'] ?? null;
+        $chatId = $_GET['chat_id'] ?? null;
         $lockedCall = null;
+        $lockedChat = null;
         $recordingUrl = null;
         $templates = [];
         $formFields = [];
@@ -145,6 +153,15 @@ class EvaluationController
                 if (!empty($lockedCall['recording_path'])) {
                     $recordingUrl = \App\Config\Config::BASE_URL . ltrim($lockedCall['recording_path'], '/');
                 }
+            }
+        }
+
+        if ($chatId) {
+            $chatModel = new \App\Models\Chat();
+            $lockedChat = $chatModel->findById($chatId);
+            if ($lockedChat) {
+                $selectedCampaignId = $lockedChat['campaign_id'];
+                $selectedAgentId = $lockedChat['agent_id'];
             }
         }
 
@@ -261,6 +278,7 @@ class EvaluationController
         Auth::requirePermission('evaluations.create');
 
         $callId = $_POST['call_id'] ?? null;
+        $chatId = $_POST['chat_id'] ?? null;
         $agentId = $_POST['agent_id'];
         $campaignId = $_POST['campaign_id'];
         $formTemplateId = $_POST['form_template_id'];
@@ -438,6 +456,7 @@ class EvaluationController
         $evaluationModel = new Evaluation();
         $evaluationModel->create([
             'call_id' => $callId,
+            'chat_id' => $chatId,
             'agent_id' => $agentId,
             'qa_id' => Auth::user()['id'],
             'campaign_id' => $campaignId,
@@ -512,6 +531,7 @@ class EvaluationController
         }
 
         $callId = $_POST['call_id'] ?? $evaluation['call_id'] ?? null;
+        $chatId = $_POST['chat_id'] ?? $evaluation['chat_id'] ?? null;
         $agentId = $_POST['agent_id'] ?? $evaluation['agent_id'];
         $campaignId = $_POST['campaign_id'] ?? $evaluation['campaign_id'];
         $formTemplateId = $_POST['form_template_id'] ?? $evaluation['form_template_id'];
@@ -664,6 +684,7 @@ class EvaluationController
 
         $evaluationModel->update($evaluationId, [
             'call_id' => $callId,
+            'chat_id' => $chatId,
             'agent_id' => $agentId,
             'qa_id' => $evaluation['qa_id'],
             'campaign_id' => $campaignId,

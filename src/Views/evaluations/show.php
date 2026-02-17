@@ -102,6 +102,34 @@
                         </span>
                     </div>
                 </div>
+
+                <?php if (!empty($chat)): ?>
+                    <div class="px-8 py-6 bg-indigo-50 border-b border-indigo-100">
+                        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                            <div>
+                                <div class="flex items-center gap-2 mb-1">
+                                    <span class="bg-indigo-600 text-white text-[10px] font-bold uppercase px-2 py-0.5 rounded shadow-sm">Interacción por Chat</span>
+                                    <span class="text-xs text-indigo-700 font-semibold"><?php echo date('d/m/Y H:i', strtotime($chat['chat_date'])); ?></span>
+                                </div>
+                                <p class="text-sm font-bold text-indigo-900">Cliente: <?php echo htmlspecialchars($chat['customer_identifier']); ?></p>
+                            </div>
+                            <div class="flex items-center gap-4">
+                                <?php if ($chat['screenshot_path']): ?>
+                                    <div class="relative group">
+                                        <img src="<?php echo \App\Config\Config::BASE_URL . $chat['screenshot_path']; ?>" 
+                                             class="h-16 w-auto rounded-lg border-2 border-white shadow-md cursor-zoom-in group-hover:scale-105 transition duration-200"
+                                             onclick="window.open(this.src, '_blank')">
+                                    </div>
+                                <?php endif; ?>
+                                <a href="<?php echo \App\Config\Config::BASE_URL; ?>chats/show?id=<?php echo $chat['id']; ?>" 
+                                   class="text-indigo-600 hover:text-indigo-800 text-xs font-bold underline flex items-center">
+                                    Ver registro completo
+                                    <svg class="w-3 h-3 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                <?php endif; ?>
             
             <?php if (!empty($evaluation['feedback_confirmed']) || !empty($evaluation['feedback_evidence_path']) || !empty($evaluation['feedback_evidence_note'])): ?>
                 <div class="bg-white shadow-lg rounded-2xl overflow-hidden mb-8">
