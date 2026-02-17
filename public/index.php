@@ -21,6 +21,7 @@ use App\Controllers\ClientPortalController;
 use App\Controllers\UserController;
 use App\Controllers\TrainingController;
 use App\Controllers\AiCriteriaController;
+use App\Controllers\ChatController;
 
 Config::init();
 
@@ -61,6 +62,13 @@ $router->get('/calls/edit', [\App\Controllers\CallController::class, 'edit']);
 $router->post('/calls/update', [\App\Controllers\CallController::class, 'update']);
 $router->get('/calls/analyze', [\App\Controllers\CallController::class, 'analyze']);
 $router->post('/calls/delete', [\App\Controllers\CallController::class, 'destroy']);
+
+// Chats
+$router->get('/chats', [ChatController::class, 'index']);
+$router->get('/chats/create', [ChatController::class, 'create']);
+$router->post('/chats/store', [ChatController::class, 'store']);
+$router->get('/chats/show', [ChatController::class, 'show']);
+$router->post('/chats/delete', [ChatController::class, 'delete']);
 
 // Form Templates
 $router->get('/form-templates', [\App\Controllers\FormTemplateController::class, 'index']);

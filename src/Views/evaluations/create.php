@@ -136,7 +136,7 @@
                         </div>
                     <?php endif; ?>
 
-                    <?php if (!empty($lockedChat)): ?>
+                    <?php if (!empty($lockedChat) && is_array($lockedChat)): ?>
                         <div class="mb-6">
                             <div class="rounded-2xl border border-indigo-100 bg-indigo-50/50 p-6 shadow-sm">
                                 <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
