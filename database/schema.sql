@@ -473,6 +473,70 @@ CREATE TABLE IF NOT EXISTS qa_retraining_progress (
     FOREIGN KEY (agent_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- QA retraining final exam (mandatory gate)
+CREATE TABLE IF NOT EXISTS qa_retraining_final_exams (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    retraining_id INT NOT NULL,
+    agent_id INT NOT NULL,
+    min_score DECIMAL(5,2) NOT NULL DEFAULT 80.00,
+    score DECIMAL(5,2) NULL,
+    status ENUM('pending', 'passed', 'failed') NOT NULL DEFAULT 'pending',
+    question_payload_json TEXT NULL,
+    answer_payload_json TEXT NULL,
+    feedback_text TEXT NULL,
+    attempts INT NOT NULL DEFAULT 0,
+    completed_at DATETIME NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE KEY uniq_retraining_final_exam (retraining_id, agent_id),
+    FOREIGN KEY (retraining_id) REFERENCES qa_retrainings(id) ON DELETE CASCADE,
+    FOREIGN KEY (agent_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Mandatory simulations per retraining (roleplay/checklist/feedback)
+CREATE TABLE IF NOT EXISTS qa_retraining_simulations (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    retraining_id INT NOT NULL,
+    agent_id INT NOT NULL,
+    simulation_type ENUM('angry_client', 'upselling', 'process_error') NOT NULL,
+    title VARCHAR(180) NOT NULL,
+    scenario_text TEXT NULL,
+    checklist_json TEXT NULL,
+    feedback_mode ENUM('auto', 'manual') NOT NULL DEFAULT 'auto',
+    transcript_text TEXT NULL,
+    score DECIMAL(5,2) NULL,
+    min_score DECIMAL(5,2) NOT NULL DEFAULT 80.00,
+    status ENUM('pending', 'pending_review', 'completed', 'failed') NOT NULL DEFAULT 'pending',
+    feedback_text TEXT NULL,
+    reviewed_by INT NULL,
+    reviewed_at DATETIME NULL,
+    completed_at DATETIME NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE KEY uniq_retraining_simulation (retraining_id, agent_id, simulation_type),
+    FOREIGN KEY (retraining_id) REFERENCES qa_retrainings(id) ON DELETE CASCADE,
+    FOREIGN KEY (agent_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (reviewed_by) REFERENCES users(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Simulation templates configurable from UI (per campaign or global)
+CREATE TABLE IF NOT EXISTS qa_retraining_simulation_templates (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    campaign_id INT NULL,
+    simulation_type ENUM('angry_client', 'upselling', 'process_error') NOT NULL,
+    title VARCHAR(180) NOT NULL,
+    scenario_text TEXT NOT NULL,
+    checklist_json TEXT NULL,
+    feedback_mode ENUM('auto', 'manual') NOT NULL DEFAULT 'auto',
+    min_score DECIMAL(5,2) NOT NULL DEFAULT 80.00,
+    active TINYINT(1) NOT NULL DEFAULT 1,
+    created_by INT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (campaign_id) REFERENCES campaigns(id) ON DELETE SET NULL,
+    FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- Insert default admin user (password: admin123)
 INSERT INTO users (username, password_hash, full_name, role) VALUES 
 ('admin', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Administrator', 'admin');

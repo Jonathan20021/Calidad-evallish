@@ -154,6 +154,11 @@ $router->get('/training/retraining', [TrainingController::class, 'retrainingInde
 $router->post('/training/retraining/create', [TrainingController::class, 'createRetraining']);
 $router->post('/training/retraining/start', [TrainingController::class, 'startRetraining']);
 $router->post('/training/retraining/module/submit', [TrainingController::class, 'submitRetrainingModule']);
+$router->post('/training/retraining/final-exam/submit', [TrainingController::class, 'submitRetrainingFinalExam']);
+$router->post('/training/retraining/simulation/submit', [TrainingController::class, 'submitRetrainingSimulation']);
+$router->post('/training/retraining/simulation/review', [TrainingController::class, 'reviewRetrainingSimulation']);
+$router->post('/training/retraining/templates/save', [TrainingController::class, 'saveSimulationTemplate']);
+$router->post('/training/retraining/templates/toggle', [TrainingController::class, 'toggleSimulationTemplate']);
 $router->post('/training/retraining/approve', [TrainingController::class, 'approveRetraining']);
 $router->post('/training/retraining/reminders', [TrainingController::class, 'sendRetrainingReminders']);
 

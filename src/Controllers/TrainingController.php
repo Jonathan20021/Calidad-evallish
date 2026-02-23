@@ -21,8 +21,11 @@ use App\Models\TrainingNotification;
 use App\Models\TrainingScript;
 use App\Models\User;
 use App\Models\QaRetraining;
+use App\Models\QaRetrainingFinalExam;
 use App\Models\QaRetrainingModule;
 use App\Models\QaRetrainingProgress;
+use App\Models\QaRetrainingSimulation;
+use App\Models\QaRetrainingSimulationTemplate;
 use App\Services\EmailService;
 use App\Services\GeminiService;
 
@@ -1052,14 +1055,20 @@ class TrainingController
         $retrainingModel = new QaRetraining();
         $moduleModel = new QaRetrainingModule();
         $progressModel = new QaRetrainingProgress();
+        $simulationModel = new QaRetrainingSimulation();
+        $finalExamModel = new QaRetrainingFinalExam();
 
         if ($role === 'agent') {
             $retrainings = $retrainingModel->getByAgentId($userId, 30);
             foreach ($retrainings as &$retraining) {
                 $modules = $moduleModel->getByRetrainingId((int) $retraining['id']);
                 $progress = $progressModel->getByRetrainingAndAgent((int) $retraining['id'], $userId);
+                $simulations = $simulationModel->getByRetrainingAndAgent((int) $retraining['id'], $userId);
+                $finalExam = $finalExamModel->findByRetrainingAndAgent((int) $retraining['id'], $userId);
                 $retraining['modules'] = $modules;
                 $retraining['progress_map'] = $progress;
+                $retraining['simulations'] = $simulations;
+                $retraining['final_exam'] = $finalExam;
             }
             unset($retraining);
 
@@ -1070,13 +1079,18 @@ class TrainingController
         $campaignModel = new Campaign();
         $userModel = new User();
         $evaluationModel = new Evaluation();
+        $templateModel = new QaRetrainingSimulationTemplate();
 
         $retrainings = $retrainingModel->getRecent(60);
         foreach ($retrainings as &$retraining) {
             $modules = $moduleModel->getByRetrainingId((int) $retraining['id']);
             $progress = $progressModel->getByRetrainingAndAgent((int) $retraining['id'], (int) $retraining['agent_id']);
+            $simulations = $simulationModel->getByRetrainingAndAgent((int) $retraining['id'], (int) $retraining['agent_id']);
+            $finalExam = $finalExamModel->findByRetrainingAndAgent((int) $retraining['id'], (int) $retraining['agent_id']);
             $retraining['modules'] = $modules;
             $retraining['progress_map'] = $progress;
+            $retraining['simulations'] = $simulations;
+            $retraining['final_exam'] = $finalExam;
         }
         unset($retraining);
 
@@ -1085,6 +1099,7 @@ class TrainingController
         $campaigns = $campaignModel->getActive();
         $pendingReminders = $retrainingModel->getPendingReminders(date('Y-m-d'));
         $recentEvaluations = $evaluationModel->getAll(20);
+        $simulationTemplates = $templateModel->getAllWithCampaign(200);
 
         require __DIR__ . '/../Views/training/retraining.php';
     }
@@ -1106,6 +1121,17 @@ class TrainingController
         $dueDate = trim($_POST['due_date'] ?? '');
         $notes = trim($_POST['notes'] ?? '');
         $errorsRaw = trim($_POST['detected_errors'] ?? '');
+        $feedbackMode = trim($_POST['simulation_feedback_mode'] ?? 'auto');
+        $finalMinScore = (float) ($_POST['final_min_score'] ?? 80);
+
+        if (!in_array($feedbackMode, ['auto', 'manual'], true)) {
+            $feedbackMode = 'auto';
+        }
+        if ($finalMinScore < 50) {
+            $finalMinScore = 50;
+        } elseif ($finalMinScore > 100) {
+            $finalMinScore = 100;
+        }
 
         if ($campaignId <= 0 || $agentId <= 0 || $errorsRaw === '') {
             $this->redirectWithMessage('training/retraining', 'error', 'Campana, agente y errores detectados son obligatorios.');
@@ -1142,7 +1168,10 @@ class TrainingController
 
         $retrainingId = $retrainingModel->getLastInsertId();
         $moduleModel = new QaRetrainingModule();
+        $finalExamModel = new QaRetrainingFinalExam();
+        $simulationModel = new QaRetrainingSimulation();
         $order = 1;
+        $finalQuestions = [];
         foreach ($errors as $error) {
             $moduleModel->create([
                 'retraining_id' => $retrainingId,
@@ -1155,8 +1184,23 @@ class TrainingController
                 'quiz_type' => 'text',
                 'correct_answer' => $error
             ]);
+            $finalQuestions[] = [
+                'question' => 'Describe el procedimiento correcto para evitar este error: ' . $error,
+                'expected_keyword' => $error,
+                'weight' => 1
+            ];
             $order++;
         }
+
+        $finalExamModel->create([
+            'retraining_id' => $retrainingId,
+            'agent_id' => $agentId,
+            'min_score' => $finalMinScore,
+            'status' => 'pending',
+            'question_payload_json' => json_encode($finalQuestions, JSON_UNESCAPED_UNICODE)
+        ]);
+
+        $this->createSimulationPack($retrainingId, $agentId, $campaignId, $feedbackMode, $finalMinScore);
 
         $this->createTrainingNotification('retraining_assigned', $agentId, $supervisorId ?: (int) Auth::user()['id'], [
             'retraining_id' => $retrainingId
@@ -1273,23 +1317,12 @@ class TrainingController
 
         $requiredCount = $moduleModel->getRequiredCountByRetrainingId($retrainingId);
         $completedCount = $progressModel->getCompletedRequiredCount($retrainingId, $agentId);
-        $progressPercent = $requiredCount > 0 ? round(($completedCount / $requiredCount) * 100, 2) : 0.0;
-
-        $retrainingModel->update($retrainingId, [
-            'status' => 'in_progress',
-            'progress_percent' => $progressPercent
-        ]);
-
         if ($requiredCount > 0 && $completedCount >= $requiredCount) {
-            $retrainingModel->update($retrainingId, [
-                'status' => 'approved',
-                'progress_percent' => 100
-            ]);
-
-            $this->createTrainingNotification('retraining_completed_for_approval', (int) $retraining['agent_id'], (int) $retraining['supervisor_id'], [
+            $this->createTrainingNotification('retraining_modules_completed', (int) $retraining['agent_id'], (int) $retraining['supervisor_id'], [
                 'retraining_id' => $retrainingId
             ]);
         }
+        $this->refreshRetrainingProgress($retrainingId, $agentId);
 
         $this->redirectWithMessage('training/retraining', 'success', 'Modulo completado.');
     }
@@ -1319,6 +1352,11 @@ class TrainingController
 
         if (!in_array($retraining['status'], ['approved', 'in_progress'], true)) {
             $this->redirectWithMessage('training/retraining', 'error', 'El reentrenamiento no esta en estado aprobable.');
+            return;
+        }
+
+        if (!$this->canActivateRetraining((int) $retraining['id'], (int) $retraining['agent_id'])) {
+            $this->redirectWithMessage('training/retraining', 'error', 'No se puede activar: faltan modulos, simulaciones o examen final aprobado (minimo 80%).');
             return;
         }
 
@@ -1386,10 +1424,485 @@ class TrainingController
         $this->redirectWithMessage('training/retraining', 'success', 'Recordatorios procesados: ' . $sentCount);
     }
 
+    public function saveSimulationTemplate()
+    {
+        Auth::requirePermission('training.manage');
+
+        if (!$this->isSupervisorOrAdmin()) {
+            http_response_code(403);
+            echo 'Access denied';
+            return;
+        }
+
+        $templateId = (int) ($_POST['template_id'] ?? 0);
+        $campaignId = !empty($_POST['campaign_id']) ? (int) $_POST['campaign_id'] : null;
+        $simulationType = trim($_POST['simulation_type'] ?? '');
+        $title = trim($_POST['title'] ?? '');
+        $scenarioText = trim($_POST['scenario_text'] ?? '');
+        $checklistRaw = trim($_POST['checklist_text'] ?? '');
+        $feedbackMode = trim($_POST['feedback_mode'] ?? 'auto');
+        $minScore = (float) ($_POST['min_score'] ?? 80);
+        $activeRaw = $_POST['active'] ?? '0';
+        $active = in_array((string) $activeRaw, ['1', 'on', 'true'], true) ? 1 : 0;
+
+        $allowedTypes = ['angry_client', 'upselling', 'process_error'];
+        if (!in_array($simulationType, $allowedTypes, true) || $title === '' || $scenarioText === '') {
+            $this->redirectWithMessage('training/retraining', 'error', 'Datos de plantilla invalidos.');
+            return;
+        }
+        if (!in_array($feedbackMode, ['auto', 'manual'], true)) {
+            $feedbackMode = 'auto';
+        }
+        if ($minScore < 50) {
+            $minScore = 50;
+        } elseif ($minScore > 100) {
+            $minScore = 100;
+        }
+
+        $checklist = $this->parseChecklistLines($checklistRaw);
+        $templateModel = new QaRetrainingSimulationTemplate();
+        $payload = [
+            'campaign_id' => $campaignId,
+            'simulation_type' => $simulationType,
+            'title' => $title,
+            'scenario_text' => $scenarioText,
+            'checklist_json' => !empty($checklist) ? json_encode($checklist, JSON_UNESCAPED_UNICODE) : null,
+            'feedback_mode' => $feedbackMode,
+            'min_score' => $minScore,
+            'active' => $active
+        ];
+
+        if ($templateId > 0) {
+            $templateModel->updateById($templateId, $payload);
+            $this->redirectWithMessage('training/retraining', 'success', 'Plantilla de simulacion actualizada.');
+            return;
+        }
+
+        $payload['created_by'] = (int) Auth::user()['id'];
+        $templateModel->create($payload);
+        $this->redirectWithMessage('training/retraining', 'success', 'Plantilla de simulacion creada.');
+    }
+
+    public function toggleSimulationTemplate()
+    {
+        Auth::requirePermission('training.manage');
+
+        if (!$this->isSupervisorOrAdmin()) {
+            http_response_code(403);
+            echo 'Access denied';
+            return;
+        }
+
+        $templateId = (int) ($_POST['template_id'] ?? 0);
+        if ($templateId <= 0) {
+            $this->redirectWithMessage('training/retraining', 'error', 'Plantilla no encontrada.');
+            return;
+        }
+
+        $templateModel = new QaRetrainingSimulationTemplate();
+        $template = $templateModel->findById($templateId);
+        if (!$template) {
+            $this->redirectWithMessage('training/retraining', 'error', 'Plantilla no encontrada.');
+            return;
+        }
+
+        $next = (int) ($template['active'] ?? 0) === 1 ? 0 : 1;
+        $templateModel->setActive($templateId, $next);
+        $this->redirectWithMessage('training/retraining', 'success', 'Estado de plantilla actualizado.');
+    }
+
+    public function submitRetrainingFinalExam()
+    {
+        Auth::requirePermission('training.view');
+
+        $retrainingId = (int) ($_POST['retraining_id'] ?? 0);
+        if ($retrainingId <= 0) {
+            $this->redirectWithMessage('training/retraining', 'error', 'Examen final no encontrado.');
+            return;
+        }
+
+        $retrainingModel = new QaRetraining();
+        $finalExamModel = new QaRetrainingFinalExam();
+        $moduleModel = new QaRetrainingModule();
+        $progressModel = new QaRetrainingProgress();
+
+        $retraining = $retrainingModel->findById($retrainingId);
+        if (!$retraining) {
+            $this->redirectWithMessage('training/retraining', 'error', 'Reentrenamiento no encontrado.');
+            return;
+        }
+
+        if ((Auth::user()['role'] ?? '') === 'agent' && (int) $retraining['agent_id'] !== (int) Auth::user()['id']) {
+            http_response_code(403);
+            echo 'Access denied';
+            return;
+        }
+
+        $requiredCount = $moduleModel->getRequiredCountByRetrainingId($retrainingId);
+        $completedCount = $progressModel->getCompletedRequiredCount($retrainingId, (int) $retraining['agent_id']);
+        if ($requiredCount > 0 && $completedCount < $requiredCount) {
+            $this->redirectWithMessage('training/retraining', 'error', 'Completa todos los modulos antes del examen final.');
+            return;
+        }
+
+        $exam = $finalExamModel->findByRetrainingAndAgent($retrainingId, (int) $retraining['agent_id']);
+        if (!$exam) {
+            $this->redirectWithMessage('training/retraining', 'error', 'Examen final no configurado.');
+            return;
+        }
+
+        $questions = json_decode((string) ($exam['question_payload_json'] ?? '[]'), true);
+        if (!is_array($questions)) {
+            $questions = [];
+        }
+
+        $answersPayload = [];
+        $total = 0;
+        $max = 0;
+        foreach ($questions as $index => $question) {
+            $answer = trim((string) ($_POST['final_answer_' . $index] ?? ''));
+            $expected = strtolower(trim((string) ($question['expected_keyword'] ?? '')));
+            $score = 0;
+            if ($answer !== '' && $expected !== '' && strpos(strtolower($answer), $expected) !== false) {
+                $score = 100;
+            } elseif ($answer !== '') {
+                $score = 50;
+            }
+
+            $answersPayload[] = [
+                'question' => $question['question'] ?? '',
+                'expected_keyword' => $question['expected_keyword'] ?? '',
+                'answer' => $answer,
+                'score' => $score
+            ];
+            $total += $score;
+            $max += 100;
+        }
+
+        $percentage = $max > 0 ? ($total / $max) * 100 : 0;
+        $attempts = (int) ($exam['attempts'] ?? 0) + 1;
+        $passed = $percentage >= (float) ($exam['min_score'] ?? 80);
+
+        $finalExamModel->updateById((int) $exam['id'], [
+            'score' => $percentage,
+            'status' => $passed ? 'passed' : 'failed',
+            'answer_payload_json' => json_encode($answersPayload, JSON_UNESCAPED_UNICODE),
+            'feedback_text' => $passed ? 'Examen final aprobado.' : 'Examen final reprobado. Refuerzo obligatorio.',
+            'attempts' => $attempts,
+            'completed_at' => date('Y-m-d H:i:s')
+        ]);
+
+        if (!$passed) {
+            $this->handleRetrainingFailure($retraining, ['id' => 0, 'title' => 'Examen final', 'detected_error' => 'Examen final reprobado', 'pass_score' => $exam['min_score'] ?? 80]);
+            $this->redirectWithMessage('training/retraining', 'error', 'Examen final reprobado. No puedes avanzar.');
+            return;
+        }
+
+        $this->refreshRetrainingProgress((int) $retraining['id'], (int) $retraining['agent_id']);
+        $this->redirectWithMessage('training/retraining', 'success', 'Examen final aprobado.');
+    }
+
+    public function submitRetrainingSimulation()
+    {
+        Auth::requirePermission('training.view');
+
+        $simulationId = (int) ($_POST['simulation_id'] ?? 0);
+        if ($simulationId <= 0) {
+            $this->redirectWithMessage('training/retraining', 'error', 'Simulacion no encontrada.');
+            return;
+        }
+
+        $simulationModel = new QaRetrainingSimulation();
+        $retrainingModel = new QaRetraining();
+        $simulation = $simulationModel->findById($simulationId);
+        if (!$simulation) {
+            $this->redirectWithMessage('training/retraining', 'error', 'Simulacion no encontrada.');
+            return;
+        }
+
+        $retraining = $retrainingModel->findById((int) $simulation['retraining_id']);
+        if (!$retraining) {
+            $this->redirectWithMessage('training/retraining', 'error', 'Reentrenamiento no encontrado.');
+            return;
+        }
+
+        if ((Auth::user()['role'] ?? '') === 'agent' && (int) $simulation['agent_id'] !== (int) Auth::user()['id']) {
+            http_response_code(403);
+            echo 'Access denied';
+            return;
+        }
+
+        $transcript = trim($_POST['transcript_text'] ?? '');
+        $checklist = $_POST['checklist'] ?? [];
+        if (!is_array($checklist)) {
+            $checklist = [];
+        }
+
+        if ($transcript === '') {
+            $this->redirectWithMessage('training/retraining', 'error', 'Debes enviar la simulacion.');
+            return;
+        }
+
+        $score = 0.0;
+        $feedback = null;
+        $status = 'pending_review';
+        $feedbackMode = $simulation['feedback_mode'] ?? 'auto';
+
+        if ($feedbackMode === 'auto') {
+            try {
+                $service = new GeminiService();
+                $payload = $service->generateRoleplayFeedback([
+                    'objectives' => implode(', ', $checklist),
+                    'scenario' => $simulation['scenario_text'] ?? '',
+                    'history' => $transcript,
+                    'agent_message' => $transcript
+                ]);
+                $score = (float) ($payload['score'] ?? 0);
+                $feedback = $payload['feedback'] ?? null;
+                $status = $score >= (float) ($simulation['min_score'] ?? 80) ? 'completed' : 'failed';
+            } catch (\Throwable $e) {
+                $score = 0.0;
+                $feedback = 'No se pudo generar feedback automatico: ' . $e->getMessage();
+                $status = 'pending_review';
+            }
+        }
+
+        $simulationModel->updateById($simulationId, [
+            'transcript_text' => $transcript,
+            'checklist_json' => json_encode(array_values($checklist), JSON_UNESCAPED_UNICODE),
+            'score' => $score,
+            'status' => $status,
+            'feedback_text' => $feedback,
+            'completed_at' => $status === 'completed' ? date('Y-m-d H:i:s') : null
+        ]);
+
+        if ($status === 'failed') {
+            $this->handleRetrainingFailure($retraining, [
+                'id' => $simulationId,
+                'title' => $simulation['title'] ?? 'Simulacion',
+                'detected_error' => $simulation['simulation_type'] ?? 'simulation',
+                'pass_score' => $simulation['min_score'] ?? 80
+            ]);
+            $this->redirectWithMessage('training/retraining', 'error', 'Simulacion reprobada. No puedes avanzar.');
+            return;
+        }
+
+        $this->refreshRetrainingProgress((int) $simulation['retraining_id'], (int) $simulation['agent_id']);
+        $this->redirectWithMessage('training/retraining', 'success', $feedbackMode === 'manual' ? 'Simulacion enviada a revision manual.' : 'Simulacion evaluada.');
+    }
+
+    public function reviewRetrainingSimulation()
+    {
+        Auth::requirePermission('training.manage');
+
+        if (!$this->isSupervisorOrAdmin()) {
+            http_response_code(403);
+            echo 'Access denied';
+            return;
+        }
+
+        $simulationId = (int) ($_POST['simulation_id'] ?? 0);
+        $score = (float) ($_POST['score'] ?? 0);
+        $feedback = trim($_POST['feedback_text'] ?? '');
+
+        if ($simulationId <= 0) {
+            $this->redirectWithMessage('training/retraining', 'error', 'Simulacion no encontrada.');
+            return;
+        }
+
+        $simulationModel = new QaRetrainingSimulation();
+        $retrainingModel = new QaRetraining();
+        $simulation = $simulationModel->findById($simulationId);
+        if (!$simulation) {
+            $this->redirectWithMessage('training/retraining', 'error', 'Simulacion no encontrada.');
+            return;
+        }
+
+        $status = $score >= (float) ($simulation['min_score'] ?? 80) ? 'completed' : 'failed';
+        $simulationModel->updateById($simulationId, [
+            'score' => $score,
+            'feedback_text' => $feedback !== '' ? $feedback : null,
+            'status' => $status,
+            'reviewed_by' => (int) Auth::user()['id'],
+            'reviewed_at' => date('Y-m-d H:i:s'),
+            'completed_at' => $status === 'completed' ? date('Y-m-d H:i:s') : null
+        ]);
+
+        $retraining = $retrainingModel->findById((int) $simulation['retraining_id']);
+        if ($status === 'failed' && $retraining) {
+            $this->handleRetrainingFailure($retraining, [
+                'id' => $simulationId,
+                'title' => $simulation['title'] ?? 'Simulacion',
+                'detected_error' => $simulation['simulation_type'] ?? 'simulation',
+                'pass_score' => $simulation['min_score'] ?? 80
+            ]);
+            $this->redirectWithMessage('training/retraining', 'error', 'Simulacion reprobada. Refuerzo obligatorio creado.');
+            return;
+        }
+
+        $this->refreshRetrainingProgress((int) $simulation['retraining_id'], (int) $simulation['agent_id']);
+        $this->redirectWithMessage('training/retraining', 'success', 'Simulacion revisada.');
+    }
+
+    private function canActivateRetraining(int $retrainingId, int $agentId): bool
+    {
+        $moduleModel = new QaRetrainingModule();
+        $progressModel = new QaRetrainingProgress();
+        $simulationModel = new QaRetrainingSimulation();
+        $finalExamModel = new QaRetrainingFinalExam();
+
+        $requiredModules = $moduleModel->getRequiredCountByRetrainingId($retrainingId);
+        $completedModules = $progressModel->getCompletedRequiredCount($retrainingId, $agentId);
+        if ($requiredModules > 0 && $completedModules < $requiredModules) {
+            return false;
+        }
+
+        $totalSimulations = $simulationModel->countTotal($retrainingId, $agentId);
+        $completedSimulations = $simulationModel->countCompleted($retrainingId, $agentId);
+        if ($totalSimulations > 0 && $completedSimulations < $totalSimulations) {
+            return false;
+        }
+
+        $finalExam = $finalExamModel->findByRetrainingAndAgent($retrainingId, $agentId);
+        if (!$finalExam || ($finalExam['status'] ?? 'pending') !== 'passed') {
+            return false;
+        }
+
+        return true;
+    }
+
+    private function refreshRetrainingProgress(int $retrainingId, int $agentId): void
+    {
+        $moduleModel = new QaRetrainingModule();
+        $progressModel = new QaRetrainingProgress();
+        $simulationModel = new QaRetrainingSimulation();
+        $finalExamModel = new QaRetrainingFinalExam();
+        $retrainingModel = new QaRetraining();
+
+        $requiredModules = $moduleModel->getRequiredCountByRetrainingId($retrainingId);
+        $completedModules = $progressModel->getCompletedRequiredCount($retrainingId, $agentId);
+        $totalSimulations = $simulationModel->countTotal($retrainingId, $agentId);
+        $completedSimulations = $simulationModel->countCompleted($retrainingId, $agentId);
+        $finalExam = $finalExamModel->findByRetrainingAndAgent($retrainingId, $agentId);
+        $finalExamPassed = $finalExam && ($finalExam['status'] ?? 'pending') === 'passed' ? 1 : 0;
+
+        $totalUnits = $requiredModules + $totalSimulations + 1;
+        $completedUnits = $completedModules + $completedSimulations + $finalExamPassed;
+        $percent = $totalUnits > 0 ? round(($completedUnits / $totalUnits) * 100, 2) : 0;
+
+        $status = 'in_progress';
+        if ($percent >= 100 && $this->canActivateRetraining($retrainingId, $agentId)) {
+            $status = 'approved';
+        }
+
+        $retrainingModel->update($retrainingId, [
+            'progress_percent' => $percent,
+            'status' => $status
+        ]);
+    }
+
+    private function createSimulationPack(int $retrainingId, int $agentId, int $campaignId, string $fallbackFeedbackMode, float $fallbackMinScore): void
+    {
+        $simulationModel = new QaRetrainingSimulation();
+        $catalog = $this->resolveSimulationCatalog($campaignId, $fallbackFeedbackMode, $fallbackMinScore);
+
+        foreach ($catalog as $sim) {
+            $simulationModel->create([
+                'retraining_id' => $retrainingId,
+                'agent_id' => $agentId,
+                'simulation_type' => $sim['type'],
+                'title' => $sim['title'],
+                'scenario_text' => $sim['scenario'],
+                'checklist_json' => !empty($sim['checklist']) ? json_encode($sim['checklist'], JSON_UNESCAPED_UNICODE) : null,
+                'feedback_mode' => $sim['feedback_mode'],
+                'min_score' => $sim['min_score'],
+                'status' => 'pending'
+            ]);
+        }
+    }
+
+    private function resolveSimulationCatalog(int $campaignId, string $fallbackFeedbackMode, float $fallbackMinScore): array
+    {
+        $defaults = $this->defaultSimulationCatalog($fallbackFeedbackMode, $fallbackMinScore);
+        $templateModel = new QaRetrainingSimulationTemplate();
+        $templates = $templateModel->getActiveForCampaign($campaignId);
+
+        if (empty($templates)) {
+            return $defaults;
+        }
+
+        $map = [];
+        foreach ($defaults as $item) {
+            $map[$item['type']] = $item;
+        }
+
+        foreach ($templates as $template) {
+            $type = $template['simulation_type'] ?? '';
+            if ($type === '' || !isset($map[$type])) {
+                continue;
+            }
+            $checklist = json_decode((string) ($template['checklist_json'] ?? '[]'), true);
+            if (!is_array($checklist)) {
+                $checklist = $map[$type]['checklist'];
+            }
+
+            $map[$type] = [
+                'type' => $type,
+                'title' => $template['title'] ?? $map[$type]['title'],
+                'scenario' => $template['scenario_text'] ?? $map[$type]['scenario'],
+                'checklist' => !empty($checklist) ? array_values($checklist) : $map[$type]['checklist'],
+                'feedback_mode' => in_array(($template['feedback_mode'] ?? ''), ['auto', 'manual'], true) ? $template['feedback_mode'] : $map[$type]['feedback_mode'],
+                'min_score' => (float) ($template['min_score'] ?? $map[$type]['min_score'])
+            ];
+        }
+
+        return array_values($map);
+    }
+
+    private function defaultSimulationCatalog(string $feedbackMode, float $minScore): array
+    {
+        $checklist = ['saludo_profesional', 'identificacion_cliente', 'escucha_activa', 'empatia', 'resolucion_clara', 'cierre_efectivo'];
+        return [
+            [
+                'type' => 'angry_client',
+                'title' => 'Simulacion obligatoria: cliente molesto',
+                'scenario' => 'Cliente muy molesto por cobro inesperado; exige solucion inmediata.',
+                'checklist' => $checklist,
+                'feedback_mode' => $feedbackMode,
+                'min_score' => $minScore
+            ],
+            [
+                'type' => 'upselling',
+                'title' => 'Simulacion obligatoria: upselling',
+                'scenario' => 'Cliente satisfecho, oportunidad para ofrecer producto/servicio adicional sin presion excesiva.',
+                'checklist' => $checklist,
+                'feedback_mode' => $feedbackMode,
+                'min_score' => $minScore
+            ],
+            [
+                'type' => 'process_error',
+                'title' => 'Simulacion obligatoria: error operativo/proceso',
+                'scenario' => 'Se detecta error de proceso interno; el agente debe comunicar correccion, tiempos y seguimiento.',
+                'checklist' => $checklist,
+                'feedback_mode' => $feedbackMode,
+                'min_score' => $minScore
+            ]
+        ];
+    }
+
+    private function parseChecklistLines(string $raw): array
+    {
+        $lines = preg_split('/\r\n|\r|\n/', $raw);
+        return array_values(array_filter(array_map('trim', $lines), static function ($line) {
+            return $line !== '';
+        }));
+    }
+
     private function handleRetrainingFailure(array $retraining, array $failedModule): void
     {
         $retrainingModel = new QaRetraining();
         $moduleModel = new QaRetrainingModule();
+        $finalExamModel = new QaRetrainingFinalExam();
 
         $currentFailCount = (int) ($retraining['fail_count'] ?? 0);
         $retrainingModel->update((int) $retraining['id'], [
@@ -1424,6 +1937,26 @@ class TrainingController
             'correct_answer' => $failedModule['correct_answer'] ?? null,
             'is_required' => 1
         ]);
+
+        $finalExamModel->create([
+            'retraining_id' => $newRetrainingId,
+            'agent_id' => (int) $retraining['agent_id'],
+            'min_score' => (float) ($failedModule['pass_score'] ?? 80),
+            'status' => 'pending',
+            'question_payload_json' => json_encode([[
+                'question' => 'Describe el estandar correcto para corregir: ' . ($failedModule['title'] ?? 'error detectado'),
+                'expected_keyword' => $failedModule['detected_error'] ?? ($failedModule['title'] ?? 'procedimiento correcto'),
+                'weight' => 1
+            ]], JSON_UNESCAPED_UNICODE)
+        ]);
+
+        $this->createSimulationPack(
+            $newRetrainingId,
+            (int) $retraining['agent_id'],
+            (int) $retraining['campaign_id'],
+            'manual',
+            (float) ($failedModule['pass_score'] ?? 80)
+        );
 
         $this->createTrainingNotification('retraining_failed', (int) $retraining['agent_id'], (int) ($retraining['supervisor_id'] ?? 0), [
             'retraining_id' => (int) $retraining['id'],
