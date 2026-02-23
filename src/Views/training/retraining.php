@@ -1,20 +1,76 @@
 <?php require __DIR__ . '/../layouts/header.php'; ?>
 
-<div class="flex h-screen overflow-hidden bg-gray-50">
+<style>
+    .qa-retraining-ui {
+        --qa-bg: linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%);
+        --qa-card: #ffffff;
+        --qa-border: #e2e8f0;
+        --qa-title: #0f172a;
+        --qa-subtle: #475569;
+        --qa-accent: #4f46e5;
+        --qa-accent-soft: #e0e7ff;
+    }
+
+    .qa-retraining-ui .qa-hero {
+        background: radial-gradient(circle at right top, #c7d2fe 0%, rgba(199, 210, 254, 0) 40%),
+            linear-gradient(135deg, #0f172a 0%, #1e1b4b 55%, #312e81 100%);
+    }
+
+    .qa-retraining-ui .qa-card {
+        background: var(--qa-card);
+        border: 1px solid var(--qa-border);
+        border-radius: 16px;
+        box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+    }
+
+    .qa-retraining-ui input,
+    .qa-retraining-ui select,
+    .qa-retraining-ui textarea {
+        border-radius: 10px !important;
+        border-color: #cbd5e1 !important;
+        background-color: #fff !important;
+        font-size: 0.92rem !important;
+    }
+
+    .qa-retraining-ui input:focus,
+    .qa-retraining-ui select:focus,
+    .qa-retraining-ui textarea:focus {
+        border-color: #6366f1 !important;
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.18) !important;
+        outline: none !important;
+    }
+
+    .qa-retraining-ui .qa-chip {
+        display: inline-flex;
+        align-items: center;
+        border-radius: 9999px;
+        padding: 0.3rem 0.7rem;
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+    }
+</style>
+
+<div class="flex h-screen overflow-hidden bg-slate-100">
     <?php require __DIR__ . '/../layouts/sidebar.php'; ?>
 
-    <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50">
-        <header class="bg-white border-b border-gray-200">
-            <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 flex items-center justify-between">
+    <main class="flex-1 overflow-x-hidden overflow-y-auto qa-retraining-ui" style="background: var(--qa-bg);">
+        <header class="qa-hero text-white border-b border-slate-800/40">
+            <div class="max-w-7xl mx-auto py-7 px-4 sm:px-6 lg:px-8 flex items-center justify-between">
                 <div>
-                    <h1 class="text-2xl font-bold text-gray-900">Sistema de Reentrenamiento QA</h1>
-                    <p class="mt-1 text-sm text-gray-500">Quiz por modulo, simulaciones obligatorias y examen final con minimo de aprobacion</p>
+                    <h1 class="text-3xl font-bold">Sistema de Reentrenamiento QA</h1>
+                    <p class="mt-2 text-sm text-indigo-100">Quiz por modulo, simulaciones obligatorias y examen final con minimo de aprobacion</p>
+                    <div class="mt-3 flex flex-wrap gap-2">
+                        <span class="qa-chip bg-indigo-100 text-indigo-800">Secuencial</span>
+                        <span class="qa-chip bg-emerald-100 text-emerald-800">Controlado por rol</span>
+                        <span class="qa-chip bg-amber-100 text-amber-800">Refuerzo obligatorio</span>
+                    </div>
                 </div>
-                <a href="<?php echo \App\Config\Config::BASE_URL; ?>training" class="text-sm text-gray-500 hover:text-gray-700">Volver a Entrenamiento</a>
+                <a href="<?php echo \App\Config\Config::BASE_URL; ?>training" class="text-sm font-semibold text-indigo-100 hover:text-white">Volver a Entrenamiento</a>
             </div>
         </header>
 
-        <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 space-y-6">
+        <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 space-y-6 qa-retraining-ui">
             <?php if (!empty($_GET['success'])): ?>
                 <div class="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg"><?php echo htmlspecialchars($_GET['success']); ?></div>
             <?php elseif (!empty($_GET['error'])): ?>
@@ -53,7 +109,7 @@
                         $simulationsCompleted = $totalSims > 0 && $completedSims >= $totalSims;
                         $finalExamPassed = !empty($finalExam) && (($finalExam['status'] ?? 'pending') === 'passed');
                         ?>
-                        <div class="bg-white shadow-sm rounded-xl border border-gray-200 p-6 space-y-5">
+                        <div class="qa-card p-6 space-y-5">
                             <div class="flex items-start justify-between gap-4">
                                 <div>
                                     <h2 class="text-lg font-semibold text-gray-900"><?php echo htmlspecialchars($retraining['campaign_name'] ?? 'Campana'); ?></h2>
@@ -67,7 +123,7 @@
                                 <?php endif; ?>
                             </div>
 
-                            <div class="border border-gray-200 rounded-lg p-4">
+                            <div class="rounded-xl border border-slate-200 p-4 bg-slate-50/40">
                                 <p class="text-sm font-semibold text-gray-900">1) Quiz por modulo</p>
                                 <p class="text-xs text-gray-500">Debes aprobar cada modulo para desbloquear el siguiente.</p>
                                 <div class="mt-3 space-y-3">
@@ -91,7 +147,7 @@
                                             }
                                         }
                                         ?>
-                                        <div class="border border-gray-200 rounded-lg p-3 <?php echo $blocked ? 'opacity-60' : ''; ?>">
+                                        <div class="rounded-lg border border-slate-200 bg-white p-3 <?php echo $blocked ? 'opacity-60' : ''; ?>">
                                             <p class="text-sm font-semibold text-gray-900"><?php echo htmlspecialchars($module['title']); ?></p>
                                             <p class="text-xs text-gray-500">Estado: <?php echo htmlspecialchars($status); ?> | Minimo: <?php echo number_format((float) $module['pass_score'], 0); ?>%</p>
                                             <?php if (!empty($module['lesson_text'])): ?>
@@ -115,12 +171,12 @@
                                 </div>
                             </div>
 
-                            <div class="border border-gray-200 rounded-lg p-4 <?php echo !$modulesCompleted ? 'opacity-60' : ''; ?>">
+                            <div class="rounded-xl border border-slate-200 p-4 bg-slate-50/40 <?php echo !$modulesCompleted ? 'opacity-60' : ''; ?>">
                                 <p class="text-sm font-semibold text-gray-900">2) Simulaciones obligatorias</p>
                                 <p class="text-xs text-gray-500">Cliente molesto, upselling y error operativo/proceso. Incluye checklist y feedback auto/manual.</p>
                                 <div class="mt-3 space-y-3">
                                     <?php foreach ($simulations as $sim): ?>
-                                        <div class="border border-gray-200 rounded-lg p-3">
+                                        <div class="rounded-lg border border-slate-200 bg-white p-3">
                                             <p class="text-sm font-semibold text-gray-900"><?php echo htmlspecialchars($sim['title']); ?></p>
                                             <p class="text-xs text-gray-500">Modo feedback: <?php echo htmlspecialchars($sim['feedback_mode']); ?> | Estado: <?php echo htmlspecialchars($sim['status']); ?> | Minimo: <?php echo number_format((float) ($sim['min_score'] ?? 80), 0); ?>%</p>
                                             <p class="text-sm text-gray-700 mt-2"><?php echo htmlspecialchars($sim['scenario_text'] ?? ''); ?></p>
@@ -148,7 +204,7 @@
                                 </div>
                             </div>
 
-                            <div class="border border-gray-200 rounded-lg p-4 <?php echo (!$modulesCompleted || !$simulationsCompleted) ? 'opacity-60' : ''; ?>">
+                            <div class="rounded-xl border border-slate-200 p-4 bg-slate-50/40 <?php echo (!$modulesCompleted || !$simulationsCompleted) ? 'opacity-60' : ''; ?>">
                                 <p class="text-sm font-semibold text-gray-900">3) Examen final obligatorio</p>
                                 <?php if (!empty($finalExam)): ?>
                                     <p class="text-xs text-gray-500">Estado: <?php echo htmlspecialchars($finalExam['status']); ?> | Minimo: <?php echo number_format((float) ($finalExam['min_score'] ?? 80), 0); ?>% <?php if (!empty($finalExam['score'])): ?>| Score: <?php echo number_format((float) $finalExam['score'], 1); ?>%<?php endif; ?></p>
@@ -172,7 +228,7 @@
                 </div>
             <?php else: ?>
                 <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
-                    <div class="bg-white shadow-sm rounded-xl border border-gray-200 p-6 xl:col-span-2">
+                    <div class="qa-card p-6 xl:col-span-2">
                         <h2 class="text-lg font-semibold text-gray-900">Crear Reentrenamiento QA</h2>
                         <p class="text-sm text-gray-500 mt-1">Incluye quiz por modulo, simulaciones obligatorias y examen final. Las simulaciones usan las plantillas configuradas por campana.</p>
                         <form method="post" action="<?php echo \App\Config\Config::BASE_URL; ?>training/retraining/create" class="mt-4 space-y-3">
@@ -245,7 +301,7 @@
                         </form>
                     </div>
 
-                    <div class="bg-white shadow-sm rounded-xl border border-gray-200 p-6">
+                    <div class="qa-card p-6">
                         <h2 class="text-lg font-semibold text-gray-900">Recordatorios</h2>
                         <form method="post" action="<?php echo \App\Config\Config::BASE_URL; ?>training/retraining/reminders" class="mt-3">
                             <button type="submit" class="w-full border border-indigo-600 text-indigo-700 hover:bg-indigo-50 font-semibold py-2 px-4 rounded-lg">Enviar recordatorios</button>
@@ -261,7 +317,7 @@
                     </div>
                 </div>
 
-                <div class="bg-white shadow-sm rounded-xl border border-gray-200 p-6">
+                <div class="qa-card p-6">
                     <h2 class="text-lg font-semibold text-gray-900">Plantillas de Simulacion (UI)</h2>
                     <p class="text-sm text-gray-500 mt-1">Administra checklist, escenarios, feedback y puntaje minimo por campana.</p>
                     <form method="post" action="<?php echo \App\Config\Config::BASE_URL; ?>training/retraining/templates/save" class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-3">
@@ -316,7 +372,7 @@
                     <div class="mt-5 space-y-2">
                         <?php foreach (($simulationTemplates ?? []) as $tpl): ?>
                             <?php $tplChecklist = json_decode((string) ($tpl['checklist_json'] ?? '[]'), true); if (!is_array($tplChecklist)) { $tplChecklist = []; } ?>
-                            <div class="border border-gray-200 rounded-lg p-3">
+                            <div class="rounded-lg border border-slate-200 p-3 bg-slate-50/40">
                                 <div class="flex items-center justify-between gap-2">
                                     <div>
                                         <p class="text-sm font-semibold text-gray-900"><?php echo htmlspecialchars($tpl['title']); ?></p>
@@ -366,7 +422,7 @@
                     </div>
                 </div>
 
-                <div class="bg-white shadow-sm rounded-xl border border-gray-200 p-6">
+                <div class="qa-card p-6">
                     <h2 class="text-lg font-semibold text-gray-900">Seguimiento y evaluacion</h2>
                     <div class="mt-4 space-y-3">
                         <?php foreach (($retrainings ?? []) as $retraining): ?>
@@ -374,7 +430,7 @@
                             $simulations = $retraining['simulations'] ?? [];
                             $finalExam = $retraining['final_exam'] ?? null;
                             ?>
-                            <div class="border border-gray-200 rounded-lg p-4 space-y-3">
+                            <div class="rounded-lg border border-slate-200 p-4 space-y-3 bg-slate-50/40">
                                 <div class="flex items-center justify-between gap-4">
                                     <div>
                                         <p class="text-sm font-semibold text-gray-900"><?php echo htmlspecialchars($retraining['agent_name'] ?? 'Agente'); ?> - <?php echo htmlspecialchars($retraining['campaign_name'] ?? 'Campana'); ?></p>
@@ -390,7 +446,7 @@
                                 </div>
 
                                 <?php foreach ($simulations as $sim): ?>
-                                    <div class="bg-gray-50 border border-gray-200 rounded-lg p-3">
+                                    <div class="bg-white border border-slate-200 rounded-lg p-3">
                                         <p class="text-xs font-semibold text-gray-800"><?php echo htmlspecialchars($sim['title']); ?> | Estado: <?php echo htmlspecialchars($sim['status']); ?> | Modo: <?php echo htmlspecialchars($sim['feedback_mode']); ?></p>
                                         <?php if (($sim['status'] ?? '') === 'pending_review' || (($sim['feedback_mode'] ?? '') === 'manual' && in_array(($sim['status'] ?? ''), ['pending', 'failed'], true))): ?>
                                             <form method="post" action="<?php echo \App\Config\Config::BASE_URL; ?>training/retraining/simulation/review" class="mt-2 grid grid-cols-1 md:grid-cols-3 gap-2">
