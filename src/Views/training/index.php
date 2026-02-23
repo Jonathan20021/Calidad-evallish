@@ -22,6 +22,13 @@
                 </div>
             <?php endif; ?>
 
+            <div class="flex justify-end">
+                <a href="<?php echo \App\Config\Config::BASE_URL; ?>training/retraining"
+                    class="inline-flex items-center bg-slate-900 hover:bg-slate-800 text-white font-semibold py-2 px-4 rounded-lg text-sm">
+                    Sistema de Reentrenamiento QA
+                </a>
+            </div>
+
             <?php if (($role ?? '') === 'agent'): ?>
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     <div class="bg-white shadow-sm rounded-xl border border-gray-200 p-6">

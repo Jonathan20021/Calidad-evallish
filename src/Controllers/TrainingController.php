@@ -20,6 +20,10 @@ use App\Models\TrainingRubricItem;
 use App\Models\TrainingNotification;
 use App\Models\TrainingScript;
 use App\Models\User;
+use App\Models\QaRetraining;
+use App\Models\QaRetrainingModule;
+use App\Models\QaRetrainingProgress;
+use App\Services\EmailService;
 use App\Services\GeminiService;
 
 class TrainingController
@@ -1036,6 +1040,442 @@ class TrainingController
         ]);
 
         header('Location: ' . Config::BASE_URL . 'training/exams/view?exam_id=' . $examId);
+    }
+
+    public function retrainingIndex()
+    {
+        Auth::requirePermission('training.view');
+
+        $role = Auth::user()['role'] ?? '';
+        $userId = (int) (Auth::user()['id'] ?? 0);
+
+        $retrainingModel = new QaRetraining();
+        $moduleModel = new QaRetrainingModule();
+        $progressModel = new QaRetrainingProgress();
+
+        if ($role === 'agent') {
+            $retrainings = $retrainingModel->getByAgentId($userId, 30);
+            foreach ($retrainings as &$retraining) {
+                $modules = $moduleModel->getByRetrainingId((int) $retraining['id']);
+                $progress = $progressModel->getByRetrainingAndAgent((int) $retraining['id'], $userId);
+                $retraining['modules'] = $modules;
+                $retraining['progress_map'] = $progress;
+            }
+            unset($retraining);
+
+            require __DIR__ . '/../Views/training/retraining.php';
+            return;
+        }
+
+        $campaignModel = new Campaign();
+        $userModel = new User();
+        $evaluationModel = new Evaluation();
+
+        $retrainings = $retrainingModel->getRecent(60);
+        foreach ($retrainings as &$retraining) {
+            $modules = $moduleModel->getByRetrainingId((int) $retraining['id']);
+            $progress = $progressModel->getByRetrainingAndAgent((int) $retraining['id'], (int) $retraining['agent_id']);
+            $retraining['modules'] = $modules;
+            $retraining['progress_map'] = $progress;
+        }
+        unset($retraining);
+
+        $agents = $userModel->getByRole('agent');
+        $supervisors = $userModel->getByRole('qa');
+        $campaigns = $campaignModel->getActive();
+        $pendingReminders = $retrainingModel->getPendingReminders(date('Y-m-d'));
+        $recentEvaluations = $evaluationModel->getAll(20);
+
+        require __DIR__ . '/../Views/training/retraining.php';
+    }
+
+    public function createRetraining()
+    {
+        Auth::requirePermission('training.manage');
+
+        if (!$this->isSupervisorOrAdmin()) {
+            http_response_code(403);
+            echo 'Access denied';
+            return;
+        }
+
+        $campaignId = (int) ($_POST['campaign_id'] ?? 0);
+        $agentId = (int) ($_POST['agent_id'] ?? 0);
+        $evaluationId = !empty($_POST['evaluation_id']) ? (int) $_POST['evaluation_id'] : null;
+        $supervisorId = !empty($_POST['supervisor_id']) ? (int) $_POST['supervisor_id'] : null;
+        $dueDate = trim($_POST['due_date'] ?? '');
+        $notes = trim($_POST['notes'] ?? '');
+        $errorsRaw = trim($_POST['detected_errors'] ?? '');
+
+        if ($campaignId <= 0 || $agentId <= 0 || $errorsRaw === '') {
+            $this->redirectWithMessage('training/retraining', 'error', 'Campana, agente y errores detectados son obligatorios.');
+            return;
+        }
+
+        $retrainingModel = new QaRetraining();
+        $existing = $retrainingModel->findActiveByCampaignAndAgent($campaignId, $agentId);
+        if ($existing) {
+            $this->redirectWithMessage('training/retraining', 'error', 'Ya existe un reentrenamiento activo para esa campana y agente.');
+            return;
+        }
+
+        $errors = preg_split('/\r\n|\r|\n/', $errorsRaw);
+        $errors = array_values(array_filter(array_map('trim', $errors), static function ($line) {
+            return $line !== '';
+        }));
+
+        if (empty($errors)) {
+            $this->redirectWithMessage('training/retraining', 'error', 'Debes indicar al menos un error detectado.');
+            return;
+        }
+
+        $retrainingModel->create([
+            'campaign_id' => $campaignId,
+            'agent_id' => $agentId,
+            'evaluation_id' => $evaluationId,
+            'created_by' => (int) Auth::user()['id'],
+            'supervisor_id' => $supervisorId ?: (int) Auth::user()['id'],
+            'status' => 'assigned',
+            'due_date' => $dueDate !== '' ? $dueDate : null,
+            'notes' => $notes !== '' ? $notes : null
+        ]);
+
+        $retrainingId = $retrainingModel->getLastInsertId();
+        $moduleModel = new QaRetrainingModule();
+        $order = 1;
+        foreach ($errors as $error) {
+            $moduleModel->create([
+                'retraining_id' => $retrainingId,
+                'title' => 'Modulo ' . $order . ': ' . $error,
+                'lesson_text' => "Error detectado: {$error}\n\nObjetivo: corregir esta desviacion en la campana.",
+                'detected_error' => $error,
+                'sequence_order' => $order,
+                'pass_score' => 80,
+                'quiz_question' => 'Explica como corregirias este error en una llamada real.',
+                'quiz_type' => 'text',
+                'correct_answer' => $error
+            ]);
+            $order++;
+        }
+
+        $this->createTrainingNotification('retraining_assigned', $agentId, $supervisorId ?: (int) Auth::user()['id'], [
+            'retraining_id' => $retrainingId
+        ]);
+
+        $this->redirectWithMessage('training/retraining', 'success', 'Reentrenamiento creado con modulos por error detectado.');
+    }
+
+    public function startRetraining()
+    {
+        Auth::requirePermission('training.view');
+
+        $retrainingId = (int) ($_POST['retraining_id'] ?? 0);
+        if ($retrainingId <= 0) {
+            $this->redirectWithMessage('training/retraining', 'error', 'Reentrenamiento no encontrado.');
+            return;
+        }
+
+        $retrainingModel = new QaRetraining();
+        $retraining = $retrainingModel->findById($retrainingId);
+        if (!$retraining) {
+            $this->redirectWithMessage('training/retraining', 'error', 'Reentrenamiento no encontrado.');
+            return;
+        }
+
+        if ((Auth::user()['role'] ?? '') === 'agent' && (int) $retraining['agent_id'] !== (int) Auth::user()['id']) {
+            http_response_code(403);
+            echo 'Access denied';
+            return;
+        }
+
+        if ($retraining['status'] === 'assigned') {
+            $retrainingModel->update($retrainingId, ['status' => 'in_progress']);
+        }
+
+        header('Location: ' . Config::BASE_URL . 'training/retraining');
+    }
+
+    public function submitRetrainingModule()
+    {
+        Auth::requirePermission('training.view');
+
+        $retrainingId = (int) ($_POST['retraining_id'] ?? 0);
+        $moduleId = (int) ($_POST['module_id'] ?? 0);
+        $answerText = trim($_POST['answer_text'] ?? '');
+
+        if ($retrainingId <= 0 || $moduleId <= 0) {
+            $this->redirectWithMessage('training/retraining', 'error', 'Modulo no valido.');
+            return;
+        }
+
+        $retrainingModel = new QaRetraining();
+        $moduleModel = new QaRetrainingModule();
+        $progressModel = new QaRetrainingProgress();
+
+        $retraining = $retrainingModel->findById($retrainingId);
+        $module = $moduleModel->findById($moduleId);
+
+        if (!$retraining || !$module || (int) $module['retraining_id'] !== $retrainingId) {
+            $this->redirectWithMessage('training/retraining', 'error', 'Reentrenamiento o modulo no encontrado.');
+            return;
+        }
+
+        $role = Auth::user()['role'] ?? '';
+        $agentId = (int) $retraining['agent_id'];
+        if ($role === 'agent' && $agentId !== (int) Auth::user()['id']) {
+            http_response_code(403);
+            echo 'Access denied';
+            return;
+        }
+
+        if ($retraining['status'] === 'failed' || $retraining['status'] === 'active_in_production') {
+            $this->redirectWithMessage('training/retraining', 'error', 'Este reentrenamiento ya no admite respuestas.');
+            return;
+        }
+
+        $allModules = $moduleModel->getByRetrainingId($retrainingId);
+        $progressMap = $progressModel->getByRetrainingAndAgent($retrainingId, $agentId);
+
+        foreach ($allModules as $item) {
+            if ((int) $item['sequence_order'] >= (int) $module['sequence_order']) {
+                break;
+            }
+            if ((int) $item['is_required'] === 1) {
+                $prevProgress = $progressMap[(int) $item['id']] ?? null;
+                if (!$prevProgress || $prevProgress['status'] !== 'completed') {
+                    $this->redirectWithMessage('training/retraining', 'error', 'Debes completar las lecciones previas antes de avanzar.');
+                    return;
+                }
+            }
+        }
+
+        $existingProgress = $progressMap[$moduleId] ?? null;
+        $attempts = (int) ($existingProgress['attempts'] ?? 0) + 1;
+        $score = $this->gradeRetrainingAnswer($module, $answerText);
+        $passed = $score >= (float) ($module['pass_score'] ?? 80);
+
+        $progressModel->upsert([
+            'module_id' => $moduleId,
+            'retraining_id' => $retrainingId,
+            'agent_id' => $agentId,
+            'status' => $passed ? 'completed' : 'failed',
+            'score' => $score,
+            'answer_text' => $answerText !== '' ? $answerText : null,
+            'attempts' => $attempts,
+            'completed_at' => $passed ? date('Y-m-d H:i:s') : null
+        ]);
+
+        if (!$passed) {
+            $this->handleRetrainingFailure($retraining, $module);
+            $this->redirectWithMessage('training/retraining', 'error', 'Modulo reprobado. Se asigno refuerzo obligatorio.');
+            return;
+        }
+
+        $requiredCount = $moduleModel->getRequiredCountByRetrainingId($retrainingId);
+        $completedCount = $progressModel->getCompletedRequiredCount($retrainingId, $agentId);
+        $progressPercent = $requiredCount > 0 ? round(($completedCount / $requiredCount) * 100, 2) : 0.0;
+
+        $retrainingModel->update($retrainingId, [
+            'status' => 'in_progress',
+            'progress_percent' => $progressPercent
+        ]);
+
+        if ($requiredCount > 0 && $completedCount >= $requiredCount) {
+            $retrainingModel->update($retrainingId, [
+                'status' => 'approved',
+                'progress_percent' => 100
+            ]);
+
+            $this->createTrainingNotification('retraining_completed_for_approval', (int) $retraining['agent_id'], (int) $retraining['supervisor_id'], [
+                'retraining_id' => $retrainingId
+            ]);
+        }
+
+        $this->redirectWithMessage('training/retraining', 'success', 'Modulo completado.');
+    }
+
+    public function approveRetraining()
+    {
+        Auth::requirePermission('training.manage');
+
+        if (!$this->isSupervisorOrAdmin()) {
+            http_response_code(403);
+            echo 'Access denied';
+            return;
+        }
+
+        $retrainingId = (int) ($_POST['retraining_id'] ?? 0);
+        if ($retrainingId <= 0) {
+            $this->redirectWithMessage('training/retraining', 'error', 'Reentrenamiento no encontrado.');
+            return;
+        }
+
+        $retrainingModel = new QaRetraining();
+        $retraining = $retrainingModel->findById($retrainingId);
+        if (!$retraining) {
+            $this->redirectWithMessage('training/retraining', 'error', 'Reentrenamiento no encontrado.');
+            return;
+        }
+
+        if (!in_array($retraining['status'], ['approved', 'in_progress'], true)) {
+            $this->redirectWithMessage('training/retraining', 'error', 'El reentrenamiento no esta en estado aprobable.');
+            return;
+        }
+
+        $retrainingModel->update($retrainingId, [
+            'status' => 'active_in_production',
+            'approved_by' => (int) Auth::user()['id'],
+            'approved_at' => date('Y-m-d H:i:s'),
+            'activation_at' => date('Y-m-d H:i:s'),
+            'progress_percent' => 100
+        ]);
+
+        $this->createTrainingNotification('retraining_activated_in_production', (int) $retraining['agent_id'], (int) Auth::user()['id'], [
+            'retraining_id' => $retrainingId
+        ]);
+
+        $this->redirectWithMessage('training/retraining', 'success', 'Reentrenamiento aprobado y activado a produccion.');
+    }
+
+    public function sendRetrainingReminders()
+    {
+        Auth::requirePermission('training.manage');
+
+        if (!$this->isSupervisorOrAdmin()) {
+            http_response_code(403);
+            echo 'Access denied';
+            return;
+        }
+
+        $retrainingModel = new QaRetraining();
+        $pending = $retrainingModel->getPendingReminders(date('Y-m-d'));
+
+        if (empty($pending)) {
+            $this->redirectWithMessage('training/retraining', 'success', 'No hay reentrenamientos pendientes para recordar.');
+            return;
+        }
+
+        $userModel = new User();
+        $emailService = new EmailService();
+        $sentCount = 0;
+
+        foreach ($pending as $retraining) {
+            $agent = $userModel->findById((int) $retraining['agent_id']);
+            $supervisor = !empty($retraining['supervisor_id']) ? $userModel->findById((int) $retraining['supervisor_id']) : null;
+
+            $subject = 'Recordatorio: Reentrenamiento QA pendiente';
+            $html = '<p>Tienes un reentrenamiento pendiente de completar.</p>'
+                . '<p><strong>Campana:</strong> ' . htmlspecialchars((string) ($retraining['campaign_name'] ?? 'N/A')) . '</p>'
+                . '<p><strong>Estado:</strong> ' . htmlspecialchars((string) $retraining['status']) . '</p>';
+
+            if ($agent && filter_var($agent['username'], FILTER_VALIDATE_EMAIL)) {
+                if ($emailService->send($agent['username'], $subject, $html)) {
+                    $sentCount++;
+                }
+            }
+            if ($supervisor && filter_var($supervisor['username'], FILTER_VALIDATE_EMAIL)) {
+                $emailService->send($supervisor['username'], 'Alerta supervisor: agente con reentrenamiento pendiente', $html);
+            }
+
+            $this->createTrainingNotification('retraining_reminder', (int) $retraining['agent_id'], (int) ($retraining['supervisor_id'] ?? 0), [
+                'retraining_id' => (int) $retraining['id']
+            ]);
+            $retrainingModel->incrementReminderCount((int) $retraining['id']);
+        }
+
+        $this->redirectWithMessage('training/retraining', 'success', 'Recordatorios procesados: ' . $sentCount);
+    }
+
+    private function handleRetrainingFailure(array $retraining, array $failedModule): void
+    {
+        $retrainingModel = new QaRetraining();
+        $moduleModel = new QaRetrainingModule();
+
+        $currentFailCount = (int) ($retraining['fail_count'] ?? 0);
+        $retrainingModel->update((int) $retraining['id'], [
+            'status' => 'failed',
+            'reinforcement_required' => 1,
+            'fail_count' => $currentFailCount + 1
+        ]);
+
+        $retrainingModel->create([
+            'campaign_id' => (int) $retraining['campaign_id'],
+            'agent_id' => (int) $retraining['agent_id'],
+            'evaluation_id' => !empty($retraining['evaluation_id']) ? (int) $retraining['evaluation_id'] : null,
+            'created_by' => (int) Auth::user()['id'],
+            'supervisor_id' => !empty($retraining['supervisor_id']) ? (int) $retraining['supervisor_id'] : null,
+            'status' => 'assigned',
+            'due_date' => !empty($retraining['due_date']) ? $retraining['due_date'] : null,
+            'reinforcement_required' => 1,
+            'notes' => 'Refuerzo obligatorio por reprobacion del modulo: ' . ($failedModule['title'] ?? 'N/A')
+        ]);
+        $newRetrainingId = $retrainingModel->getLastInsertId();
+
+        $moduleModel->create([
+            'retraining_id' => $newRetrainingId,
+            'title' => 'Refuerzo obligatorio: ' . ($failedModule['title'] ?? 'Modulo'),
+            'lesson_text' => "Se detecto reprobacion previa.\n\nRepasa el error y describe como evitarlo en produccion.",
+            'detected_error' => $failedModule['detected_error'] ?? $failedModule['title'],
+            'sequence_order' => 1,
+            'pass_score' => (float) ($failedModule['pass_score'] ?? 80),
+            'quiz_question' => $failedModule['quiz_question'] ?? 'Describe la correccion esperada.',
+            'quiz_type' => $failedModule['quiz_type'] ?? 'text',
+            'options_json' => $failedModule['options_json'] ?? null,
+            'correct_answer' => $failedModule['correct_answer'] ?? null,
+            'is_required' => 1
+        ]);
+
+        $this->createTrainingNotification('retraining_failed', (int) $retraining['agent_id'], (int) ($retraining['supervisor_id'] ?? 0), [
+            'retraining_id' => (int) $retraining['id'],
+            'new_retraining_id' => $newRetrainingId,
+            'failed_module_id' => (int) ($failedModule['id'] ?? 0)
+        ]);
+    }
+
+    private function gradeRetrainingAnswer(array $module, string $answerText): float
+    {
+        $quizType = $module['quiz_type'] ?? 'text';
+        $correctAnswer = trim((string) ($module['correct_answer'] ?? ''));
+
+        if ($quizType === 'mcq') {
+            if ($correctAnswer === '') {
+                return 100.0;
+            }
+            return strcasecmp($correctAnswer, trim($answerText)) === 0 ? 100.0 : 0.0;
+        }
+
+        if ($correctAnswer === '') {
+            return $answerText !== '' ? 100.0 : 0.0;
+        }
+
+        $normalizedAnswer = strtolower(trim($answerText));
+        $normalizedExpected = strtolower($correctAnswer);
+
+        if ($normalizedAnswer === '') {
+            return 0.0;
+        }
+        if (strpos($normalizedAnswer, $normalizedExpected) !== false) {
+            return 100.0;
+        }
+
+        return 50.0;
+    }
+
+    private function createTrainingNotification(string $type, int $agentId, int $qaId, array $payload = []): void
+    {
+        $notification = new TrainingNotification();
+        $notification->create([
+            'type' => $type,
+            'agent_id' => $agentId > 0 ? $agentId : null,
+            'qa_id' => $qaId > 0 ? $qaId : null,
+            'payload_json' => !empty($payload) ? json_encode($payload, JSON_UNESCAPED_UNICODE) : null
+        ]);
+    }
+
+    private function isSupervisorOrAdmin(): bool
+    {
+        $role = Auth::user()['role'] ?? '';
+        return in_array($role, ['qa', 'admin'], true);
     }
 
     private function buildRoleplayHistory(array $messages): string

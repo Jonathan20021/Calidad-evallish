@@ -407,6 +407,72 @@ CREATE TABLE IF NOT EXISTS training_exam_answers (
     FOREIGN KEY (question_id) REFERENCES training_exam_questions(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- QA retraining plans (one per campaign/agent while active)
+CREATE TABLE IF NOT EXISTS qa_retrainings (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    campaign_id INT NOT NULL,
+    agent_id INT NOT NULL,
+    evaluation_id INT NULL,
+    created_by INT NOT NULL,
+    supervisor_id INT NULL,
+    status ENUM('assigned', 'in_progress', 'approved', 'failed', 'active_in_production') NOT NULL DEFAULT 'assigned',
+    progress_percent DECIMAL(5,2) DEFAULT 0.00,
+    due_date DATE NULL,
+    approved_by INT NULL,
+    approved_at DATETIME NULL,
+    activation_at DATETIME NULL,
+    reminder_sent_at DATETIME NULL,
+    reminder_count INT NOT NULL DEFAULT 0,
+    reinforcement_required TINYINT(1) NOT NULL DEFAULT 0,
+    fail_count INT NOT NULL DEFAULT 0,
+    notes TEXT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (campaign_id) REFERENCES campaigns(id) ON DELETE CASCADE,
+    FOREIGN KEY (agent_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (evaluation_id) REFERENCES evaluations(id) ON DELETE SET NULL,
+    FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (supervisor_id) REFERENCES users(id) ON DELETE SET NULL,
+    FOREIGN KEY (approved_by) REFERENCES users(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- QA retraining modules (built from detected errors)
+CREATE TABLE IF NOT EXISTS qa_retraining_modules (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    retraining_id INT NOT NULL,
+    title VARCHAR(180) NOT NULL,
+    lesson_text TEXT NULL,
+    detected_error VARCHAR(255) NULL,
+    sequence_order INT NOT NULL DEFAULT 1,
+    pass_score DECIMAL(5,2) NOT NULL DEFAULT 80.00,
+    quiz_question TEXT NULL,
+    quiz_type ENUM('text', 'mcq') NOT NULL DEFAULT 'text',
+    options_json TEXT NULL,
+    correct_answer TEXT NULL,
+    is_required TINYINT(1) NOT NULL DEFAULT 1,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (retraining_id) REFERENCES qa_retrainings(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- QA retraining progress per module and agent
+CREATE TABLE IF NOT EXISTS qa_retraining_progress (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    module_id INT NOT NULL,
+    retraining_id INT NOT NULL,
+    agent_id INT NOT NULL,
+    status ENUM('pending', 'completed', 'failed') NOT NULL DEFAULT 'pending',
+    score DECIMAL(5,2) NULL,
+    answer_text TEXT NULL,
+    attempts INT NOT NULL DEFAULT 0,
+    completed_at DATETIME NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE KEY uniq_retraining_module_agent (module_id, agent_id),
+    FOREIGN KEY (module_id) REFERENCES qa_retraining_modules(id) ON DELETE CASCADE,
+    FOREIGN KEY (retraining_id) REFERENCES qa_retrainings(id) ON DELETE CASCADE,
+    FOREIGN KEY (agent_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- Insert default admin user (password: admin123)
 INSERT INTO users (username, password_hash, full_name, role) VALUES 
 ('admin', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Administrator', 'admin');
@@ -416,4 +482,3 @@ INSERT INTO campaigns (name, description) VALUES
 ('Ventas Inbound', 'Campaña de ventas entrantes'),
 ('Soporte Técnico', 'Campaña de soporte al cliente'),
 ('Retención', 'Campaña de retención de clientes');
-

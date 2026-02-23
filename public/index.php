@@ -150,5 +150,11 @@ $router->post('/training/exams/public/enable', [TrainingController::class, 'enab
 $router->post('/training/exams/public/disable', [TrainingController::class, 'disablePublicExam']);
 $router->get('/training/exams/public', [TrainingController::class, 'publicExam']);
 $router->post('/training/exams/public/submit', [TrainingController::class, 'submitPublicExam']);
+$router->get('/training/retraining', [TrainingController::class, 'retrainingIndex']);
+$router->post('/training/retraining/create', [TrainingController::class, 'createRetraining']);
+$router->post('/training/retraining/start', [TrainingController::class, 'startRetraining']);
+$router->post('/training/retraining/module/submit', [TrainingController::class, 'submitRetrainingModule']);
+$router->post('/training/retraining/approve', [TrainingController::class, 'approveRetraining']);
+$router->post('/training/retraining/reminders', [TrainingController::class, 'sendRetrainingReminders']);
 
 $router->resolve();
