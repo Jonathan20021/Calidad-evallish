@@ -41,7 +41,8 @@ class Auth
 
         self::syncPoncheUsersIfNeeded();
 
-        if ((self::user()['role'] ?? '') === 'client') {
+        $role = strtolower(trim((string) (self::user()['role'] ?? '')));
+        if ($role === 'client') {
             header('Location: ' . \App\Config\Config::BASE_URL . 'client-portal');
             exit;
         }
@@ -59,8 +60,8 @@ class Auth
     public static function hasPermission(string $permission): bool
     {
         $user = self::user();
-        $role = $user['role'] ?? '';
-        $source = $user['source'] ?? 'quality';
+        $role = strtolower(trim((string) ($user['role'] ?? '')));
+        $source = strtolower(trim((string) ($user['source'] ?? 'quality')));
         $userId = (int) ($user['id'] ?? 0);
 
         if ($role === 'admin') {

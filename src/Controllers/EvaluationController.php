@@ -35,19 +35,23 @@ class EvaluationController
         }
 
         $user = Auth::user();
-        if ($user['role'] === 'admin') {
+        $role = strtolower(trim((string) ($user['role'] ?? '')));
+
+        if ($role === 'admin') {
             return true;
         }
 
-        if ($user['role'] === 'qa' && (int) $evaluation['qa_id'] === (int) $user['id']) {
+        if ($role === 'qa' && (int) $evaluation['qa_id'] === (int) $user['id']) {
             return true;
         }
 
-        if ($user['role'] === 'agent' && (int) $evaluation['agent_id'] === (int) $user['id']) {
+        if ($role === 'agent' && (int) $evaluation['agent_id'] === (int) $user['id']) {
             return true;
         }
 
-        return false;
+        // Non-agent users with explicit evaluations permission (e.g. ponche supervisors)
+        // can access evaluation details.
+        return Auth::hasPermission('evaluations.view');
     }
 
     public function show()
@@ -144,7 +148,8 @@ class EvaluationController
 
         $user = Auth::user();
         $evaluationModel = new Evaluation();
-        $evaluations = $evaluationModel->getAll(50, $user['id'], $user['role']);
+        $role = strtolower(trim((string) ($user['role'] ?? '')));
+        $evaluations = $evaluationModel->getAll(50, $user['id'], $role);
 
         require __DIR__ . '/../Views/evaluations/index.php';
     }
