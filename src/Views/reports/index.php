@@ -78,15 +78,15 @@ $filterQuery = $selectedCampaignId > 0 ? ('?campaign_id=' . $selectedCampaignId)
                         class="grid gap-3 sm:grid-cols-[1fr_auto_auto] sm:items-end w-full lg:max-w-3xl">
                         <div>
                             <label for="campaign_id" class="block text-xs font-semibold uppercase tracking-widest text-gray-500">
-                                CampaÃ±a
+                                Campa&ntilde;a
                             </label>
                             <select id="campaign_id" name="campaign_id"
                                 class="mt-2 w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200">
-                                <option value="0">Todas las campaÃ±as</option>
+                                <option value="0">Todas las campa&ntilde;as</option>
                                 <?php foreach (($campaigns ?? []) as $campaign): ?>
                                     <?php $campaignId = (int) ($campaign['id'] ?? 0); ?>
                                     <option value="<?php echo $campaignId; ?>" <?php echo $campaignId === $selectedCampaignId ? 'selected' : ''; ?>>
-                                        <?php echo htmlspecialchars($campaign['name'] ?? ('CampaÃ±a #' . $campaignId)); ?>
+                                        <?php echo htmlspecialchars($campaign['name'] ?? ('Campana #' . $campaignId)); ?>
                                     </option>
                                 <?php endforeach; ?>
                             </select>
@@ -102,9 +102,9 @@ $filterQuery = $selectedCampaignId > 0 ? ('?campaign_id=' . $selectedCampaignId)
                     </form>
                     <div class="text-sm text-gray-500">
                         <?php if ($selectedCampaignId > 0): ?>
-                            Filtro activo: <span class="font-semibold text-indigo-600"><?php echo htmlspecialchars($selectedCampaignName ?: ('CampaÃ±a #' . $selectedCampaignId)); ?></span>
+                            Filtro activo: <span class="font-semibold text-indigo-600"><?php echo htmlspecialchars($selectedCampaignName ?: ('Campana #' . $selectedCampaignId)); ?></span>
                         <?php else: ?>
-                            Mostrando datos globales (todas las campaÃ±as)
+                            Mostrando datos globales (todas las campa&ntilde;as)
                         <?php endif; ?>
                     </div>
                 </div>
