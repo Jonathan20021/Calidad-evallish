@@ -38,7 +38,33 @@ class Config
         self::$GEMINI_TIMEOUT = (int)self::getEnv('GEMINI_TIMEOUT', '60');
 
         date_default_timezone_set(self::$TIMEZONE);
+        self::configureSession();
         session_start();
+    }
+
+    private static function configureSession(): void
+    {
+        // 10 years by default to avoid automatic expiration in long-running usage.
+        $lifetime = (int) self::getEnv('SESSION_LIFETIME_SECONDS', '315360000');
+        if ($lifetime < 0) {
+            $lifetime = 315360000;
+        }
+
+        ini_set('session.gc_maxlifetime', (string) $lifetime);
+        ini_set('session.cookie_lifetime', (string) $lifetime);
+        ini_set('session.use_only_cookies', '1');
+        ini_set('session.cookie_httponly', '1');
+
+        $isHttps = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+            || ((int) ($_SERVER['SERVER_PORT'] ?? 80) === 443);
+
+        session_set_cookie_params([
+            'lifetime' => $lifetime,
+            'path' => '/',
+            'secure' => $isHttps,
+            'httponly' => true,
+            'samesite' => 'Lax',
+        ]);
     }
 
     private static function loadEnv()
