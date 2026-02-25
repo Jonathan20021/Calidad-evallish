@@ -72,6 +72,9 @@ class EvaluationController
 
         if ($evaluation) {
             $evaluation['call_duration_formatted'] = $this->formatDuration($evaluation['call_duration'] ?? null);
+            if (!empty($evaluation['call_recording_path'])) {
+                $evaluation['call_recording_url'] = \App\Config\Config::BASE_URL . ltrim($evaluation['call_recording_path'], '/');
+            }
             if (!empty($evaluation['feedback_evidence_path'])) {
                 $evaluation['feedback_evidence_url'] = \App\Config\Config::BASE_URL . ltrim($evaluation['feedback_evidence_path'], '/');
             }
@@ -903,4 +906,3 @@ class EvaluationController
         header('Location: ' . \App\Config\Config::BASE_URL . 'evaluations?deleted=1');
     }
 }
-

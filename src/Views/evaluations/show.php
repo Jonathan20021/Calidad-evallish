@@ -130,6 +130,25 @@
                         </div>
                     </div>
                 <?php endif; ?>
+
+                <?php if (!empty($evaluation['call_recording_url'])): ?>
+                    <div class="px-8 py-6 bg-indigo-50 border-b border-indigo-100">
+                        <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                            <div>
+                                <p class="text-sm font-semibold text-indigo-900">Grabacion de la llamada</p>
+                                <p class="text-xs text-indigo-700">Escucha la llamada mientras revisas esta evaluacion.</p>
+                            </div>
+                            <a href="<?php echo htmlspecialchars($evaluation['call_recording_url']); ?>" target="_blank" rel="noopener"
+                                class="inline-flex items-center text-sm font-medium text-indigo-700 hover:text-indigo-900">
+                                Abrir audio
+                            </a>
+                        </div>
+                        <audio controls class="mt-3 w-full">
+                            <source src="<?php echo htmlspecialchars($evaluation['call_recording_url']); ?>">
+                            Tu navegador no soporta audio HTML5.
+                        </audio>
+                    </div>
+                <?php endif; ?>
             
             <?php if (!empty($evaluation['feedback_confirmed']) || !empty($evaluation['feedback_evidence_path']) || !empty($evaluation['feedback_evidence_note'])): ?>
                 <div class="bg-white shadow-lg rounded-2xl overflow-hidden mb-8">

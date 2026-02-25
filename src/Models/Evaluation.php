@@ -50,10 +50,12 @@ class Evaluation
         $stmt = $this->db->prepare("
             SELECT e.*, 
                    c.name as campaign_name,
-                   ft.title as form_title
+                   ft.title as form_title,
+                   call_ref.recording_path as call_recording_path
             FROM evaluations e
             JOIN campaigns c ON e.campaign_id = c.id
             JOIN form_templates ft ON e.form_template_id = ft.id
+            LEFT JOIN calls call_ref ON e.call_id = call_ref.id
             WHERE e.id = ? AND e.deleted_at IS NULL
         ");
         $stmt->execute([$id]);
