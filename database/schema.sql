@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS corporate_clients (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Users table
-CREATE TABLE IF NOT EXISTS users (
+CREATE TABLE IF NOT EXISTS users (g
     id INT AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(50) UNIQUE NOT NULL,
     password_hash VARCHAR(255) NOT NULL,

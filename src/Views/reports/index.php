@@ -36,6 +36,9 @@ $bucket80 = (int) ($scoreDistribution['bucket_80'] ?? 0);
 $bucket70 = (int) ($scoreDistribution['bucket_70'] ?? 0);
 $bucket0 = (int) ($scoreDistribution['bucket_0'] ?? 0);
 $distributionTotal = $bucket95 + $bucket90 + $bucket80 + $bucket70 + $bucket0;
+$selectedCampaignId = (int) ($selectedCampaignId ?? 0);
+$selectedCampaignName = $selectedCampaignName ?? null;
+$filterQuery = $selectedCampaignId > 0 ? ('?campaign_id=' . $selectedCampaignId) : '';
 ?>
 
 <div
@@ -54,7 +57,7 @@ $distributionTotal = $bucket95 + $bucket90 + $bucket80 + $bucket70 + $bucket0;
                         </p>
                     </div>
                     <div class="flex flex-wrap gap-3">
-                        <a href="<?php echo \App\Config\Config::BASE_URL; ?>reports/export-pdf"
+                        <a href="<?php echo \App\Config\Config::BASE_URL; ?>reports/export-pdf<?php echo $filterQuery; ?>"
                             class="inline-flex items-center gap-2 rounded-full bg-white/15 px-5 py-2 text-sm font-semibold text-white ring-1 ring-white/30 backdrop-blur transition hover:bg-white/25">
                             <span>Exportar PDF</span>
                             <span class="text-lg">↗</span>
@@ -69,6 +72,44 @@ $distributionTotal = $bucket95 + $bucket90 + $bucket80 + $bucket70 + $bucket0;
         </section>
 
         <section class="max-w-7xl mx-auto px-6 py-8 space-y-8">
+            <div class="rounded-2xl bg-white p-6 shadow-lg shadow-indigo-100 border border-indigo-100">
+                <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+                    <form method="GET" action="<?php echo \App\Config\Config::BASE_URL; ?>reports"
+                        class="grid gap-3 sm:grid-cols-[1fr_auto_auto] sm:items-end w-full lg:max-w-3xl">
+                        <div>
+                            <label for="campaign_id" class="block text-xs font-semibold uppercase tracking-widest text-gray-500">
+                                CampaÃ±a
+                            </label>
+                            <select id="campaign_id" name="campaign_id"
+                                class="mt-2 w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200">
+                                <option value="0">Todas las campaÃ±as</option>
+                                <?php foreach (($campaigns ?? []) as $campaign): ?>
+                                    <?php $campaignId = (int) ($campaign['id'] ?? 0); ?>
+                                    <option value="<?php echo $campaignId; ?>" <?php echo $campaignId === $selectedCampaignId ? 'selected' : ''; ?>>
+                                        <?php echo htmlspecialchars($campaign['name'] ?? ('CampaÃ±a #' . $campaignId)); ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <button type="submit"
+                            class="inline-flex items-center justify-center rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-700">
+                            Aplicar filtros
+                        </button>
+                        <a href="<?php echo \App\Config\Config::BASE_URL; ?>reports"
+                            class="inline-flex items-center justify-center rounded-xl border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-50">
+                            Limpiar
+                        </a>
+                    </form>
+                    <div class="text-sm text-gray-500">
+                        <?php if ($selectedCampaignId > 0): ?>
+                            Filtro activo: <span class="font-semibold text-indigo-600"><?php echo htmlspecialchars($selectedCampaignName ?: ('CampaÃ±a #' . $selectedCampaignId)); ?></span>
+                        <?php else: ?>
+                            Mostrando datos globales (todas las campaÃ±as)
+                        <?php endif; ?>
+                    </div>
+                </div>
+            </div>
+
             <div class="grid gap-6 md:grid-cols-2 xl:grid-cols-5">
                 <div class="rounded-2xl bg-white p-6 shadow-lg shadow-indigo-100 border border-indigo-100">
                     <p class="text-xs uppercase tracking-[0.2em] text-gray-400">Evaluaciones</p>

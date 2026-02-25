@@ -5,6 +5,7 @@ namespace App\Controllers;
 use App\Helpers\Auth;
 use App\Config\Database;
 use App\Models\User;
+use App\Models\Campaign;
 use Dompdf\Dompdf;
 use Dompdf\Options;
 
@@ -17,9 +18,27 @@ class ReportController
 
         $db = Database::getInstance()->getConnection();
         $passThreshold = 80;
+        $campaignModel = new Campaign();
+        $campaigns = $campaignModel->getAll();
+
+        $campaignMap = [];
+        foreach ($campaigns as $campaign) {
+            $campaignMap[(int) $campaign['id']] = $campaign['name'];
+        }
+
+        $selectedCampaignId = isset($_GET['campaign_id']) ? (int) $_GET['campaign_id'] : 0;
+        if ($selectedCampaignId > 0 && !isset($campaignMap[$selectedCampaignId])) {
+            $selectedCampaignId = 0;
+        }
+        $selectedCampaignName = $selectedCampaignId > 0 ? $campaignMap[$selectedCampaignId] : null;
+
+        $evaluationFilterSql = $selectedCampaignId > 0 ? ' WHERE e.campaign_id = :campaign_id ' : '';
+        $evaluationFilterParams = $selectedCampaignId > 0 ? [':campaign_id' => $selectedCampaignId] : [];
+        $campaignWhereSql = $selectedCampaignId > 0 ? ' WHERE c.id = :campaign_id ' : '';
+        $campaignWhereParams = $selectedCampaignId > 0 ? [':campaign_id' => $selectedCampaignId] : [];
 
         // Overall KPIs
-        $stmt = $db->query("
+        $overallStats = $this->fetchOne($db, "
             SELECT
                 COUNT(*) as total_evaluations,
                 AVG(percentage) as avg_score,
@@ -27,24 +46,24 @@ class ReportController
                 MAX(percentage) as max_score,
                 (AVG(percentage >= {$passThreshold}) * 100) as pass_rate,
                 AVG(call_duration) as avg_duration
-            FROM evaluations
-        ");
-        $overallStats = $stmt->fetch();
+            FROM evaluations e
+            {$evaluationFilterSql}
+        ", $evaluationFilterParams);
 
         // Score distribution
-        $stmt = $db->query("
+        $scoreDistribution = $this->fetchOne($db, "
             SELECT
                 SUM(percentage >= 95) as bucket_95,
                 SUM(percentage >= 90 AND percentage < 95) as bucket_90,
                 SUM(percentage >= 80 AND percentage < 90) as bucket_80,
                 SUM(percentage >= 70 AND percentage < 80) as bucket_70,
                 SUM(percentage < 70) as bucket_0
-            FROM evaluations
-        ");
-        $scoreDistribution = $stmt->fetch();
+            FROM evaluations e
+            {$evaluationFilterSql}
+        ", $evaluationFilterParams);
 
         // Recent evaluations
-        $stmt = $db->query("
+        $recentEvaluations = $this->fetchAllRows($db, "
             SELECT
                 e.id,
                 e.percentage,
@@ -54,14 +73,14 @@ class ReportController
                 c.name as campaign_name
             FROM evaluations e
             JOIN campaigns c ON c.id = e.campaign_id
+            {$evaluationFilterSql}
             ORDER BY e.created_at DESC
             LIMIT 10
-        ");
-        $recentEvaluations = $stmt->fetchAll();
+        ", $evaluationFilterParams);
         $recentEvaluations = $this->attachNames($recentEvaluations);
 
         // Stats by Campaign
-        $stmt = $db->query("
+        $campaignStats = $this->fetchAllRows($db, "
             SELECT 
                 c.name as campaign_name,
                 COUNT(e.id) as total_evaluations,
@@ -70,77 +89,81 @@ class ReportController
                 MAX(e.percentage) as max_score
             FROM campaigns c
             LEFT JOIN evaluations e ON c.id = e.campaign_id
+            {$campaignWhereSql}
             GROUP BY c.id, c.name
             HAVING total_evaluations > 0
             ORDER BY avg_score DESC
-        ");
-        $campaignStats = $stmt->fetchAll();
+        ", $campaignWhereParams);
 
         // Stats by Campaign (Top 5)
-        $stmt = $db->query("
+        $topCampaigns = $this->fetchAllRows($db, "
             SELECT 
                 c.name as campaign_name,
                 COUNT(e.id) as total_evaluations,
                 AVG(e.percentage) as avg_score
             FROM campaigns c
             JOIN evaluations e ON c.id = e.campaign_id
+            {$evaluationFilterSql}
             GROUP BY c.id, c.name
             ORDER BY avg_score DESC
             LIMIT 5
-        ");
-        $topCampaigns = $stmt->fetchAll();
+        ", $evaluationFilterParams);
 
         // Stats by Agent (Top 5)
-        $stmt = $db->query("
+        $topAgents = $this->fetchAllRows($db, "
             SELECT 
                 e.agent_id,
                 COUNT(e.id) as total_evaluations,
                 AVG(e.percentage) as avg_score
             FROM evaluations e
+            {$evaluationFilterSql}
             GROUP BY e.agent_id
             ORDER BY avg_score DESC
             LIMIT 5
-        ");
-        $topAgents = $this->attachAgentNames($stmt->fetchAll());
+        ", $evaluationFilterParams);
+        $topAgents = $this->attachAgentNames($topAgents);
 
         // Stats by Agent (Bottom 5)
-        $stmt = $db->query("
+        $bottomAgents = $this->fetchAllRows($db, "
             SELECT 
                 e.agent_id,
                 COUNT(e.id) as total_evaluations,
                 AVG(e.percentage) as avg_score
             FROM evaluations e
+            {$evaluationFilterSql}
             GROUP BY e.agent_id
             HAVING total_evaluations >= 3
             ORDER BY avg_score ASC
             LIMIT 5
-        ");
-        $bottomAgents = $this->attachAgentNames($stmt->fetchAll());
+        ", $evaluationFilterParams);
+        $bottomAgents = $this->attachAgentNames($bottomAgents);
 
         // QA performance
-        $stmt = $db->query("
+        $qaStats = $this->fetchAllRows($db, "
             SELECT 
                 e.qa_id,
                 COUNT(e.id) as total_evaluations,
                 AVG(e.percentage) as avg_score
             FROM evaluations e
+            {$evaluationFilterSql}
             GROUP BY e.qa_id
             ORDER BY avg_score DESC
-        ");
-        $qaStats = $this->attachQaNames($stmt->fetchAll());
+        ", $evaluationFilterParams);
+        $qaStats = $this->attachQaNames($qaStats);
 
         // Monthly trend (last 6 months)
-        $stmt = $db->query("
+        $monthlyTrend = $this->fetchAllRows($db, "
             SELECT 
                 DATE_FORMAT(e.created_at, '%Y-%m') as period,
                 COUNT(*) as total_evaluations,
                 AVG(e.percentage) as avg_score
             FROM evaluations e
+            {$evaluationFilterSql}
             GROUP BY period
             ORDER BY period DESC
             LIMIT 6
-        ");
-        $monthlyTrend = array_reverse($stmt->fetchAll());
+        ", $evaluationFilterParams);
+        $monthlyTrend = array_reverse($monthlyTrend);
 
         require __DIR__ . '/../Views/reports/index.php';
     }
@@ -171,53 +194,72 @@ class ReportController
 
         $db = Database::getInstance()->getConnection();
         $passThreshold = 80;
+        $campaignModel = new Campaign();
+        $campaigns = $campaignModel->getAll();
+        $campaignMap = [];
+        foreach ($campaigns as $campaign) {
+            $campaignMap[(int) $campaign['id']] = $campaign['name'];
+        }
 
-        $stmt = $db->query("
+        $selectedCampaignId = isset($_GET['campaign_id']) ? (int) $_GET['campaign_id'] : 0;
+        if ($selectedCampaignId > 0 && !isset($campaignMap[$selectedCampaignId])) {
+            $selectedCampaignId = 0;
+        }
+        $selectedCampaignName = $selectedCampaignId > 0 ? $campaignMap[$selectedCampaignId] : null;
+
+        $evaluationFilterSql = $selectedCampaignId > 0 ? ' WHERE e.campaign_id = :campaign_id ' : '';
+        $evaluationFilterParams = $selectedCampaignId > 0 ? [':campaign_id' => $selectedCampaignId] : [];
+        $campaignWhereSql = $selectedCampaignId > 0 ? ' WHERE c.id = :campaign_id ' : '';
+        $campaignWhereParams = $selectedCampaignId > 0 ? [':campaign_id' => $selectedCampaignId] : [];
+
+        $overallStats = $this->fetchOne($db, "
             SELECT
                 COUNT(*) as total_evaluations,
                 AVG(percentage) as avg_score,
                 MIN(percentage) as min_score,
                 MAX(percentage) as max_score,
                 (AVG(percentage >= {$passThreshold}) * 100) as pass_rate
-            FROM evaluations
-        ");
-        $overallStats = $stmt->fetch();
+            FROM evaluations e
+            {$evaluationFilterSql}
+        ", $evaluationFilterParams);
 
-        $stmt = $db->query("
+        $campaignStats = $this->fetchAllRows($db, "
             SELECT
                 c.name as campaign_name,
                 COUNT(e.id) as total_evaluations,
                 AVG(e.percentage) as avg_score
             FROM campaigns c
             LEFT JOIN evaluations e ON c.id = e.campaign_id
+            {$campaignWhereSql}
             GROUP BY c.id, c.name
             HAVING total_evaluations > 0
             ORDER BY avg_score DESC
-        ");
-        $campaignStats = $stmt->fetchAll();
+        ", $campaignWhereParams);
 
-        $stmt = $db->query("
+        $topAgents = $this->fetchAllRows($db, "
             SELECT 
                 e.agent_id,
                 COUNT(e.id) as total_evaluations,
                 AVG(e.percentage) as avg_score
             FROM evaluations e
+            {$evaluationFilterSql}
             GROUP BY e.agent_id
             ORDER BY avg_score DESC
             LIMIT 10
-        ");
-        $topAgents = $this->attachAgentNames($stmt->fetchAll());
+        ", $evaluationFilterParams);
+        $topAgents = $this->attachAgentNames($topAgents);
 
-        $stmt = $db->query("
+        $qaStats = $this->fetchAllRows($db, "
             SELECT 
                 e.qa_id,
                 COUNT(e.id) as total_evaluations,
                 AVG(e.percentage) as avg_score
             FROM evaluations e
+            {$evaluationFilterSql}
             GROUP BY e.qa_id
             ORDER BY avg_score DESC
-        ");
-        $qaStats = $this->attachQaNames($stmt->fetchAll());
+        ", $evaluationFilterParams);
+        $qaStats = $this->attachQaNames($qaStats);
 
         ob_start();
         require __DIR__ . '/../Views/reports/pdf.php';
@@ -252,6 +294,29 @@ class ReportController
         }
         unset($row);
         return $rows;
+    }
+
+    private function fetchOne($db, string $sql, array $params = []): array
+    {
+        if (empty($params)) {
+            $stmt = $db->query($sql);
+        } else {
+            $stmt = $db->prepare($sql);
+            $stmt->execute($params);
+        }
+        $row = $stmt->fetch();
+        return $row ?: [];
+    }
+
+    private function fetchAllRows($db, string $sql, array $params = []): array
+    {
+        if (empty($params)) {
+            $stmt = $db->query($sql);
+        } else {
+            $stmt = $db->prepare($sql);
+            $stmt->execute($params);
+        }
+        return $stmt->fetchAll();
     }
 
     private function attachAgentNames(array $rows): array

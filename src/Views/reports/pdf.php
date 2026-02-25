@@ -97,6 +97,9 @@
     <div class="header">
         <div class="title">Reporte de Calidad</div>
         <div class="subtitle">Evallish BPO • Generado el <?php echo date('d/m/Y H:i'); ?></div>
+        <?php if (!empty($selectedCampaignName)): ?>
+            <div class="subtitle">Filtro aplicado: Campaña <?php echo htmlspecialchars($selectedCampaignName); ?></div>
+        <?php endif; ?>
     </div>
 
     <table class="summary-grid">
