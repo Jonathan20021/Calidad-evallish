@@ -31,7 +31,7 @@
                 <h2 class="text-xl font-semibold text-gray-800 mb-4 flex items-center">
                     <i class="fas fa-clipboard-check mr-2 text-indigo-500"></i> Evaluaciones Eliminadas
                 </h2>
-                <div class="bg-white shadow overflow-hidden sm:rounded-lg border border-gray-200">
+                <div class="bg-white shadow overflow-hidden sm:rounded-lg border border-gray-200 overflow-x-auto">
                     <?php if (empty($deletedEvaluations)): ?>
                         <div class="p-6 text-center text-gray-500">No hay evaluaciones en la papelera.</div>
                     <?php else: ?>
@@ -77,7 +77,7 @@
                 <h2 class="text-xl font-semibold text-gray-800 mb-4 flex items-center">
                     <i class="fas fa-file-alt mr-2 text-indigo-500"></i> Formularios Eliminados
                 </h2>
-                <div class="bg-white shadow overflow-hidden sm:rounded-lg border border-gray-200">
+                <div class="bg-white shadow overflow-hidden sm:rounded-lg border border-gray-200 overflow-x-auto">
                     <?php if (empty($deletedTemplates)): ?>
                         <div class="p-6 text-center text-gray-500">No hay formularios en la papelera.</div>
                     <?php else: ?>
@@ -124,7 +124,7 @@
                 <h2 class="text-xl font-semibold text-gray-800 mb-4 flex items-center">
                     <i class="fas fa-bullhorn mr-2 text-indigo-500"></i> Campañas Eliminadas
                 </h2>
-                <div class="bg-white shadow overflow-hidden sm:rounded-lg border border-gray-200">
+                <div class="bg-white shadow overflow-hidden sm:rounded-lg border border-gray-200 overflow-x-auto">
                     <?php if (empty($deletedCampaigns)): ?>
                         <div class="p-6 text-center text-gray-500">No hay campañas en la papelera.</div>
                     <?php else: ?>

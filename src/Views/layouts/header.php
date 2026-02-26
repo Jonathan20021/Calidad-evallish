@@ -8,6 +8,7 @@
         <?php echo \App\Config\Config::APP_NAME; ?>
     </title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body {
@@ -19,7 +20,18 @@
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
         }
+
+        @media (max-width: 768px) {
+            main {
+                padding-top: 4rem !important;
+                /* Make room for floating topbar */
+            }
+
+            .mobile-padding {
+                padding-bottom: 2rem;
+            }
+        }
     </style>
 </head>
 
-<body class="bg-gray-50 text-gray-800 antialiased">
+<body class="bg-gray-50 text-gray-800 antialiased" x-data="{ sidebarOpen: false }">

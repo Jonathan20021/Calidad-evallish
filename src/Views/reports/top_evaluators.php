@@ -1,4 +1,4 @@
-<?php require __DIR__ . '/../layouts/header.php'; 
+<?php require __DIR__ . '/../layouts/header.php';
 $selectedQaId = $selectedQaId ?? null;
 $selectedQa = $selectedQa ?? null;
 ?>
@@ -122,7 +122,7 @@ $selectedQa = $selectedQa ?? null;
                             </div>
 
                             <div class="p-8">
-                                <div class="overflow-hidden rounded-2xl border border-slate-100">
+                                <div class="overflow-hidden overflow-x-auto rounded-2xl border border-slate-100">
                                     <table class="min-w-full divide-y divide-slate-100">
                                         <thead class="bg-slate-50">
                                             <tr>

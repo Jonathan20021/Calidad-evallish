@@ -1,9 +1,38 @@
-﻿<!-- Sidebar -->
-<aside class="w-64 bg-[#0B1120] text-white hidden md:flex flex-col flex-shrink-0 transition-all duration-300">
-    <div class="h-16 flex items-center px-6 bg-[#0B1120] border-b border-gray-800">
+﻿<!-- Mobile Topbar -->
+<div
+    class="md:hidden fixed top-0 left-0 right-0 h-16 bg-[#0B1120] text-white z-20 flex items-center justify-between px-4 shadow-md">
+    <div class="flex items-center gap-3">
+        <button @click="sidebarOpen = true"
+            class="text-gray-300 hover:text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0B1120] rounded-md p-1">
+            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+        </button>
+        <img src="<?php echo \App\Config\Config::BASE_URL; ?>logo.png" alt="Evallish BPO" class="h-8 w-auto" />
+    </div>
+</div>
+
+<!-- Mobile Sidebar Overlay -->
+<div x-show="sidebarOpen" x-transition:enter="transition-opacity ease-linear duration-300"
+    x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+    x-transition:leave="transition-opacity ease-linear duration-300" x-transition:leave-start="opacity-100"
+    x-transition:leave-end="opacity-0" class="fixed inset-0 z-30 bg-gray-900 bg-opacity-50 md:hidden"
+    @click="sidebarOpen = false" style="display: none;"></div>
+
+<!-- Sidebar -->
+<aside
+    class="fixed inset-y-0 left-0 z-40 w-64 bg-[#0B1120] text-white flex flex-col flex-shrink-0 transition-transform duration-300 transform md:static md:translate-x-0 overflow-hidden shadow-xl md:shadow-none"
+    :class="{'translate-x-0': sidebarOpen, '-translate-x-full': !sidebarOpen}">
+    <div class="h-16 flex items-center justify-between px-6 bg-[#0B1120] border-b border-gray-800">
         <div class="flex items-center gap-3">
             <img src="<?php echo \App\Config\Config::BASE_URL; ?>logo.png" alt="Evallish BPO" class="h-10 w-auto" />
         </div>
+        <button @click="sidebarOpen = false"
+            class="md:hidden text-gray-400 hover:text-white focus:outline-none p-1 rounded-md">
+            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+        </button>
     </div>
 
     <nav class="flex-1 px-3 py-6 space-y-1 overflow-y-auto">
