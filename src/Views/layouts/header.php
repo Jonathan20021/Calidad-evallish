@@ -22,11 +22,6 @@
         }
 
         @media (max-width: 768px) {
-            main {
-                padding-top: 4rem !important;
-                /* Make room for floating topbar */
-            }
-
             .mobile-padding {
                 padding-bottom: 2rem;
             }
@@ -34,4 +29,4 @@
     </style>
 </head>
 
-<body class="bg-gray-50 text-gray-800 antialiased" x-data="{ sidebarOpen: false }">
+<body class="bg-gray-50 text-gray-800 antialiased" x-data="{ sidebarOpen: window.innerWidth >= 768 }">

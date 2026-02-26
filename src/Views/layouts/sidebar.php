@@ -21,21 +21,27 @@
 
 <!-- Sidebar -->
 <aside
-    class="fixed inset-y-0 left-0 z-40 w-64 bg-[#0B1120] text-white flex flex-col flex-shrink-0 transition-transform duration-300 transform md:static md:translate-x-0 overflow-hidden shadow-xl md:shadow-none"
-    :class="{'translate-x-0': sidebarOpen, '-translate-x-full': !sidebarOpen}">
-    <div class="h-16 flex items-center justify-between px-6 bg-[#0B1120] border-b border-gray-800">
-        <div class="flex items-center gap-3">
+    class="fixed inset-y-0 left-0 z-40 bg-[#0B1120] text-white flex flex-col flex-shrink-0 transition-all duration-300 transform md:relative overflow-hidden shadow-xl md:shadow-none h-screen group"
+    :class="{'w-64 translate-x-0': sidebarOpen, 'w-64 -translate-x-full md:w-16 md:translate-x-0': !sidebarOpen}">
+
+    <div class="h-16 flex items-center bg-[#0B1120] border-b border-gray-800 transition-all duration-300"
+        :class="{'justify-between px-6': sidebarOpen, 'justify-center px-0': !sidebarOpen}">
+        <div class="flex items-center gap-3" x-show="sidebarOpen">
             <img src="<?php echo \App\Config\Config::BASE_URL; ?>logo.png" alt="Evallish BPO" class="h-10 w-auto" />
         </div>
-        <button @click="sidebarOpen = false"
-            class="md:hidden text-gray-400 hover:text-white focus:outline-none p-1 rounded-md">
+        <button @click="sidebarOpen = !sidebarOpen"
+            class="text-gray-400 hover:text-white focus:outline-none p-1 rounded-md flex-shrink-0">
             <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                <path x-show="sidebarOpen" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M6 18L18 6M6 6l12 12" />
+                <path x-show="!sidebarOpen" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M4 6h16M4 12h16M4 18h16" style="display: none;" />
             </svg>
         </button>
     </div>
 
-    <nav class="flex-1 px-3 py-6 space-y-1 overflow-y-auto">
+    <nav class="flex-1 py-6 space-y-1 overflow-y-auto overflow-x-hidden"
+        :class="{'px-3': sidebarOpen, 'px-2': !sidebarOpen}">
         <?php
         $currentUri = $_SERVER['REQUEST_URI'];
         $role = $_SESSION['user']['role'] ?? '';
@@ -139,29 +145,33 @@
             $fullUrl = \App\Config\Config::BASE_URL . $item['url'];
             ?>
             <a href="<?php echo $fullUrl; ?>"
-                class="group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 <?php echo $bgClass; ?>">
-                <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo $iconColor; ?> group-hover:text-blue-400 transition-colors"
-                    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                    stroke-linejoin="round">
+                class="group flex items-center py-2.5 text-sm font-medium rounded-lg transition-all duration-200 <?php echo $bgClass; ?>"
+                :class="{'px-3': sidebarOpen, 'px-0 justify-center mx-1': !sidebarOpen}"
+                title="<?php echo $item['label']; ?>">
+                <svg class="flex-shrink-0 h-5 w-5 <?php echo $iconColor; ?> group-hover:text-blue-400 transition-colors"
+                    :class="{'mr-3': sidebarOpen}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
                     <?php echo $item['icon']; ?>
                 </svg>
-                <?php echo $item['label']; ?>
+                <span x-show="sidebarOpen"
+                    class="whitespace-nowrap transition-opacity duration-300"><?php echo $item['label']; ?></span>
             </a>
         <?php endforeach; ?>
     </nav>
 
-    <div class="border-t border-gray-800 p-4">
-        <div class="flex items-center">
-            <div
-                class="h-9 w-9 rounded-full bg-gradient-to-tr from-blue-500 to-purple-500 flex items-center justify-center text-white font-bold text-sm shadow-md">
+    <div class="border-t border-gray-800 py-4 transition-all duration-300"
+        :class="{'px-4': sidebarOpen, 'px-2': !sidebarOpen}">
+        <div class="flex items-center justify-center">
+            <div class="h-9 w-9 flex-shrink-0 rounded-full bg-gradient-to-tr from-blue-500 to-purple-500 flex items-center justify-center text-white font-bold text-sm shadow-md cursor-pointer"
+                @click="sidebarOpen = true">
                 <?php echo substr($_SESSION['user']['username'] ?? 'U', 0, 1); ?>
             </div>
-            <div class="ml-3">
-                <p class="text-sm font-medium text-white group-hover:text-white">
+            <div class="ml-3 overflow-hidden" x-show="sidebarOpen">
+                <p class="text-sm font-medium text-white whitespace-nowrap">
                     <?php echo htmlspecialchars($_SESSION['user']['full_name'] ?? 'Usuario'); ?>
                 </p>
                 <a href="<?php echo \App\Config\Config::BASE_URL; ?>logout"
-                    class="text-xs text-gray-500 hover:text-gray-300">Cerrar Sesión</a>
+                    class="text-xs text-gray-500 hover:text-gray-300 whitespace-nowrap">Cerrar Sesión</a>
             </div>
         </div>
     </div>
