@@ -27,9 +27,9 @@ class FormTemplate
         return $stmt->fetchAll();
     }
 
-    public function getAllWithCampaign()
+    public function getAllWithCampaign($search = null)
     {
-        $stmt = $this->db->query("
+        $query = "
             SELECT 
                 t.*,
                 GROUP_CONCAT(c.name ORDER BY c.name SEPARATOR ', ') as campaign_names,
@@ -39,8 +39,19 @@ class FormTemplate
             LEFT JOIN campaigns c ON ftc.campaign_id = c.id
             WHERE t.deleted_at IS NULL
             GROUP BY t.id
-            ORDER BY t.created_at DESC
-        ");
+        ";
+
+        if ($search !== null && $search !== '') {
+            $query .= " HAVING t.title LIKE :search OR campaign_names LIKE :search ";
+        }
+
+        $query .= " ORDER BY t.created_at DESC ";
+
+        $stmt = $this->db->prepare($query);
+        if ($search !== null && $search !== '') {
+            $stmt->bindValue(':search', '%' . $search . '%', PDO::PARAM_STR);
+        }
+        $stmt->execute();
         return $stmt->fetchAll();
     }
 

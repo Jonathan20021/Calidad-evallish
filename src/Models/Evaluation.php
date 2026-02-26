@@ -15,7 +15,7 @@ class Evaluation
         $this->db = Database::getInstance()->getConnection();
     }
 
-    public function getAll($limit = 50, $userId = null, $role = null)
+    public function getAll($limit = 50, $userId = null, $role = null, $campaignId = null)
     {
         $query = "
             SELECT e.*, 
@@ -33,12 +33,19 @@ class Evaluation
             $query .= " AND e.agent_id = :userId";
         }
 
+        if ($campaignId) {
+            $query .= " AND e.campaign_id = :campaignId";
+        }
+
         $query .= " ORDER BY e.created_at DESC LIMIT :limit";
 
         $stmt = $this->db->prepare($query);
         $stmt->bindValue(':limit', (int) $limit, PDO::PARAM_INT);
         if ($role === 'qa' || $role === 'agent') {
             $stmt->bindValue(':userId', (int) $userId, PDO::PARAM_INT);
+        }
+        if ($campaignId) {
+            $stmt->bindValue(':campaignId', (int) $campaignId, PDO::PARAM_INT);
         }
         $stmt->execute();
         $rows = $stmt->fetchAll();

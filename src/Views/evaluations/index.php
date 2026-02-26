@@ -24,6 +24,20 @@
             <?php endif; ?>
 
             <div class="flex flex-col">
+                <div class="mb-4">
+                    <form method="GET" action="" class="flex items-center space-x-2">
+                        <label for="campaign_id" class="text-sm font-medium text-gray-700">Filtrar por Campaña:</label>
+                        <select name="campaign_id" id="campaign_id" onchange="this.form.submit()"
+                            class="block w-64 pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md shadow-sm">
+                            <option value="">Todas las campañas</option>
+                            <?php foreach ($campaigns as $campaign): ?>
+                                <option value="<?php echo $campaign['id']; ?>" <?php echo (isset($selectedCampaignId) && $selectedCampaignId == $campaign['id']) ? 'selected' : ''; ?>>
+                                    <?php echo htmlspecialchars($campaign['name']); ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </form>
+                </div>
                 <div class="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
                     <div class="py-2 align-middle inline-block min-w-full sm:px-6 lg:px-8">
                         <div class="shadow overflow-hidden border-b border-gray-200 sm:rounded-lg">

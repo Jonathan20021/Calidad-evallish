@@ -148,8 +148,13 @@ class EvaluationController
 
         $user = Auth::user();
         $evaluationModel = new Evaluation();
+        $campaignModel = new Campaign();
+
+        $campaigns = $campaignModel->getActive();
+        $selectedCampaignId = $_GET['campaign_id'] ?? null;
+
         $role = strtolower(trim((string) ($user['role'] ?? '')));
-        $evaluations = $evaluationModel->getAll(50, $user['id'], $role);
+        $evaluations = $evaluationModel->getAll(50, $user['id'], $role, $selectedCampaignId);
 
         require __DIR__ . '/../Views/evaluations/index.php';
     }

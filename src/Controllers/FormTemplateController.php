@@ -14,8 +14,10 @@ class FormTemplateController
     {
         Auth::requirePermission('forms.view');
 
+        $search = $_GET['search'] ?? null;
+
         $templateModel = new FormTemplate();
-        $templates = $templateModel->getAllWithCampaign();
+        $templates = $templateModel->getAllWithCampaign($search);
 
         require __DIR__ . '/../Views/form_templates/index.php';
     }
