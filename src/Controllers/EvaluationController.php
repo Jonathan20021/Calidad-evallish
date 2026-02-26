@@ -151,10 +151,30 @@ class EvaluationController
         $campaignModel = new Campaign();
 
         $campaigns = $campaignModel->getActive();
+
         $selectedCampaignId = $_GET['campaign_id'] ?? null;
+        $search = $_GET['search'] ?? null;
+        $dateFrom = $_GET['date_from'] ?? null;
+        $dateTo = $_GET['date_to'] ?? null;
+        $page = max(1, (int) ($_GET['page'] ?? 1));
+        $limit = 20;
 
         $role = strtolower(trim((string) ($user['role'] ?? '')));
-        $evaluations = $evaluationModel->getAll(50, $user['id'], $role, $selectedCampaignId);
+
+        $result = $evaluationModel->getAllPaginated(
+            $limit,
+            $user['id'],
+            $role,
+            $selectedCampaignId,
+            $page,
+            $search,
+            $dateFrom,
+            $dateTo
+        );
+        $evaluations = $result['data'];
+        $totalPages = $result['pages'];
+        $currentPage = $result['page'];
+        $totalEvaluations = $result['total'];
 
         require __DIR__ . '/../Views/evaluations/index.php';
     }

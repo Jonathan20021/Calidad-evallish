@@ -52,6 +52,100 @@ class Evaluation
         return $this->attachUserNames($rows);
     }
 
+    public function getAllPaginated($limit = 50, $userId = null, $role = null, $campaignId = null, $page = 1, $search = null, $dateFrom = null, $dateTo = null)
+    {
+        $offset = ($page - 1) * $limit;
+
+        $where = "e.deleted_at IS NULL";
+        $params = [];
+
+        if ($role === 'qa') {
+            $where .= " AND e.qa_id = :userId";
+            $params[':userId'] = (int) $userId;
+        } elseif ($role === 'agent') {
+            $where .= " AND e.agent_id = :userId";
+            $params[':userId'] = (int) $userId;
+        }
+
+        if ($campaignId) {
+            $where .= " AND e.campaign_id = :campaignId";
+            $params[':campaignId'] = (int) $campaignId;
+        }
+
+        if ($dateFrom) {
+            $where .= " AND DATE(e.created_at) >= :dateFrom";
+            $params[':dateFrom'] = $dateFrom;
+        }
+
+        if ($dateTo) {
+            $where .= " AND DATE(e.created_at) <= :dateTo";
+            $params[':dateTo'] = $dateTo;
+        }
+
+        if ($search) {
+            $where .= " AND (agent_user.full_name LIKE :search OR qa_user.full_name LIKE :search)";
+            $params[':search'] = '%' . $search . '%';
+        }
+
+        $joins = "
+            JOIN campaigns c ON e.campaign_id = c.id
+            JOIN form_templates ft ON e.form_template_id = ft.id
+        ";
+
+        if ($search) {
+            $joins .= "
+                LEFT JOIN users agent_user ON e.agent_id = agent_user.id
+                LEFT JOIN users qa_user ON e.qa_id = qa_user.id
+            ";
+        }
+
+        $query = "
+            SELECT e.*, 
+                   c.name as campaign_name,
+                   ft.title as form_title
+            FROM evaluations e
+            $joins
+            WHERE $where
+            ORDER BY e.created_at DESC LIMIT :limit OFFSET :offset
+        ";
+
+        $countQuery = "
+            SELECT COUNT(*) 
+            FROM evaluations e
+            $joins
+            WHERE $where
+        ";
+
+        $countStmt = $this->db->prepare($countQuery);
+        foreach ($params as $key => $val) {
+            $countStmt->bindValue($key, $val);
+        }
+        $countStmt->execute();
+        $total = (int) $countStmt->fetchColumn();
+
+        $stmt = $this->db->prepare($query);
+        $stmt->bindValue(':limit', (int) $limit, PDO::PARAM_INT);
+        $stmt->bindValue(':offset', (int) $offset, PDO::PARAM_INT);
+        foreach ($params as $key => $val) {
+            if (is_int($val)) {
+                $stmt->bindValue($key, $val, PDO::PARAM_INT);
+            } else {
+                $stmt->bindValue($key, $val);
+            }
+        }
+        $stmt->execute();
+        $rows = $stmt->fetchAll();
+        $data = $this->attachUserNames($rows);
+
+        return [
+            'data' => $data,
+            'total' => $total,
+            'page' => $page,
+            'limit' => $limit,
+            'pages' => ceil($total / $limit)
+        ];
+    }
+
     public function findById($id)
     {
         $stmt = $this->db->prepare("
